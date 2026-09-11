@@ -1,0 +1,35 @@
+--- codegen/lib/ppu.c
++++ codegen/lib/ppu.c
+@@ -207,14 +207,22 @@
+     return ((attr_table_byte >> shift) & 0b11) * BYTES_PER_PALETTE;
+ }
+ 
++static uint32_t smb360_palette_key(size_t palette_offset) {
++    return ((uint32_t)palette.u8[palette_offset]) |
++           ((uint32_t)palette.u8[palette_offset + 1] << 8) |
++           ((uint32_t)palette.u8[palette_offset + 2] << 16) |
++           ((uint32_t)palette.u8[palette_offset + 3] << 24);
++}
++
+ Tile* get_cached_background_tile(size_t n, size_t bank_offset, size_t palette_offset) {
+     size_t palette_idx = palette_offset / 4;
++    const uint32_t current_palette = smb360_palette_key(palette_idx * 4);
+     Tile *tile = &bg_cached_tiles[n][palette_idx];
+ 
+     if (
+         tile->is_ready &&
+         tile->universal_color == palette.u8[0] &&
+-        tile->palette == (palette.u32[palette_idx] & tile->palette_mask)
++        tile->palette == (current_palette & tile->palette_mask)
+     ) {
+         return tile;
+     }
+@@ -260,7 +268,7 @@
+     }
+ 
+     tile->palette_mask = palette_mask;
+-    tile->palette = palette.u32[palette_idx] & palette_mask;
++    tile->palette = current_palette & palette_mask;
+     tile->universal_color = palette.u8[0];
+     tile->is_ready = true;
+ 
