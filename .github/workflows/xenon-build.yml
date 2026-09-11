@@ -24,29 +24,51 @@ jobs:
       image: free60/libxenon:latest
     steps:
       - uses: actions/checkout@v4
-      - name: Bootstrap CI runtime
-        shell: bash
-        run: |
-          apt-get update
-          DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends python3
       - name: Verify toolchain
         shell: bash
         run: |
+          set -euo pipefail
           export DEVKITXENON=/usr/local/xenon
           export PATH="$PATH:$DEVKITXENON/bin:$DEVKITXENON/usr/bin"
-          python3 scripts/check_xenon_toolchain.py
-      - name: Build diagnostic Xenon ELF
+          test -f "$DEVKITXENON/rules"
+          test -f "$DEVKITXENON/app.lds"
+          for tool in xenon-gcc xenon-g++ xenon-ar xenon-objcopy; do
+            command -v "$tool" >/dev/null
+          done
+          test -n "$(find "$DEVKITXENON" -name libxenon.a -print -quit)"
+          test -n "$(find "$DEVKITXENON" -name libfat.a -print -quit)"
+          echo "Xenon toolchain preflight: PASS"
+      - name: Build and verify diagnostic Xenon ELF
         shell: bash
         run: |
+          set -euo pipefail
           export DEVKITXENON=/usr/local/xenon
           export PATH="$PATH:$DEVKITXENON/bin:$DEVKITXENON/usr/bin"
           make -f platform-xenon.mk clean
           make -f platform-xenon.mk SMB360_WITH_NATHSOU=0
-          python3 scripts/verify_xenon_elf32.py smb360.elf32
+          test -s smb360.elf32
+          ident="$(od -An -tx1 -N6 smb360.elf32 | tr -d ' \n')"
+          test "$ident" = "7f454c460102"
+          type_machine="$(dd if=smb360.elf32 bs=1 skip=16 count=4 2>/dev/null | od -An -tx1 | tr -d ' \n')"
+          case "$type_machine" in
+            00020014|00030014) ;;
+            *) echo "Unexpected ELF e_type/e_machine: $type_machine" >&2; exit 1 ;;
+          esac
+          file smb360.elf32
+          echo "Xenon ELF32 verification: PASS (PowerPC big-endian)"
       - name: Stage XeLL USB payload
         shell: bash
         run: |
-          python3 scripts/stage_xenon_usb.py smb360.elf32 xenon-usb
+          set -euo pipefail
+          rm -rf xenon-usb
+          mkdir xenon-usb
+          cp smb360.elf32 xenon-usb/xenon.elf
+          (cd xenon-usb && sha256sum xenon.elf > SHA256SUMS.txt)
+          printf '%s\n' \
+            'SMB360 XeLL test package' \
+            'Copy xenon.elf to the root of a FAT32 USB device for XeLL Reloaded.' \
+            'The ROM is intentionally not included in this package.' \
+            > xenon-usb/README.txt
       - name: Upload Xenon artifact
         uses: actions/upload-artifact@v4
         with:
