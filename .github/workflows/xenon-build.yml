@@ -1,0 +1,51 @@
+name: Xenon Build
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'include/**'
+      - 'src/**'
+      - 'scripts/**'
+      - 'platform-xenon.mk'
+      - '.github/workflows/xenon-build.yml'
+  pull_request:
+    paths:
+      - 'include/**'
+      - 'src/**'
+      - 'scripts/**'
+      - 'platform-xenon.mk'
+      - '.github/workflows/xenon-build.yml'
+
+jobs:
+  xenon-diagnostics:
+    runs-on: ubuntu-latest
+    container:
+      image: free60/libxenon:latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify toolchain
+        shell: bash
+        run: |
+          export DEVKITXENON=/usr/local/xenon
+          export PATH="$PATH:$DEVKITXENON/bin:$DEVKITXENON/usr/bin"
+          python3 scripts/check_xenon_toolchain.py
+      - name: Build diagnostic Xenon ELF
+        shell: bash
+        run: |
+          export DEVKITXENON=/usr/local/xenon
+          export PATH="$PATH:$DEVKITXENON/bin:$DEVKITXENON/usr/bin"
+          make -f platform-xenon.mk clean
+          make -f platform-xenon.mk SMB360_WITH_NATHSOU=0
+          python3 scripts/verify_xenon_elf32.py smb360.elf32
+      - name: Stage XeLL USB payload
+        shell: bash
+        run: |
+          python3 scripts/stage_xenon_usb.py smb360.elf32 xenon-usb
+      - name: Upload Xenon artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: smb360-xenon-diagnostics
+          path: xenon-usb/
+          if-no-files-found: error
+          retention-days: 14

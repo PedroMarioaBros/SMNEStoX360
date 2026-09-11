@@ -1,0 +1,13 @@
+build/
+upstreams/
+*.nes
+*.rom
+*.elf
+*.elf32
+*.xex
+*.fds
+__pycache__/
+*.pyc
+*.log
+
+build*/
