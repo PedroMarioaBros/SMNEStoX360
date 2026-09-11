@@ -32,9 +32,7 @@ jobs:
           export PATH="$PATH:$DEVKITXENON/bin:$DEVKITXENON/usr/bin"
           test -f "$DEVKITXENON/rules"
           test -f "$DEVKITXENON/app.lds"
-          for tool in xenon-gcc xenon-g++ xenon-ar xenon-objcopy; do
-            command -v "$tool" >/dev/null
-          done
+          for tool in xenon-gcc xenon-g++ xenon-ar xenon-objcopy; do command -v "$tool" >/dev/null; done
           test -n "$(find "$DEVKITXENON" -name libxenon.a -print -quit)"
           test -n "$(find "$DEVKITXENON" -name libfat.a -print -quit)"
           echo "Xenon toolchain preflight: PASS"
@@ -45,30 +43,22 @@ jobs:
           export DEVKITXENON=/usr/local/xenon
           export PATH="$PATH:$DEVKITXENON/bin:$DEVKITXENON/usr/bin"
           make -f platform-xenon.mk clean
-          make -f platform-xenon.mk SMB360_WITH_NATHSOU=0
+          make -f platform-xenon.mk
           test -s smb360.elf32
           ident="$(od -An -tx1 -N6 smb360.elf32 | tr -d ' \n')"
           test "$ident" = "7f454c460102"
           type_machine="$(dd if=smb360.elf32 bs=1 skip=16 count=4 2>/dev/null | od -An -tx1 | tr -d ' \n')"
-          case "$type_machine" in
-            00020014|00030014) ;;
-            *) echo "Unexpected ELF e_type/e_machine: $type_machine" >&2; exit 1 ;;
-          esac
+          case "$type_machine" in 00020014|00030014) ;; *) echo "Unexpected ELF e_type/e_machine: $type_machine" >&2; exit 1 ;; esac
           file smb360.elf32
           echo "Xenon ELF32 verification: PASS (PowerPC big-endian)"
       - name: Stage XeLL USB payload
         shell: bash
         run: |
           set -euo pipefail
-          rm -rf xenon-usb
-          mkdir xenon-usb
+          rm -rf xenon-usb && mkdir xenon-usb
           cp smb360.elf32 xenon-usb/xenon.elf
           (cd xenon-usb && sha256sum xenon.elf > SHA256SUMS.txt)
-          printf '%s\n' \
-            'SMB360 XeLL test package' \
-            'Copy xenon.elf to the root of a FAT32 USB device for XeLL Reloaded.' \
-            'The ROM is intentionally not included in this package.' \
-            > xenon-usb/README.txt
+          printf '%s\n' 'SMB360 XeLL test package' 'Copy xenon.elf to the root of a FAT32 USB device for XeLL Reloaded.' 'The ROM is intentionally not included in this package.' > xenon-usb/README.txt
       - name: Upload Xenon artifact
         uses: actions/upload-artifact@v4
         with:
@@ -76,3 +66,73 @@ jobs:
           path: xenon-usb/
           if-no-files-found: error
           retention-days: 14
+
+  nathsou-real-core-compile:
+    runs-on: ubuntu-latest
+    container:
+      image: free60/libxenon:latest
+    env:
+      NATHSOU_PIN: 2143a91e84a7aa888a31f0def9ed5f747fc3da26
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fetch exact audited nathsou upstream
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf .ci/nathsou
+          mkdir -p .ci/nathsou
+          git -C .ci/nathsou init
+          git -C .ci/nathsou remote add origin https://github.com/nathsou/smb.git
+          git -C .ci/nathsou fetch --depth=1 origin "$NATHSOU_PIN"
+          git -C .ci/nathsou checkout --detach FETCH_HEAD
+          test "$(git -C .ci/nathsou rev-parse HEAD)" = "$NATHSOU_PIN"
+          grep -q 'Apache License' .ci/nathsou/LICENSE
+          grep -q 'Version 2.0' .ci/nathsou/LICENSE
+      - name: Verify 19 pinned Git blobs
+        shell: bash
+        run: |
+          set -euo pipefail
+          root=.ci/nathsou
+          while read -r expected path; do
+            actual="$(git -C "$root" hash-object "$path")"
+            if [ "$actual" != "$expected" ]; then
+              echo "blob mismatch: $path expected=$expected actual=$actual" >&2
+              exit 1
+            fi
+          done <<'EOF'
+          d645695673349e3947e8e5ae42332d0ac3164cd7 LICENSE
+          e94ae6adc038094ddf953727865a2d06097f142e codegen/lib/apu.c
+          fe70e037f595b7dec54fd0846e6c54620698ab50 codegen/lib/apu.h
+          779a38e8cd8171a1dff1e21a835a5609f08eea07 codegen/lib/code.c
+          91820dccd716db733f0842b04234d62adaac1d66 codegen/lib/code.h
+          6f605b4dede3b331f345a8a3b67d8085a53e5534 codegen/lib/common.c
+          aabda92251d703985080473e7c12a7444c6befa2 codegen/lib/common.h
+          e51099f2f27702dc62885eb88048c192330ea072 codegen/lib/constants.h
+          4b42270f5f71ff2284982fb5e509c4bdab22c72c codegen/lib/cpu.c
+          88407acdfe7181a47d221253f97bbd16f562de72 codegen/lib/cpu.h
+          1b49716336b4a99cdb74302da0a05803873c2371 codegen/lib/data.c
+          fbfe4fbe89f3f44fccd4970e670927432face5a6 codegen/lib/data.h
+          548846911c8e0610eb611b529559a3172fac6d13 codegen/lib/external.h
+          ff02623fcabc97891ee76168c82a9f6c79bbda04 codegen/lib/instructions.c
+          347ede3443c327ca280015c24f30cd29c7b8b208 codegen/lib/instructions.h
+          0bdffc4d193af2be68cc7004dfd2d3f64dd73f4d codegen/lib/ppu.c
+          dc35769d582b685d7fc541b0ef4672fc67837b45 codegen/lib/ppu.h
+          4482b42e5abc750304f8a5bdeedef831b9a9c378 codegen/lib/state.c
+          3839132c6f37808ed588962222a69630c51cbf59 codegen/lib/state.h
+          EOF
+          echo "nathsou pin verification: PASS ($NATHSOU_PIN; 19 blobs)"
+      - name: Compile SMB360 with real nathsou core
+        shell: bash
+        run: |
+          set -euo pipefail
+          export DEVKITXENON=/usr/local/xenon
+          export PATH="$PATH:$DEVKITXENON/bin:$DEVKITXENON/usr/bin"
+          make -f platform-xenon.mk clean
+          make -f platform-xenon.mk NATHSOU_ROOT="$PWD/.ci/nathsou"
+          test -s smb360.elf32
+          ident="$(od -An -tx1 -N6 smb360.elf32 | tr -d ' \n')"
+          test "$ident" = "7f454c460102"
+          type_machine="$(dd if=smb360.elf32 bs=1 skip=16 count=4 2>/dev/null | od -An -tx1 | tr -d ' \n')"
+          case "$type_machine" in 00020014|00030014) ;; *) echo "Unexpected ELF e_type/e_machine: $type_machine" >&2; exit 1 ;; esac
+          file smb360.elf32
+          echo "real nathsou core cross-compile: PASS"
