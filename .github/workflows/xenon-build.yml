@@ -7,6 +7,7 @@ on:
       - 'include/**'
       - 'src/**'
       - 'scripts/**'
+      - 'patches/**'
       - 'platform-xenon.mk'
       - '.github/workflows/xenon-build.yml'
   pull_request:
@@ -14,6 +15,7 @@ on:
       - 'include/**'
       - 'src/**'
       - 'scripts/**'
+      - 'patches/**'
       - 'platform-xenon.mk'
       - '.github/workflows/xenon-build.yml'
 
@@ -58,7 +60,7 @@ jobs:
           rm -rf xenon-usb && mkdir xenon-usb
           cp smb360.elf32 xenon-usb/xenon.elf
           (cd xenon-usb && sha256sum xenon.elf > SHA256SUMS.txt)
-          printf '%s\n' 'SMB360 XeLL test package' 'Copy xenon.elf to the root of a FAT32 USB device for XeLL Reloaded.' 'The ROM is intentionally not included in this package.' > xenon-usb/README.txt
+          printf '%s\n' 'SMB360 XeLL diagnostic package' 'Copy xenon.elf to the root of a FAT32 USB device for XeLL Reloaded.' 'The ROM is intentionally not included in this package.' > xenon-usb/README.txt
       - name: Upload Xenon artifact
         uses: actions/upload-artifact@v4
         with:
@@ -136,6 +138,14 @@ jobs:
             nathsou-pinned-source.tar.gz.sha256
           if-no-files-found: error
           retention-days: 14
+      - name: Apply audited big-endian PPU patch
+        shell: bash
+        run: |
+          set -euo pipefail
+          command -v patch >/dev/null
+          patch -d .ci/nathsou -p0 --batch < patches/nathsou-ppu-endian.patch
+          grep -q 'smb360_palette_key' .ci/nathsou/codegen/lib/ppu.c
+          echo 'nathsou endian patch: APPLIED'
       - name: Compile SMB360 with real nathsou core
         shell: bash
         run: |
@@ -151,3 +161,24 @@ jobs:
           case "$type_machine" in 00020014|00030014) ;; *) echo "Unexpected ELF e_type/e_machine: $type_machine" >&2; exit 1 ;; esac
           file smb360.elf32
           echo "real nathsou core cross-compile: PASS"
+      - name: Stage real-core XeLL package
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf xenon-real-core && mkdir xenon-real-core
+          cp smb360.elf32 xenon-real-core/xenon.elf
+          (cd xenon-real-core && sha256sum xenon.elf > SHA256SUMS.txt)
+          printf '%s\n' \
+            'SMB360 real-core XeLL package' \
+            'Copy xenon.elf to the root of a FAT32 USB device for XeLL Reloaded.' \
+            'Place your accepted owner ROM beside it as smb.nes.' \
+            'No ROM or Nintendo asset is included in this artifact.' \
+            'If smb.nes is missing or rejected, SMB360 enters hardware diagnostics.' \
+            > xenon-real-core/README.txt
+      - name: Upload real-core Xenon artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: smb360-xenon-real-core
+          path: xenon-real-core/
+          if-no-files-found: error
+          retention-days: 14
