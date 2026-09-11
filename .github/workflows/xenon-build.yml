@@ -24,6 +24,11 @@ jobs:
       image: free60/libxenon:latest
     steps:
       - uses: actions/checkout@v4
+      - name: Bootstrap CI runtime
+        shell: bash
+        run: |
+          apt-get update
+          DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends python3
       - name: Verify toolchain
         shell: bash
         run: |
