@@ -10,6 +10,7 @@ include $(DEVKITXENON)/rules
 TARGET := smb360
 BUILD := build-xenon
 INCLUDES := include
+NATHSOU_INCLUDE :=
 
 # Minimal, independently linkable Xbox bootstrap.
 XENON_CPP_SOURCES := \
@@ -37,8 +38,8 @@ LDFLAGS := -g $(MACHDEP) -Wl,--gc-sections -Wl,-Map,$(notdir $@).map
 LIBS := -lxenon -lm -lfat
 LIBDIRS :=
 
-# Optional real gameplay core. Point NATHSOU_ROOT at a prepared/staged checkout
-# (the build helper below creates one without modifying the user's checkout).
+# Optional real gameplay core. NATHSOU_ROOT may be an absolute CI checkout or
+# a project-relative staged checkout. Keep its absolute include path intact.
 ifneq ($(strip $(NATHSOU_ROOT)),)
 NATHSOU_LIB := $(NATHSOU_ROOT)/codegen/lib
 NATHSOU_C_SOURCES := \
@@ -51,7 +52,7 @@ NATHSOU_C_SOURCES := \
   $(NATHSOU_LIB)/state.c \
   $(NATHSOU_LIB)/common.c
 XENON_CPP_SOURCES += src/integration/native_nathsou_core.cpp
-INCLUDES += $(NATHSOU_LIB)
+NATHSOU_INCLUDE := -I$(NATHSOU_LIB)
 CXXFLAGS += -DSMB360_WITH_NATHSOU_CORE=1
 endif
 
@@ -63,7 +64,7 @@ CPPFILES := $(notdir $(XENON_CPP_SOURCES))
 CFILES := $(notdir $(NATHSOU_C_SOURCES))
 export LD := $(CXX)
 export OFILES := $(CPPFILES:.cpp=.o) $(CFILES:.c=.o)
-export INCLUDE := $(foreach dir,$(INCLUDES),-I$(CURDIR)/$(dir)) -I$(CURDIR)/$(BUILD) -I$(LIBXENON_INC)
+export INCLUDE := $(foreach dir,$(INCLUDES),-I$(CURDIR)/$(dir)) $(NATHSOU_INCLUDE) -I$(CURDIR)/$(BUILD) -I$(LIBXENON_INC)
 export LIBPATHS := $(foreach dir,$(LIBDIRS),-L$(dir)/lib) -L$(LIBXENON_LIB)
 .PHONY: $(BUILD) clean
 $(BUILD):
