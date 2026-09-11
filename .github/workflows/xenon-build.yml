@@ -121,6 +121,21 @@ jobs:
           3839132c6f37808ed588962222a69630c51cbf59 codegen/lib/state.h
           EOF
           echo "nathsou pin verification: PASS ($NATHSOU_PIN; 19 blobs)"
+      - name: Package verified upstream source
+        shell: bash
+        run: |
+          set -euo pipefail
+          tar --exclude=.git -czf nathsou-pinned-source.tar.gz -C .ci/nathsou .
+          sha256sum nathsou-pinned-source.tar.gz > nathsou-pinned-source.tar.gz.sha256
+      - name: Upload verified upstream source
+        uses: actions/upload-artifact@v4
+        with:
+          name: nathsou-pinned-source
+          path: |
+            nathsou-pinned-source.tar.gz
+            nathsou-pinned-source.tar.gz.sha256
+          if-no-files-found: error
+          retention-days: 14
       - name: Compile SMB360 with real nathsou core
         shell: bash
         run: |
