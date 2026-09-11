@@ -69,9 +69,14 @@ int main(){
         smb360::xenon_storage_join(root, "smb.nes", rom_path, sizeof(rom_path))) {
         std::printf("Storage ready; expected owner ROM path: %s\n", rom_path);
         if (smb360::xenon_storage_read_exact(rom_path, rom.data(), rom.size())) {
-            rom_ok = smb360::is_known_smb1_rom(rom.data(), rom.size());
-            std::printf(rom_ok ? "Owner ROM verified: Super Mario Bros. (World)\n"
-                               : "ROM file found but identity check failed\n");
+            const smb360::Smb1KnownVariant variant =
+                smb360::identify_known_smb1_rom(rom.data(), rom.size());
+            rom_ok = variant != smb360::Smb1KnownVariant::Unknown;
+            if (rom_ok) {
+                std::printf("Owner ROM verified: %s\n", smb360::smb1_variant_name(variant));
+            } else {
+                std::printf("ROM file found but identity check failed\n");
+            }
         } else {
             std::printf("ROM file missing or wrong size\n");
         }
