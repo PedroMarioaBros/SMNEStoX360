@@ -21,7 +21,9 @@ jobs:
           git -C .ci/binjnes fetch --depth=1 origin "$BINJNES_PIN"
           git -C .ci/binjnes checkout --detach "$BINJNES_PIN"
           test "$(git -C .ci/binjnes rev-parse HEAD)" = "$BINJNES_PIN"
-          grep -q 'MIT License' .ci/binjnes/LICENSE
+          grep -q 'Permission is hereby granted' .ci/binjnes/LICENSE
+          grep -q 'THE SOFTWARE IS PROVIDED' .ci/binjnes/LICENSE
+          echo "binjnes provenance/license: PASS ($BINJNES_PIN; MIT)"
       - name: Build upstream headless tester
         shell: bash
         run: |
