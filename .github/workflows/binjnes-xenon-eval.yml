@@ -1,0 +1,42 @@
+name: Binjnes Xenon Evaluation
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/binjnes-xenon-eval.yml'
+
+jobs:
+  xenon-core-compile:
+    runs-on: ubuntu-latest
+    container:
+      image: free60/libxenon@sha256:d79468abdd5bd624757dee8b34997f973962b4f7ee68b4a246c72c789ce85d37
+    env:
+      BINJNES_PIN: e2f5871a28ff189daa82b70be9324a42e2aaf9fd
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fetch exact MIT binjnes source
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf .ci/binjnes
+          git clone --filter=blob:none --no-checkout https://github.com/binji/binjnes.git .ci/binjnes
+          git -C .ci/binjnes fetch --depth=1 origin "$BINJNES_PIN"
+          git -C .ci/binjnes checkout --detach "$BINJNES_PIN"
+          test "$(git -C .ci/binjnes rev-parse HEAD)" = "$BINJNES_PIN"
+          grep -q 'Permission is hereby granted' .ci/binjnes/LICENSE
+      - name: Cross-compile portable emulator core for PowerPC
+        shell: bash
+        run: |
+          set -euo pipefail
+          export DEVKITXENON=/usr/local/xenon
+          export PATH="$PATH:$DEVKITXENON/bin:$DEVKITXENON/usr/bin"
+          mkdir -p .ci/binjnes-xenon
+          CFLAGS='-std=gnu11 -O2 -Wall -Wextra -Wpointer-arith -Wno-unused-parameter -Wno-unused-function -Wno-unused-variable -Wno-implicit-fallthrough -Wno-unknown-pragmas -DBINJNES_GCC -DBINJNES_VEC_EXTENSIONS=0'
+          for src in common.c cartdb.c emulator.c; do
+            xenon-gcc $CFLAGS -I.ci/binjnes/src -c ".ci/binjnes/src/$src" -o ".ci/binjnes-xenon/${src%.c}.o"
+          done
+          xenon-ar rcs .ci/binjnes-xenon/libbinjnes-core.a .ci/binjnes-xenon/*.o
+          test -s .ci/binjnes-xenon/libbinjnes-core.a
+          xenon-ar t .ci/binjnes-xenon/libbinjnes-core.a
+          echo 'binjnes Xenon PowerPC core compile: PASS'
