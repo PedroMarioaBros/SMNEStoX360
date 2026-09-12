@@ -1,0 +1,46 @@
+name: Binjnes PT-BR Evaluation
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/binjnes-eval.yml'
+
+jobs:
+  fetch-and-build:
+    runs-on: ubuntu-latest
+    env:
+      BINJNES_PIN: e2f5871a28ff189daa82b70be9324a42e2aaf9fd
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fetch exact binjnes source
+        shell: bash
+        run: |
+          set -euo pipefail
+          git clone --filter=blob:none --no-checkout https://github.com/binji/binjnes.git .ci/binjnes
+          git -C .ci/binjnes fetch --depth=1 origin "$BINJNES_PIN"
+          git -C .ci/binjnes checkout --detach "$BINJNES_PIN"
+          test "$(git -C .ci/binjnes rev-parse HEAD)" = "$BINJNES_PIN"
+          grep -q 'MIT License' .ci/binjnes/LICENSE
+      - name: Build upstream headless tester
+        shell: bash
+        run: |
+          set -euo pipefail
+          cmake -S .ci/binjnes -B .ci/binjnes-build -DCMAKE_BUILD_TYPE=Release
+          cmake --build .ci/binjnes-build --target binjnes-tester -j2
+          test -x .ci/binjnes-build/binjnes-tester
+      - name: Package audited evaluation source
+        shell: bash
+        run: |
+          set -euo pipefail
+          tar --exclude=.git -czf binjnes-eval-source.tar.gz -C .ci/binjnes LICENSE CMakeLists.txt src
+          sha256sum binjnes-eval-source.tar.gz > binjnes-eval-source.tar.gz.sha256
+      - name: Upload evaluation source
+        uses: actions/upload-artifact@v4
+        with:
+          name: binjnes-eval-source
+          path: |
+            binjnes-eval-source.tar.gz
+            binjnes-eval-source.tar.gz.sha256
+          if-no-files-found: error
+          retention-days: 14
