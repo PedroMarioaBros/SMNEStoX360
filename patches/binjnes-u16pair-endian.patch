@@ -1,0 +1,15 @@
+--- src/emulator.h
++++ src/emulator.h
+@@ -258,7 +258,11 @@
+ } M;
+ 
+ typedef union {
+-  struct { u8 lo, hi; }; // TODO endian
++#if defined(__BYTE_ORDER__) && (__BYTE_ORDER__ == __ORDER_BIG_ENDIAN__)
++  struct { u8 hi, lo; };
++#else
++  struct { u8 lo, hi; };
++#endif
+   u16 val;
+ } u16pair;
+ 
