@@ -23,7 +23,7 @@ jobs:
   xenon-diagnostics:
     runs-on: ubuntu-latest
     container:
-      image: free60/libxenon:latest
+      image: free60/libxenon@sha256:d79468abdd5bd624757dee8b34997f973962b4f7ee68b4a246c72c789ce85d37
     steps:
       - uses: actions/checkout@v4
       - name: Verify toolchain
@@ -72,9 +72,10 @@ jobs:
   nathsou-real-core-compile:
     runs-on: ubuntu-latest
     container:
-      image: free60/libxenon:latest
+      image: free60/libxenon@sha256:d79468abdd5bd624757dee8b34997f973962b4f7ee68b4a246c72c789ce85d37
     env:
       NATHSOU_PIN: 2143a91e84a7aa888a31f0def9ed5f747fc3da26
+      LIBXENON_IMAGE: free60/libxenon@sha256:d79468abdd5bd624757dee8b34997f973962b4f7ee68b4a246c72c789ce85d37
     steps:
       - uses: actions/checkout@v4
       - name: Fetch exact audited nathsou upstream
@@ -161,24 +162,72 @@ jobs:
           case "$type_machine" in 00020014|00030014) ;; *) echo "Unexpected ELF e_type/e_machine: $type_machine" >&2; exit 1 ;; esac
           file smb360.elf32
           echo "real nathsou core cross-compile: PASS"
+      - name: Prove real-core ELF reproducibility
+        shell: bash
+        run: |
+          set -euo pipefail
+          export DEVKITXENON=/usr/local/xenon
+          export PATH="$PATH:$DEVKITXENON/bin:$DEVKITXENON/usr/bin"
+          cp smb360.elf32 /tmp/smb360-first.elf32
+          first="$(sha256sum /tmp/smb360-first.elf32 | awk '{print $1}')"
+          make -f platform-xenon.mk clean
+          make -f platform-xenon.mk NATHSOU_ROOT="$PWD/.ci/nathsou"
+          second="$(sha256sum smb360.elf32 | awk '{print $1}')"
+          cmp -s /tmp/smb360-first.elf32 smb360.elf32
+          test "$first" = "$second"
+          printf 'ELF reproducibility: PASS\nsha256=%s\n' "$second" > reproducibility.txt
+          echo "real-core ELF reproducibility: PASS sha256=$second"
+      - name: Build and prove reproducible release package
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf release-root release-a.tar release-b.tar smb360-release.tar.gz
+          mkdir release-root
+          cp smb360.elf32 release-root/xenon.elf
+          (cd release-root && sha256sum xenon.elf > SHA256SUMS.txt)
+          printf '%s\n' \
+            'SMB360 real-core XeLL release candidate' \
+            'Copy xenon.elf to the root of a FAT32 USB device for XeLL Reloaded.' \
+            'Place an accepted owner-supplied ROM beside it as smb.nes.' \
+            'No ROM or Nintendo asset is included.' \
+            'If smb.nes is missing or rejected, SMB360 enters hardware diagnostics.' \
+            > release-root/README.txt
+          printf 'project_commit=%s\nnathsou_commit=%s\nlibxenon_image=%s\n' "$GITHUB_SHA" "$NATHSOU_PIN" "$LIBXENON_IMAGE" > release-root/BUILD_MANIFEST.txt
+          if find release-root -type f \( -iname '*.nes' -o -iname '*.fds' -o -iname '*.rom' \) | grep -q .; then
+            echo 'ROM-like payload detected in release root' >&2
+            exit 1
+          fi
+          tar --sort=name --mtime='UTC 2020-01-01' --owner=0 --group=0 --numeric-owner -cf release-a.tar -C release-root .
+          tar --sort=name --mtime='UTC 2020-01-01' --owner=0 --group=0 --numeric-owner -cf release-b.tar -C release-root .
+          cmp -s release-a.tar release-b.tar
+          gzip -n -9 -c release-a.tar > smb360-release.tar.gz
+          gzip -n -9 -c release-b.tar > /tmp/smb360-release-second.tar.gz
+          cmp -s smb360-release.tar.gz /tmp/smb360-release-second.tar.gz
+          sha256sum smb360-release.tar.gz > smb360-release.tar.gz.sha256
+          cat reproducibility.txt
+          echo 'release package reproducibility: PASS'
       - name: Stage real-core XeLL package
         shell: bash
         run: |
           set -euo pipefail
           rm -rf xenon-real-core && mkdir xenon-real-core
-          cp smb360.elf32 xenon-real-core/xenon.elf
-          (cd xenon-real-core && sha256sum xenon.elf > SHA256SUMS.txt)
-          printf '%s\n' \
-            'SMB360 real-core XeLL package' \
-            'Copy xenon.elf to the root of a FAT32 USB device for XeLL Reloaded.' \
-            'Place your accepted owner ROM beside it as smb.nes.' \
-            'No ROM or Nintendo asset is included in this artifact.' \
-            'If smb.nes is missing or rejected, SMB360 enters hardware diagnostics.' \
-            > xenon-real-core/README.txt
+          cp release-root/xenon.elf xenon-real-core/xenon.elf
+          cp release-root/SHA256SUMS.txt release-root/README.txt release-root/BUILD_MANIFEST.txt xenon-real-core/
+          cp reproducibility.txt xenon-real-core/REPRODUCIBILITY.txt
       - name: Upload real-core Xenon artifact
         uses: actions/upload-artifact@v4
         with:
           name: smb360-xenon-real-core
           path: xenon-real-core/
+          if-no-files-found: error
+          retention-days: 14
+      - name: Upload reproducible release candidate
+        uses: actions/upload-artifact@v4
+        with:
+          name: smb360-reproducible-release
+          path: |
+            smb360-release.tar.gz
+            smb360-release.tar.gz.sha256
+            reproducibility.txt
           if-no-files-found: error
           retention-days: 14
