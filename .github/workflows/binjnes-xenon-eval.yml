@@ -5,6 +5,7 @@ on:
   push:
     paths:
       - '.github/workflows/binjnes-xenon-eval.yml'
+      - 'patches/binjnes-u16pair-endian.patch'
 
 jobs:
   xenon-core-compile:
@@ -25,6 +26,13 @@ jobs:
           git -C .ci/binjnes checkout --detach "$BINJNES_PIN"
           test "$(git -C .ci/binjnes rev-parse HEAD)" = "$BINJNES_PIN"
           grep -q 'Permission is hereby granted' .ci/binjnes/LICENSE
+      - name: Apply audited big-endian word patch
+        shell: bash
+        run: |
+          set -euo pipefail
+          patch -d .ci/binjnes -p0 --batch < patches/binjnes-u16pair-endian.patch
+          grep -q '__ORDER_BIG_ENDIAN__' .ci/binjnes/src/emulator.h
+          echo 'binjnes u16pair endian patch: APPLIED'
       - name: Cross-compile portable emulator core for PowerPC
         shell: bash
         run: |
@@ -39,4 +47,4 @@ jobs:
           xenon-ar rcs .ci/binjnes-xenon/libbinjnes-core.a .ci/binjnes-xenon/*.o
           test -s .ci/binjnes-xenon/libbinjnes-core.a
           xenon-ar t .ci/binjnes-xenon/libbinjnes-core.a
-          echo 'binjnes Xenon PowerPC core compile: PASS'
+          echo 'binjnes Xenon PowerPC endian-safe core compile: PASS'
