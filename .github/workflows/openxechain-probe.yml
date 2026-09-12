@@ -1,0 +1,47 @@
+name: OpenXeChain XEX Probe
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/openxechain-probe.yml'
+
+jobs:
+  synthxex-probe:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install host dependencies
+        run: sudo apt-get update && sudo apt-get install -y cmake ninja-build clang git file
+      - name: Fetch pinned SynthXEX
+        shell: bash
+        run: |
+          set -euo pipefail
+          git clone https://github.com/OpenXeChain/SynthXEX.git
+          git -C SynthXEX checkout --detach 4bda05e21e3f6384ac447f8db3103a0a15b96887
+          test "$(git -C SynthXEX rev-parse HEAD)" = "4bda05e21e3f6384ac447f8db3103a0a15b96887"
+      - name: Build SynthXEX
+        shell: bash
+        run: |
+          set -euo pipefail
+          cmake -S SynthXEX -B SynthXEX/build -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=clang
+          cmake --build SynthXEX/build
+          test -x SynthXEX/build/synthxex
+          SynthXEX/build/synthxex --version
+          SynthXEX/build/synthxex --help
+          file SynthXEX/build/synthxex
+      - name: Record probe manifest
+        shell: bash
+        run: |
+          set -euo pipefail
+          {
+            echo 'target=XEX2'
+            echo 'tool=OpenXeChain/SynthXEX'
+            echo 'commit=4bda05e21e3f6384ac447f8db3103a0a15b96887'
+            echo 'purpose=prove open-source XEX packaging tool builds in project CI'
+          } > openxechain-probe.txt
+      - name: Upload probe artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: openxechain-synthxex-probe
+          path: openxechain-probe.txt
+          retention-days: 14
