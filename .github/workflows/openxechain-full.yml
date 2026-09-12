@@ -1,0 +1,81 @@
+name: OpenXeChain Full XEX Build
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'scripts/openxechain-hello.c'
+      - '.github/workflows/openxechain-full.yml'
+
+jobs:
+  build-xex:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    env:
+      OPENXECHAIN_COMMIT: eed1fa65bf9577fd31625764b320a90182ea9ade
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install build dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install -y clang cmake ninja-build git build-essential bzip2 gzip findutils sed tar unzip zip gawk python3 python3-yaml file
+      - name: Fetch pinned OpenXeChain buildscript
+        shell: bash
+        run: |
+          set -euo pipefail
+          git clone --recursive https://github.com/OpenXeChain/buildscript.git openxechain
+          git -C openxechain checkout --detach "$OPENXECHAIN_COMMIT"
+          git -C openxechain submodule update --init --recursive
+          test "$(git -C openxechain rev-parse HEAD)" = "$OPENXECHAIN_COMMIT"
+      - name: Build complete OpenXeChain toolchain
+        shell: bash
+        run: |
+          set -euo pipefail
+          export PREFIX="$PWD/openxechain-sysroot"
+          export PARALLEL=2
+          export BUILD_TYPE=Release
+          cd openxechain
+          bash ./build-toolchain.sh
+          test -x "$PREFIX/bin/clang"
+          test -x "$PREFIX/bin/lld-link"
+          test -x "$PREFIX/bin/synthxex"
+          "$PREFIX/bin/clang" --version
+          "$PREFIX/bin/synthxex" --version
+      - name: Build minimal Xbox 360 PE
+        shell: bash
+        run: |
+          set -euo pipefail
+          export TC="$PWD/openxechain-sysroot"
+          export PATH="$TC/bin:$PATH"
+          export C_INCLUDE_PATH=
+          export CPLUS_INCLUDE_PATH=
+          export LIBRARY_PATH=
+          "$TC/bin/clang" scripts/openxechain-hello.c -o hello.exe
+          test -s hello.exe
+          file hello.exe
+          xxd -l 64 hello.exe
+      - name: Package XEX2
+        shell: bash
+        run: |
+          set -euo pipefail
+          export TC="$PWD/openxechain-sysroot"
+          "$TC/bin/synthxex" -i hello.exe -o default.xex -t title
+          test -s default.xex
+          magic="$(dd if=default.xex bs=1 count=4 2>/dev/null)"
+          test "$magic" = "XEX2"
+          file default.xex || true
+          sha256sum hello.exe default.xex | tee XEX_SHA256SUMS.txt
+          printf 'openxechain_commit=%s\nsource=scripts/openxechain-hello.c\nartifact=default.xex\n' "$OPENXECHAIN_COMMIT" > XEX_BUILD_MANIFEST.txt
+      - name: Upload minimal XEX
+        uses: actions/upload-artifact@v4
+        with:
+          name: openxechain-minimal-xex
+          path: |
+            default.xex
+            hello.exe
+            XEX_SHA256SUMS.txt
+            XEX_BUILD_MANIFEST.txt
+          if-no-files-found: error
+          retention-days: 14
