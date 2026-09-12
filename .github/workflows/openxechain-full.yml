@@ -25,10 +25,16 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          git clone --recursive https://github.com/OpenXeChain/buildscript.git openxechain
+          git config --global url."https://github.com/".insteadOf git@github.com:
+          git clone https://github.com/OpenXeChain/buildscript.git openxechain
           git -C openxechain checkout --detach "$OPENXECHAIN_COMMIT"
+          git -C openxechain submodule sync --recursive
           git -C openxechain submodule update --init --recursive
           test "$(git -C openxechain rev-parse HEAD)" = "$OPENXECHAIN_COMMIT"
+          test "$(git -C openxechain/llvm rev-parse HEAD)" = "890b83f6c8259a8899e182a5f7d9cf39c64131cc"
+          test "$(git -C openxechain/newlib rev-parse HEAD)" = "f929633c27099d404e9cb5b2739a9c7f9b6afccc"
+          test "$(git -C openxechain/synthxex rev-parse HEAD)" = "48d1453a55468aa2f8a211db0b20edd594ef5be3"
+          test "$(git -C openxechain/xecorelib rev-parse HEAD)" = "c65d67e071357acade681f04c46ae9719797f239"
       - name: Build complete OpenXeChain toolchain
         shell: bash
         run: |
