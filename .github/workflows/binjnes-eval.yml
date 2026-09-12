@@ -24,13 +24,27 @@ jobs:
           grep -q 'Permission is hereby granted' .ci/binjnes/LICENSE
           grep -q 'THE SOFTWARE IS PROVIDED' .ci/binjnes/LICENSE
           echo "binjnes provenance/license: PASS ($BINJNES_PIN; MIT)"
-      - name: Build upstream headless tester
+      - name: Build upstream headless tester without desktop stack
         shell: bash
         run: |
           set -euo pipefail
-          cmake -S .ci/binjnes -B .ci/binjnes-build -DCMAKE_BUILD_TYPE=Release
-          cmake --build .ci/binjnes-build --target binjnes-tester -j2
+          mkdir -p .ci/binjnes-build
+          cc -std=gnu11 -O2 -Wall -Wextra -Wpointer-arith \
+            -Wno-unused-parameter -Wno-unused-function -Wno-unused-variable \
+            -Wno-implicit-fallthrough -Wno-unknown-pragmas \
+            -DBINJNES_GCC -DBINJNES_THREAD_C11 -DBINJNES_ATOMIC_C11 \
+            -I.ci/binjnes/src \
+            .ci/binjnes/src/common.c \
+            .ci/binjnes/src/cartdb.c \
+            .ci/binjnes/src/options.c \
+            .ci/binjnes/src/emulator.c \
+            .ci/binjnes/src/joypad.c \
+            .ci/binjnes/src/tester.c \
+            -pthread -lm -o .ci/binjnes-build/binjnes-tester
           test -x .ci/binjnes-build/binjnes-tester
+          .ci/binjnes-build/binjnes-tester --help >/tmp/binjnes-help.txt 2>&1 || true
+          test -s /tmp/binjnes-help.txt
+          echo 'binjnes headless compile: PASS'
       - name: Package audited evaluation source
         shell: bash
         run: |
