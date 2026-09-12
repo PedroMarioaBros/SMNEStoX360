@@ -1,0 +1,3 @@
+SMB360 Stage 10 real Xenon build trigger
+Date: 2026-09-12
+Purpose: trigger the pinned LibXenon + nathsou real-core CI pipeline and collect the resulting xenon.elf artifact.
