@@ -1,4 +1,4 @@
-#include <stdint.h>
+#include "video_fb.h"
 #include <stddef.h>
 #include <xecore/xboxkrnl.h>
 
@@ -7,14 +7,6 @@
  * and height are at +0x10/+0x14. The scanout surface itself is tiled 32x32.
  * Keep all address knowledge isolated here so a future D3D/OpenXeChain
  * backend can replace this implementation without touching the game core. */
-
-struct xex_fb {
-    volatile uint32_t *pixels;
-    uint32_t width;
-    uint32_t height;
-    uint32_t tiled_width;
-    uint32_t format_10bit;
-};
 
 static inline uint32_t tiled_index(uint32_t cw, uint32_t x, uint32_t y) {
     return (((y >> 5) * 32u * cw + ((x >> 5) << 10)
