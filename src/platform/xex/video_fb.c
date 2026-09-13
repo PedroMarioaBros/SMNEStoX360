@@ -17,8 +17,6 @@ static inline uint32_t tiled_index(uint32_t cw, uint32_t x, uint32_t y) {
 }
 
 static uint32_t pack_a8r8g8b8(uint8_t r, uint8_t g, uint8_t b) {
-    /* Xenon is big-endian; this packing matches the proven software
-     * framebuffer path used by LibXenon/Xenos scanout. */
     return ((uint32_t)b << 24) | ((uint32_t)g << 16) |
            ((uint32_t)r << 8) | 0xffu;
 }
@@ -28,7 +26,6 @@ static uint32_t pack_a2r10g10b10(uint8_t r, uint8_t g, uint8_t b) {
     uint32_t gg = ((uint32_t)g << 2) | ((uint32_t)g >> 6);
     uint32_t bb = ((uint32_t)b << 2) | ((uint32_t)b >> 6);
     uint32_t native = (3u << 30) | (rr << 20) | (gg << 10) | bb;
-    /* Store as the byte order seen by Xenos from a big-endian PPC. */
     return ((native & 0x000000ffu) << 24) |
            ((native & 0x0000ff00u) << 8) |
            ((native & 0x00ff0000u) >> 8) |
@@ -52,6 +49,7 @@ int smb360_xex_fb_open(struct xex_fb *out) {
     out->pixels = (volatile uint32_t *)(uintptr_t)(0xdffff000u + base_offset);
     out->tiled_width = (out->width + 31u) & ~31u;
     out->format_10bit = (((mode_word >> 24) & 7u) != 0u);
+    out->cleared = 0u;
     return out->pixels != 0;
 }
 
@@ -63,21 +61,25 @@ int smb360_xex_fb_present_rgb888(struct xex_fb *fb,
     uint32_t x, y;
     if (!fb || !fb->pixels || !rgb || src_w == 0 || src_h == 0) return 0;
 
-    /* Integer scaling only: SMB pixels stay crisp and aspect ratio is exact. */
+    /* Integer scaling keeps SMB pixels crisp. Cap at 3x so 1080p does not
+     * multiply each NES pixel into an unnecessarily large CPU-written block. */
     scale = fb->width / src_w;
     if (fb->height / src_h < scale) scale = fb->height / src_h;
-    if (scale == 0) scale = 1;
+    if (scale == 0u) scale = 1u;
+    if (scale > 3u) scale = 3u;
     dst_w = src_w * scale;
     dst_h = src_h * scale;
     ox = (fb->width - dst_w) / 2u;
     oy = (fb->height - dst_h) / 2u;
 
-    /* Black frame first. This is intentionally conservative for the first
-     * Xbox-OS implementation; later we can optimize to borders + game rect. */
-    for (y = 0; y < fb->height; ++y) {
-        for (x = 0; x < fb->width; ++x) {
-            fb->pixels[tiled_index(fb->tiled_width, x, y)] = 0u;
+    /* Clear the background once. Subsequent frames only touch the centered
+     * game rectangle, reducing 1080p CPU stores by roughly an order of magnitude. */
+    if (!fb->cleared) {
+        for (y = 0; y < fb->height; ++y) {
+            for (x = 0; x < fb->width; ++x)
+                fb->pixels[tiled_index(fb->tiled_width, x, y)] = 0u;
         }
+        fb->cleared = 1u;
     }
 
     for (y = 0; y < src_h; ++y) {
@@ -96,7 +98,6 @@ int smb360_xex_fb_present_rgb888(struct xex_fb *fb,
         }
     }
 
-    /* Full PPC sync makes CPU stores globally visible before scanout. */
     __asm__ volatile("sync" ::: "memory");
     return 1;
 }
