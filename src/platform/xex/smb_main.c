@@ -9,6 +9,7 @@
 #include "code.h"
 #include "common.h"
 #include "video_fb.h"
+#include "audio_xex.h"
 
 #define NES_RIGHT  0x80u
 #define NES_LEFT   0x40u
@@ -113,6 +114,7 @@ int main(void) {
     uint64_t deadline;
     uint64_t frame_ticks = XENON_TIMEBASE_HZ / FRAME_HZ;
     uint64_t frame_count = 0;
+    int audio_ok;
 
     memset(&fb, 0, sizeof(fb));
     printf("SMB360 XEX: starting Xbox-OS build\n");
@@ -129,9 +131,11 @@ int main(void) {
     }
 
     Start();
-    printf("SMB360 XEX: core initialized, display=%ux%u format=%s\n",
+    audio_ok = smb360_xex_audio_init();
+    printf("SMB360 XEX: core initialized, display=%ux%u format=%s audio=%s\n",
            (unsigned)fb.width, (unsigned)fb.height,
-           fb.format_10bit ? "A2R10G10B10" : "A8R8G8B8");
+           fb.format_10bit ? "A2R10G10B10" : "A8R8G8B8",
+           audio_ok ? "native-xaudio" : "disabled");
 
     deadline = read_timebase() + frame_ticks;
     for (;;) {
@@ -139,6 +143,7 @@ int main(void) {
         uint8_t pad = poll_nes_pad(&request_exit);
         if (request_exit) {
             printf("SMB360 XEX: clean exit requested\n");
+            smb360_xex_audio_shutdown();
             return 0;
         }
 
@@ -150,13 +155,15 @@ int main(void) {
         if (!smb360_xex_fb_present_rgb888(&fb, frame,
                                           SCREEN_WIDTH, SCREEN_HEIGHT)) {
             printf("SMB360 XEX: framebuffer present failed\n");
+            smb360_xex_audio_shutdown();
             return 4;
         }
 
         ++frame_count;
         if ((frame_count % 600ull) == 0ull)
-            printf("SMB360 XEX: frames=%llu\n",
-                   (unsigned long long)frame_count);
+            printf("SMB360 XEX: frames=%llu audio=%s\n",
+                   (unsigned long long)frame_count,
+                   smb360_xex_audio_ready() ? "ok" : "disabled");
 
         sleep_until(deadline);
         deadline += frame_ticks;
