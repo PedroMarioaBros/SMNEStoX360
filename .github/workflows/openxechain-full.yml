@@ -10,6 +10,10 @@ on:
       - 'patches/nathsou-ppu-endian.patch'
       - '.github/workflows/openxechain-full.yml'
 
+concurrency:
+  group: openxechain-full-xex
+  cancel-in-progress: true
+
 jobs:
   build-xex:
     runs-on: ubuntu-latest
