@@ -10,7 +10,7 @@ on:
 jobs:
   build-xex:
     runs-on: ubuntu-latest
-    timeout-minutes: 120
+    timeout-minutes: 360
     env:
       OPENXECHAIN_COMMIT: eed1fa65bf9577fd31625764b320a90182ea9ade
     steps:
@@ -40,7 +40,7 @@ jobs:
         run: |
           set -euo pipefail
           export PREFIX="$PWD/openxechain-sysroot"
-          export PARALLEL=2
+          export PARALLEL="$(nproc)"
           export BUILD_TYPE=Release
           cd openxechain
           bash ./build-toolchain.sh
