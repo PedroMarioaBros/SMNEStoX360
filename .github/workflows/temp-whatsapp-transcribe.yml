@@ -1,0 +1,94 @@
+name: Temporary WhatsApp transcription
+
+on:
+  push:
+    branches:
+      - temp-whatsapp-transcription-20260913
+    paths:
+      - transcription_trigger.txt
+
+permissions:
+  contents: read
+
+jobs:
+  transcribe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - name: Checkout temporary branch
+        uses: actions/checkout@v4
+
+      - name: Reconstruct compressed audio
+        shell: bash
+        run: |
+          cat temp_whatsapp_audio/chunk_*.b64 | tr -d '\n\r ' | base64 --decode > whatsapp_audio.ogg
+          ls -lh whatsapp_audio.ogg
+          ffprobe -v error -show_entries format=duration,size -of default=nw=1 whatsapp_audio.ogg
+
+      - name: Install transcription runtime
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install faster-whisper
+
+      - name: Transcribe Brazilian Portuguese
+        shell: bash
+        run: |
+          cat > transcribe.py <<'PY'
+          import json
+          from faster_whisper import WhisperModel
+
+          audio = "whatsapp_audio.ogg"
+          # 'small' multilingual gives a useful quality/speed balance on the free CPU runner.
+          model = WhisperModel("small", device="cpu", compute_type="int8", cpu_threads=2)
+          segments, info = model.transcribe(
+              audio,
+              language="pt",
+              task="transcribe",
+              beam_size=5,
+              vad_filter=True,
+              vad_parameters={"min_silence_duration_ms": 500},
+              word_timestamps=True,
+              condition_on_previous_text=True,
+          )
+          rows = []
+          txt = []
+          srt = []
+
+          def srt_ts(x):
+              ms = int(round(x * 1000))
+              h, ms = divmod(ms, 3600000)
+              m, ms = divmod(ms, 60000)
+              s, ms = divmod(ms, 1000)
+              return f"{h:02d}:{m:02d}:{s:02d},{ms:03d}"
+
+          for idx, seg in enumerate(segments, 1):
+              words = []
+              if seg.words:
+                  for w in seg.words:
+                      words.append({"start": w.start, "end": w.end, "word": w.word, "probability": w.probability})
+              row = {"id": idx, "start": seg.start, "end": seg.end, "text": seg.text.strip(), "words": words}
+              rows.append(row)
+              txt.append(f"[{seg.start:.3f} --> {seg.end:.3f}] {seg.text.strip()}")
+              srt.extend([str(idx), f"{srt_ts(seg.start)} --> {srt_ts(seg.end)}", seg.text.strip(), ""])
+
+          with open("transcript.json", "w", encoding="utf-8") as f:
+              json.dump({"language": info.language, "language_probability": info.language_probability, "duration": info.duration, "segments": rows}, f, ensure_ascii=False, indent=2)
+          with open("transcript.txt", "w", encoding="utf-8") as f:
+              f.write("\n".join(txt))
+          with open("transcript.srt", "w", encoding="utf-8") as f:
+              f.write("\n".join(srt))
+          print(f"language={info.language} p={info.language_probability:.4f} duration={info.duration:.2f}s segments={len(rows)}")
+          PY
+          python transcribe.py
+          wc -c transcript.json transcript.txt transcript.srt
+          head -30 transcript.txt
+
+      - name: Upload transcription artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: whatsapp-transcription-results
+          path: |
+            transcript.json
+            transcript.txt
+            transcript.srt
+          retention-days: 1
