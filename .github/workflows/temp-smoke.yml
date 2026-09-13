@@ -1,0 +1,13 @@
+name: Temporary runner smoke test
+on:
+  push:
+    branches:
+      - temp-whatsapp-transcription-20260913
+    paths:
+      - smoke_trigger.txt
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Confirm runner
+        run: echo RUNNER_OK
