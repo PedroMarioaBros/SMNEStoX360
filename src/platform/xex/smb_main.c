@@ -10,6 +10,7 @@
 #include "common.h"
 #include "video_fb.h"
 #include "audio_xex.h"
+#include "rom_verify.h"
 
 #define NES_RIGHT  0x80u
 #define NES_LEFT   0x40u
@@ -102,15 +103,9 @@ static uint8_t poll_nes_pad(int *request_exit) {
     return n;
 }
 
-static int load_chr_from_owner_rom(void) {
-    static char game_path[] = "game:\\smb.nes";
-    static char local_path[] = "smb.nes";
-    if (read_chr_rom(game_path) == 0) return 0;
-    return read_chr_rom(local_path);
-}
-
 int main(void) {
     struct xex_fb fb;
+    const char *rom_path;
     uint64_t deadline;
     uint64_t frame_ticks = XENON_TIMEBASE_HZ / FRAME_HZ;
     uint64_t frame_count = 0;
@@ -119,15 +114,22 @@ int main(void) {
     memset(&fb, 0, sizeof(fb));
     printf("SMB360 XEX: starting Xbox-OS build\n");
 
+    rom_path = smb360_xex_verified_rom_path();
+    if (!rom_path) {
+        printf("SMB360 XEX: accepted smb.nes not found or SHA1 mismatch\n");
+        return 2;
+    }
+    printf("SMB360 XEX: owner ROM verified at %s\n", rom_path);
+
     cpu_init();
     apu_init(48000u);
-    if (load_chr_from_owner_rom() != 0) {
-        printf("SMB360 XEX: smb.nes not found/invalid\n");
-        return 2;
+    if (read_chr_rom((char *)rom_path) != 0) {
+        printf("SMB360 XEX: verified ROM CHR load failed\n");
+        return 3;
     }
     if (!smb360_xex_fb_open(&fb)) {
         printf("SMB360 XEX: active framebuffer discovery failed\n");
-        return 3;
+        return 4;
     }
 
     Start();
@@ -156,7 +158,7 @@ int main(void) {
                                           SCREEN_WIDTH, SCREEN_HEIGHT)) {
             printf("SMB360 XEX: framebuffer present failed\n");
             smb360_xex_audio_shutdown();
-            return 4;
+            return 5;
         }
 
         ++frame_count;
