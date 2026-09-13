@@ -1,0 +1,21 @@
+name: XEX C Backend Syntax
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'src/platform/xex/**'
+      - 'tests/check_xex_c_syntax.sh'
+      - 'tests/test_xex_fb_layout.py'
+      - '.github/workflows/xex-c-syntax.yml'
+
+jobs:
+  syntax:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate XEX C backend
+        shell: bash
+        run: |
+          chmod +x tests/check_xex_c_syntax.sh
+          tests/check_xex_c_syntax.sh
