@@ -11,6 +11,7 @@ struct xex_fb {
     uint32_t height;
     uint32_t tiled_width;
     uint32_t format_10bit;
+    uint32_t cleared;
 };
 
 int smb360_xex_fb_open(struct xex_fb *out);
