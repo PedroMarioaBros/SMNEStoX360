@@ -48,7 +48,6 @@ typedef struct {
     smb360_xinput_gamepad gamepad;
 } smb360_xinput_state;
 
-/* xam.xex ordinal 401, provided by xecorelib's xam import library. */
 extern uint32_t XamInputGetState(uint32_t user_index, uint32_t flags,
                                  smb360_xinput_state *state);
 
@@ -71,11 +70,9 @@ static void sleep_until(uint64_t deadline) {
         if (now >= deadline) return;
         remaining = deadline - now;
         usec = (remaining * 1000000ull) / XENON_TIMEBASE_HZ;
-        /* Let the kernel sleep for the bulk of long waits, but leave the last
-         * ~500 us to the timebase loop so frame pacing is not scheduler-bound. */
         if (usec <= 500ull) continue;
         usec -= 500ull;
-        interval = -(int64_t)(usec * 10ull); /* relative 100 ns units */
+        interval = -(int64_t)(usec * 10ull);
         KeDelayExecutionThread(0u, 0u, &interval);
     }
 }
@@ -96,8 +93,6 @@ static uint8_t poll_nes_pad(int *request_exit) {
     if (b & XINPUT_BACK)       n |= NES_SELECT;
     if (b & XINPUT_B)          n |= NES_B;
     if (b & XINPUT_A)          n |= NES_A;
-    /* Start+Back together returns cleanly to the launcher instead of forcing
-     * the user to power-cycle if a test build needs to be left. */
     if ((b & (XINPUT_START | XINPUT_BACK)) == (XINPUT_START | XINPUT_BACK))
         *request_exit = 1;
     return n;
@@ -153,6 +148,8 @@ int main(void) {
         next_frame();
         ppu_render();
         apu_step_frame();
+        if (audio_ok && smb360_xex_audio_ready())
+            smb360_xex_audio_produce_frame();
 
         if (!smb360_xex_fb_present_rgb888(&fb, frame,
                                           SCREEN_WIDTH, SCREEN_HEIGHT)) {
@@ -169,7 +166,6 @@ int main(void) {
 
         sleep_until(deadline);
         deadline += frame_ticks;
-        /* Severe stalls should not cause a burst of catch-up frames. */
         if (read_timebase() > deadline + frame_ticks * 4ull)
             deadline = read_timebase() + frame_ticks;
     }
