@@ -31,8 +31,10 @@ EOF
 cat > "$TMP/apu.h" <<'EOF'
 #pragma once
 #include <stdint.h>
+#include <stddef.h>
 void apu_init(uint32_t frequency);
 void apu_step_frame(void);
+void apu_fill_buffer(uint8_t *buffer, size_t frames);
 EOF
 cat > "$TMP/code.h" <<'EOF'
 #pragma once
@@ -46,6 +48,9 @@ EOF
 clang -std=gnu11 -Wall -Wextra -Werror -fsyntax-only \
   -I"$TMP" -I"$ROOT/src/platform/xex" \
   "$ROOT/src/platform/xex/video_fb.c"
+clang -std=gnu11 -Wall -Wextra -Werror -fsyntax-only \
+  -I"$TMP" -I"$ROOT/src/platform/xex" \
+  "$ROOT/src/platform/xex/audio_xex.c"
 
 # Host clang cannot assemble PowerPC mftb instructions, but syntax/typing can
 # still be validated by replacing only the inline asm strings in a temp copy.
