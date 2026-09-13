@@ -53,6 +53,7 @@ SOURCES=(
   "$LIB/apu.c"
   "$LIB/common.c"
   "$ROOT/src/platform/xex/video_fb.c"
+  "$ROOT/src/platform/xex/audio_xex.c"
   "$ROOT/src/platform/xex/smb_main.c"
 )
 
