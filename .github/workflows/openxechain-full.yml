@@ -5,6 +5,9 @@ on:
   push:
     paths:
       - 'scripts/openxechain-hello.c'
+      - 'scripts/build-smb-xex.sh'
+      - 'src/platform/xex/**'
+      - 'patches/nathsou-ppu-endian.patch'
       - '.github/workflows/openxechain-full.yml'
 
 jobs:
@@ -20,7 +23,7 @@ jobs:
         run: |
           set -euo pipefail
           sudo apt-get update
-          sudo apt-get install -y clang cmake ninja-build git build-essential bzip2 gzip findutils sed tar unzip zip gawk python3 python3-yaml file
+          sudo apt-get install -y clang cmake ninja-build git build-essential bzip2 gzip findutils sed tar unzip zip gawk python3 python3-yaml file xxd
       - name: Fetch pinned OpenXeChain buildscript
         shell: bash
         run: |
@@ -49,7 +52,7 @@ jobs:
           test -x "$PREFIX/bin/synthxex"
           "$PREFIX/bin/clang" --version
           "$PREFIX/bin/synthxex" --version
-      - name: Build minimal Xbox 360 PE
+      - name: Prove minimal PE to XEX2 path
         shell: bash
         run: |
           set -euo pipefail
@@ -60,28 +63,48 @@ jobs:
           export LIBRARY_PATH=
           "$TC/bin/clang" scripts/openxechain-hello.c -o hello.exe
           test -s hello.exe
-          file hello.exe
-          xxd -l 64 hello.exe
-      - name: Package XEX2
+          "$TC/bin/synthxex" -i hello.exe -o hello.xex -t title
+          test "$(dd if=hello.xex bs=1 count=4 2>/dev/null)" = "XEX2"
+          sha256sum hello.exe hello.xex | tee HELLO_SHA256SUMS.txt
+      - name: Build real SMB Xbox OS XEX
         shell: bash
         run: |
           set -euo pipefail
-          export TC="$PWD/openxechain-sysroot"
-          "$TC/bin/synthxex" -i hello.exe -o default.xex -t title
-          test -s default.xex
-          magic="$(dd if=default.xex bs=1 count=4 2>/dev/null)"
-          test "$magic" = "XEX2"
-          file default.xex || true
-          sha256sum hello.exe default.xex | tee XEX_SHA256SUMS.txt
-          printf 'openxechain_commit=%s\nsource=scripts/openxechain-hello.c\nartifact=default.xex\n' "$OPENXECHAIN_COMMIT" > XEX_BUILD_MANIFEST.txt
-      - name: Upload minimal XEX
+          chmod +x scripts/build-smb-xex.sh
+          OPENXECHAIN_PREFIX="$PWD/openxechain-sysroot" \
+            SMB360_XEX_WORK="$PWD/build-xex" \
+            scripts/build-smb-xex.sh
+          test -s build-xex/out/default.xex
+          test "$(dd if=build-xex/out/default.xex bs=1 count=4 2>/dev/null)" = "XEX2"
+          file build-xex/out/smb360.exe || true
+          sha256sum build-xex/out/default.xex
+      - name: Stage Aurora XeXMenu test package
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p release/SMB360
+          cp build-xex/out/default.xex release/SMB360/default.xex
+          cp build-xex/out/SHA256SUMS.txt release/SMB360/SHA256SUMS.txt
+          cp build-xex/out/BUILD_MANIFEST.txt release/SMB360/BUILD_MANIFEST.txt
+          cat > release/SMB360/README_PTBR.txt <<'EOF'
+          SMB360 - build Xbox OS / XEX
+
+          Coloque o arquivo smb.nes fornecido pelo proprietario na mesma pasta de default.xex.
+          Abra default.xex pelo Aurora ou XeXMenu.
+          Start + Back juntos encerram o teste e retornam ao launcher.
+
+          Arquivos Nintendo nao sao incluidos neste artefato de CI.
+          EOF
+          (cd release && zip -r ../SMB360_XEX_TEST.zip SMB360)
+          sha256sum SMB360_XEX_TEST.zip > SMB360_XEX_TEST.zip.sha256
+      - name: Upload real SMB XEX
         uses: actions/upload-artifact@v4
         with:
-          name: openxechain-minimal-xex
+          name: smb360-xex-real-core
           path: |
-            default.xex
-            hello.exe
-            XEX_SHA256SUMS.txt
-            XEX_BUILD_MANIFEST.txt
+            release/SMB360/
+            SMB360_XEX_TEST.zip
+            SMB360_XEX_TEST.zip.sha256
+            HELLO_SHA256SUMS.txt
           if-no-files-found: error
           retention-days: 14
