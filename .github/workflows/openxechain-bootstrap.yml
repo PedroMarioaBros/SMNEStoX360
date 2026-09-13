@@ -1,0 +1,78 @@
+name: OpenXeChain Bootstrap XEX
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/openxechain-bootstrap.yml'
+      - 'scripts/openxechain-hello.c'
+
+jobs:
+  bootstrap-xex:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    env:
+      LLVM_COMMIT: 890b83f6c8259a8899e182a5f7d9cf39c64131cc
+      SYNTHXEX_COMMIT: 48d1453a55468aa2f8a211db0b20edd594ef5be3
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install dependencies
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install -y clang cmake ninja-build git file xxd
+      - name: Fetch pinned LLVM and SynthXEX
+        run: |
+          set -euo pipefail
+          git clone https://github.com/OpenXeChain/llvm.git ox-llvm
+          git -C ox-llvm checkout --detach "$LLVM_COMMIT"
+          git clone https://github.com/OpenXeChain/SynthXEX.git synthxex
+          git -C synthxex checkout --detach "$SYNTHXEX_COMMIT"
+          test "$(git -C ox-llvm rev-parse HEAD)" = "$LLVM_COMMIT"
+          test "$(git -C synthxex rev-parse HEAD)" = "$SYNTHXEX_COMMIT"
+      - name: Build Xbox 360 clang and lld only
+        run: |
+          set -euo pipefail
+          cmake -S ox-llvm/llvm -B ox-llvm-build -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_C_COMPILER=clang \
+            -DCMAKE_CXX_COMPILER=clang++ \
+            -DLLVM_ENABLE_PROJECTS='lld;clang' \
+            -DLLVM_TARGETS_TO_BUILD=PowerPC \
+            -DLLVM_DEFAULT_TARGET_TRIPLE=ppc32-xbox360 \
+            -DLLVM_INSTALL_TOOLCHAIN_ONLY=true
+          cmake --build ox-llvm-build --target clang lld -j "$(nproc)"
+          test -x ox-llvm-build/bin/clang
+          test -x ox-llvm-build/bin/lld-link
+      - name: Build SynthXEX
+        run: |
+          set -euo pipefail
+          cmake -S synthxex -B synthxex-build -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=clang
+          cmake --build synthxex-build -j "$(nproc)"
+          test -x synthxex-build/synthxex
+      - name: Compile freestanding Xbox 360 PE
+        run: |
+          set -euo pipefail
+          ox-llvm-build/bin/clang -target ppc32-xbox360 -ffreestanding -fno-builtin -nostdlib -c scripts/openxechain-hello.c -o hello.obj
+          ox-llvm-build/bin/lld-link /machine:ppc /entry:main /subsystem:xbox /nodefaultlib /out:hello.exe hello.obj
+          test -s hello.exe
+          file hello.exe
+          xxd -l 64 hello.exe
+      - name: Package XEX2
+        run: |
+          set -euo pipefail
+          synthxex-build/synthxex -i hello.exe -o default.xex -t title
+          test -s default.xex
+          test "$(dd if=default.xex bs=1 count=4 2>/dev/null)" = 'XEX2'
+          sha256sum hello.exe default.xex > XEX_SHA256SUMS.txt
+          printf 'llvm_commit=%s\nsynthxex_commit=%s\nmode=freestanding-bootstrap\n' "$LLVM_COMMIT" "$SYNTHXEX_COMMIT" > XEX_BUILD_MANIFEST.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: openxechain-bootstrap-xex
+          path: |
+            default.xex
+            hello.exe
+            XEX_SHA256SUMS.txt
+            XEX_BUILD_MANIFEST.txt
+          if-no-files-found: error
+          retention-days: 14
