@@ -45,12 +45,11 @@ cat > "$TMP/common.h" <<'EOF'
 int read_chr_rom(char *rom_path);
 EOF
 
-clang -std=gnu11 -Wall -Wextra -Werror -fsyntax-only \
-  -I"$TMP" -I"$ROOT/src/platform/xex" \
-  "$ROOT/src/platform/xex/video_fb.c"
-clang -std=gnu11 -Wall -Wextra -Werror -fsyntax-only \
-  -I"$TMP" -I"$ROOT/src/platform/xex" \
-  "$ROOT/src/platform/xex/audio_xex.c"
+for src in video_fb.c audio_xex.c rom_verify.c; do
+  clang -std=gnu11 -Wall -Wextra -Werror -fsyntax-only \
+    -I"$TMP" -I"$ROOT/src/platform/xex" \
+    "$ROOT/src/platform/xex/$src"
+done
 
 # Host clang cannot assemble PowerPC mftb instructions, but syntax/typing can
 # still be validated by replacing only the inline asm strings in a temp copy.
