@@ -52,12 +52,52 @@ jobs:
           test -x synthxex-build/synthxex
       - name: Compile freestanding Xbox 360 PE
         run: |
-          set -euo pipefail
-          ox-llvm-build/bin/clang -target ppc32-xbox360 -ffreestanding -fno-builtin -nostdlib -c scripts/openxechain-hello.c -o hello.obj
-          ox-llvm-build/bin/lld-link /machine:ppc /entry:main /subsystem:xbox /nodefaultlib /out:hello.exe hello.obj
-          test -s hello.exe
-          file hello.exe
-          xxd -l 64 hello.exe
+          set +e
+          LOG="$GITHUB_WORKSPACE/bootstrap-compile.log"
+          RCFILE="$GITHUB_WORKSPACE/bootstrap-compile.rc"
+          {
+            echo '=== clang version ==='
+            ox-llvm-build/bin/clang --version
+            echo '=== lld-link version ==='
+            ox-llvm-build/bin/lld-link --version
+            echo '=== clang driver plan ==='
+            ox-llvm-build/bin/clang -target ppc32-xbox360 -ffreestanding -fno-builtin -nostdlib -### scripts/openxechain-hello.c -o hello-driver.exe
+            echo '=== compile object ==='
+            ox-llvm-build/bin/clang -target ppc32-xbox360 -ffreestanding -fno-builtin -nostdlib -c scripts/openxechain-hello.c -o hello.obj
+            COMPILE_RC=$?
+            echo "compile_rc=$COMPILE_RC"
+            if [ "$COMPILE_RC" -eq 0 ]; then
+              file hello.obj
+              xxd -l 64 hello.obj
+              echo '=== direct lld-link ==='
+              ox-llvm-build/bin/lld-link /machine:ppc /entry:main /subsystem:xbox /nodefaultlib /out:hello.exe hello.obj
+              LINK_RC=$?
+            else
+              LINK_RC=99
+            fi
+            echo "link_rc=$LINK_RC"
+          } >"$LOG" 2>&1
+          RC=0
+          if ! grep -q '^compile_rc=0$' "$LOG"; then RC=20; fi
+          if ! grep -q '^link_rc=0$' "$LOG"; then RC=21; fi
+          printf '%s\n' "$RC" > "$RCFILE"
+          cat "$LOG"
+          if [ "$RC" -eq 0 ]; then
+            test -s hello.exe || RC=22
+            file hello.exe || true
+            xxd -l 64 hello.exe || true
+          fi
+          exit "$RC"
+      - name: Upload bootstrap diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: openxechain-bootstrap-diagnostics
+          path: |
+            bootstrap-compile.log
+            bootstrap-compile.rc
+          if-no-files-found: warn
+          retention-days: 14
       - name: Package XEX2
         run: |
           set -euo pipefail
