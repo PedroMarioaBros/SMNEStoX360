@@ -9,7 +9,7 @@ on:
 
 jobs:
   bootstrap-xex:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 180
     env:
       LLVM_COMMIT: 890b83f6c8259a8899e182a5f7d9cf39c64131cc
@@ -50,6 +50,17 @@ jobs:
           cmake -S synthxex -B synthxex-build -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=clang
           cmake --build synthxex-build -j "$(nproc)"
           test -x synthxex-build/synthxex
+      - name: Preserve bootstrap tools
+        uses: actions/upload-artifact@v4
+        with:
+          name: openxechain-bootstrap-tools
+          path: |
+            ox-llvm-build/bin/clang
+            ox-llvm-build/bin/lld-link
+            ox-llvm-build/bin/ld.lld
+            synthxex-build/synthxex
+          if-no-files-found: error
+          retention-days: 14
       - name: Compile freestanding Xbox 360 PE
         run: |
           set +e
