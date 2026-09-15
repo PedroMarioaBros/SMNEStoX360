@@ -1,0 +1,53 @@
+name: Build pinned XexTool helper
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/xextool-pinned-helper.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  build-linux-x64:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      XEXTOOL_COMMIT: cca82a33b3a14de00042f62ba6b009b9f92c4c39
+    steps:
+      - name: Checkout project
+        uses: actions/checkout@v4
+
+      - name: Fetch pinned XexTool
+        shell: bash
+        run: |
+          set -euo pipefail
+          git clone --recursive https://github.com/Team-Resurgent/XexTool.git xextool-src
+          git -C xextool-src checkout --detach "$XEXTOOL_COMMIT"
+          git -C xextool-src submodule sync --recursive
+          git -C xextool-src submodule update --init --recursive
+          test "$(git -C xextool-src rev-parse HEAD)" = "$XEXTOOL_COMMIT"
+
+      - name: Build and test XexTool
+        shell: bash
+        run: |
+          set -euo pipefail
+          cmake -S xextool-src -B xextool-build -DCMAKE_BUILD_TYPE=Release
+          cmake --build xextool-build --parallel
+          ctest --test-dir xextool-build --output-on-failure
+          test -x xextool-build/XexTool
+          xextool-build/XexTool 2>&1 | head -n 3 || true
+          sha256sum xextool-build/XexTool > XexTool.sha256
+          printf 'source=https://github.com/Team-Resurgent/XexTool\ncommit=%s\n' "$XEXTOOL_COMMIT" > XexTool.BUILD.txt
+
+      - name: Upload pinned Linux XexTool
+        uses: actions/upload-artifact@v4
+        with:
+          name: XexTool-linux-x64-pinned-cca82a33
+          path: |
+            xextool-build/XexTool
+            XexTool.sha256
+            XexTool.BUILD.txt
+          if-no-files-found: error
+          retention-days: 14
