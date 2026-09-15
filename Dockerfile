@@ -5,11 +5,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     rm -rf /var/lib/apt/lists/*
 WORKDIR /src
 ARG XEXTOOL_COMMIT=cca82a33b3a14de00042f62ba6b009b9f92c4c39
-RUN git clone --recursive https://github.com/Team-Resurgent/XexTool.git XexTool && \
+RUN git clone --no-checkout https://github.com/Team-Resurgent/XexTool.git XexTool && \
     cd XexTool && \
-    git checkout --detach "$XEXTOOL_COMMIT" && \
+    git fetch --depth=1 origin "$XEXTOOL_COMMIT" && \
+    git checkout --detach FETCH_HEAD && \
     git submodule sync --recursive && \
-    git submodule update --init --recursive && \
+    git submodule update --init --recursive --depth=1 && \
     test "$(git rev-parse HEAD)" = "$XEXTOOL_COMMIT"
 RUN cmake -S /src/XexTool -B /src/XexTool/build -G Ninja -DCMAKE_BUILD_TYPE=Release && \
     cmake --build /src/XexTool/build --parallel 2 && \
