@@ -2,13 +2,19 @@ FROM ubuntu:24.04
 
 ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    clang cmake ninja-build git build-essential bzip2 gzip findutils sed tar unzip zip \
-    gawk python3 python3-yaml file ca-certificates xxd \
+    clang lld cmake ninja-build git build-essential bzip2 gzip findutils sed tar unzip zip \
+    gawk python3 python3-yaml file ca-certificates xxd zlib1g-dev \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 COPY . /app
 RUN chmod +x /app/scripts/railway-openxechain-build.sh
 
+# Only the finished/partial portable sysroot is persisted. LLVM/Newlib sources
+# and their build trees live on Railway's ephemeral disk so the 500 MB volume
+# is not consumed by multi-gigabyte source/build directories.
 ENV OPENXECHAIN_WORKDIR=/workspace/openxechain-cache
+ENV OPENXECHAIN_SRCDIR=/tmp/openxechain-buildscript
+ENV PARALLEL=2
+
 CMD ["bash", "-lc", "/app/scripts/railway-openxechain-build.sh && exec sleep infinity"]
