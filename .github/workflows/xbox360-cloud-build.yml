@@ -1,0 +1,115 @@
+name: Compilar SMB Xbox 360
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "src/**"
+      - "scripts/**"
+      - "patches/**"
+      - ".github/workflows/xbox360-cloud-build.yml"
+
+permissions:
+  contents: read
+
+env:
+  OPENXECHAIN_COMMIT: eed1fa65bf9577fd31625764b320a90182ea9ade
+  OPENXECHAIN_PREFIX: ${{ github.workspace }}/.openxechain/sysroot
+  SMB360_XEX_WORK: ${{ github.workspace }}/build-xex
+
+jobs:
+  build-xex:
+    name: OpenXeChain + SMB360
+    runs-on: ubuntu-24.04
+    timeout-minutes: 330
+
+    steps:
+      - name: Baixar SMBtoX360
+        uses: actions/checkout@v4
+
+      - name: Instalar dependências do OpenXeChain
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            clang lld binutils git cmake make ninja-build python3 python3-yaml \
+            bzip2 gzip grep findutils sed tar unzip zip gawk zlib1g-dev
+
+      - name: Restaurar cache da toolchain
+        id: toolchain-cache
+        uses: actions/cache@v4
+        with:
+          path: .openxechain/sysroot
+          key: openxechain-${{ runner.os }}-${{ env.OPENXECHAIN_COMMIT }}
+
+      - name: Compilar OpenXeChain
+        if: steps.toolchain-cache.outputs.cache-hit != 'true'
+        run: |
+          rm -rf .openxechain-src
+          git clone --recursive https://github.com/OpenXeChain/buildscript.git .openxechain-src
+          git -C .openxechain-src checkout --detach "$OPENXECHAIN_COMMIT"
+          git -C .openxechain-src submodule update --init --recursive
+          mkdir -p "$OPENXECHAIN_PREFIX"
+          (
+            cd .openxechain-src
+            PREFIX="$OPENXECHAIN_PREFIX" PARALLEL="$(nproc)" ./build-toolchain.sh
+          )
+
+      - name: Validar toolchain
+        run: |
+          test -x "$OPENXECHAIN_PREFIX/bin/clang"
+          test -x "$OPENXECHAIN_PREFIX/bin/synthxex"
+          "$OPENXECHAIN_PREFIX/bin/clang" --version
+          "$OPENXECHAIN_PREFIX/bin/synthxex" --help >/dev/null 2>&1 || true
+
+      - name: Compilar SMB360
+        run: |
+          chmod +x scripts/build-smb-xex.sh
+          OPENXECHAIN_PREFIX="$OPENXECHAIN_PREFIX" \
+          SMB360_XEX_WORK="$SMB360_XEX_WORK" \
+          ./scripts/build-smb-xex.sh
+
+      - name: Validar XEX
+        run: |
+          XEX="$SMB360_XEX_WORK/out/default.xex"
+          test -s "$XEX"
+          test "$(dd if="$XEX" bs=1 count=4 2>/dev/null)" = "XEX2"
+          sha256sum "$XEX"
+          ls -lh "$SMB360_XEX_WORK/out/"
+
+      - name: Montar pacote de teste
+        run: |
+          mkdir -p artifact/SMB360
+          cp "$SMB360_XEX_WORK/out/default.xex" artifact/SMB360/default.xex
+          cp "$SMB360_XEX_WORK/out/SHA256SUMS.txt" artifact/SMB360/SHA256SUMS.txt
+          cp "$SMB360_XEX_WORK/out/BUILD_MANIFEST.txt" artifact/SMB360/BUILD_MANIFEST.txt
+          cat > artifact/SMB360/LEIA-ME.txt <<'EOF'
+          SMB360 - build nativo Xbox 360 gerado pelo GitHub Actions.
+          A ROM nao e distribuida neste pacote.
+          Coloque a ROM do usuario como smb.nes ao lado de default.xex.
+          EOF
+          (
+            cd artifact
+            zip -r "../SMB360-XEX-${GITHUB_RUN_NUMBER}.zip" SMB360
+          )
+
+      - name: Publicar build
+        uses: actions/upload-artifact@v4
+        with:
+          name: SMB360-XEX-${{ github.run_number }}
+          path: |
+            SMB360-XEX-${{ github.run_number }}.zip
+            artifact/SMB360/
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Publicar log do OpenXeChain em caso de falha
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: SMB360-build-debug-${{ github.run_number }}
+          path: |
+            .openxechain-src/build.log
+            build-xex/
+          if-no-files-found: ignore
+          retention-days: 7
