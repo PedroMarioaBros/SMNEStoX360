@@ -9,6 +9,13 @@ on:
       - "scripts/**"
       - "patches/**"
       - ".github/workflows/xbox360-cloud-build.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "src/**"
+      - "scripts/**"
+      - "patches/**"
+      - ".github/workflows/xbox360-cloud-build.yml"
 
 permissions:
   contents: read
