@@ -1,0 +1,12 @@
+FROM ubuntu:24.04
+
+ENV DEBIAN_FRONTEND=noninteractive
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ca-certificates git wget zstd zip python3 file sed coreutils \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+COPY . /app
+RUN chmod +x /app/scripts/build-smb-xex.sh /app/scripts/railway-smb-xex-from-toolchain.sh
+
+CMD ["bash", "-lc", "/app/scripts/railway-smb-xex-from-toolchain.sh"]
