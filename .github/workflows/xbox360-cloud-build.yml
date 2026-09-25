@@ -52,7 +52,7 @@ jobs:
           mkdir -p "$OPENXECHAIN_PREFIX"
           (
             cd .openxechain-src
-            PREFIX="$OPENXECHAIN_PREFIX" PARALLEL="$(nproc)" ./build-toolchain.sh
+            PREFIX="$OPENXECHAIN_PREFIX" PARALLEL=1 ./build-toolchain.sh
           )
 
       - name: Validar toolchain
