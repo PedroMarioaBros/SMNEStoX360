@@ -73,8 +73,11 @@ jobs:
             exit 0
           fi
           rm -rf .openxechain-src
-          git clone --recursive https://github.com/OpenXeChain/buildscript.git .openxechain-src
+          git clone https://github.com/OpenXeChain/buildscript.git .openxechain-src
           git -C .openxechain-src checkout --detach "$OPENXECHAIN_COMMIT"
+          git -C .openxechain-src config url."https://github.com/".insteadOf "git@github.com:"
+          git -C .openxechain-src config --add url."https://github.com/".insteadOf "ssh://git@github.com/"
+          git -C .openxechain-src submodule sync --recursive
           git -C .openxechain-src submodule update --init --recursive
           mkdir -p "$OPENXECHAIN_PREFIX"
           (cd .openxechain-src && PREFIX="$OPENXECHAIN_PREFIX" PARALLEL=1 ./build-toolchain.sh)
