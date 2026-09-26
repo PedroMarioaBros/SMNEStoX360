@@ -46,18 +46,38 @@ jobs:
 
       - name: Baixar toolchain OpenXeChain validada (run #21)
         env:
-          GH_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ secrets.OPENXECHAIN_ARTIFACT_TOKEN }}
         run: |
+          if [ -z "${GH_TOKEN:-}" ]; then
+            echo "OPENXECHAIN_ARTIFACT_TOKEN ausente; usando fallback de compilacao local." >&2
+            exit 78
+          fi
           mkdir -p .openxechain-download "$OPENXECHAIN_PREFIX"
-          curl -L --fail \
+          curl -L --fail-with-body \
             -H "Authorization: Bearer $GH_TOKEN" \
             -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
             -o .openxechain-download/toolchain.zip \
             "https://api.github.com/repos/PedroMarioaBros/OpenXeChain-X360-Builder/actions/artifacts/10894786560/zip"
           unzip -q .openxechain-download/toolchain.zip -d .openxechain-download/artifact
+          mkdir -p .openxechain
           tar -xJf .openxechain-download/artifact/openxechain-x360-toolchain.tar.xz -C .openxechain
           test -x "$OPENXECHAIN_PREFIX/bin/clang"
           test -x "$OPENXECHAIN_PREFIX/bin/synthxex"
+        continue-on-error: true
+
+      - name: Fallback - compilar OpenXeChain se artefato nao estiver acessivel
+        run: |
+          if [ -x "$OPENXECHAIN_PREFIX/bin/clang" ] && [ -x "$OPENXECHAIN_PREFIX/bin/synthxex" ]; then
+            echo "Toolchain importada do run #21; fallback dispensado."
+            exit 0
+          fi
+          rm -rf .openxechain-src
+          git clone --recursive https://github.com/OpenXeChain/buildscript.git .openxechain-src
+          git -C .openxechain-src checkout --detach "$OPENXECHAIN_COMMIT"
+          git -C .openxechain-src submodule update --init --recursive
+          mkdir -p "$OPENXECHAIN_PREFIX"
+          (cd .openxechain-src && PREFIX="$OPENXECHAIN_PREFIX" PARALLEL=1 ./build-toolchain.sh)
 
       - name: Validar toolchain
         run: |
