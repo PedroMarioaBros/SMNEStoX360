@@ -20,6 +20,7 @@ on:
 
 permissions:
   contents: read
+  actions: read
 
 env:
   OPENXECHAIN_COMMIT: eed1fa65bf9577fd31625764b320a90182ea9ade
@@ -43,25 +44,20 @@ jobs:
             clang lld binutils git cmake make ninja-build python3 python3-yaml \
             bzip2 gzip grep findutils sed tar unzip zip gawk zlib1g-dev
 
-      - name: Restaurar cache da toolchain
-        id: toolchain-cache
-        uses: actions/cache@v4
-        with:
-          path: .openxechain/sysroot
-          key: openxechain-${{ runner.os }}-${{ env.OPENXECHAIN_COMMIT }}
-
-      - name: Compilar OpenXeChain
-        if: steps.toolchain-cache.outputs.cache-hit != 'true'
+      - name: Baixar toolchain OpenXeChain validada (run #21)
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
-          rm -rf .openxechain-src
-          git clone --recursive https://github.com/OpenXeChain/buildscript.git .openxechain-src
-          git -C .openxechain-src checkout --detach "$OPENXECHAIN_COMMIT"
-          git -C .openxechain-src submodule update --init --recursive
-          mkdir -p "$OPENXECHAIN_PREFIX"
-          (
-            cd .openxechain-src
-            PREFIX="$OPENXECHAIN_PREFIX" PARALLEL=1 ./build-toolchain.sh
-          )
+          mkdir -p .openxechain-download "$OPENXECHAIN_PREFIX"
+          curl -L --fail \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            -o .openxechain-download/toolchain.zip \
+            "https://api.github.com/repos/PedroMarioaBros/OpenXeChain-X360-Builder/actions/artifacts/10894786560/zip"
+          unzip -q .openxechain-download/toolchain.zip -d .openxechain-download/artifact
+          tar -xJf .openxechain-download/artifact/openxechain-x360-toolchain.tar.xz -C .openxechain
+          test -x "$OPENXECHAIN_PREFIX/bin/clang"
+          test -x "$OPENXECHAIN_PREFIX/bin/synthxex"
 
       - name: Validar toolchain
         run: |
