@@ -80,8 +80,13 @@ jobs:
           cat .openxechain-src/.gitmodules
           git -C .openxechain-src submodule sync --recursive
           git -C .openxechain-src submodule update --init --recursive
+          # Mesma correção validada pelo OpenXeChain-X360-Builder run #21:
+          # clang-cpp nao le clang.cfg; clang -E preserva alvo Xbox/sysroot.
+          cp .openxechain-src/build-toolchain.sh .openxechain-src/build-toolchain.sh.upstream
+          sed -i 's#CPP="${PREFIX}/bin/clang-cpp"#CPP="${PREFIX}/bin/clang -E -nostdlib -I${PWD}/xecorelibtmp/include"#' .openxechain-src/build-toolchain.sh
+          grep -F 'CPP="${PREFIX}/bin/clang -E -nostdlib -I${PWD}/xecorelibtmp/include"' .openxechain-src/build-toolchain.sh
           mkdir -p "$OPENXECHAIN_PREFIX"
-          (cd .openxechain-src && PREFIX="$OPENXECHAIN_PREFIX" PARALLEL=1 ./build-toolchain.sh)
+          (cd .openxechain-src && PREFIX="$OPENXECHAIN_PREFIX" PARALLEL=2 ./build-toolchain.sh)
 
       - name: Validar toolchain
         run: |
