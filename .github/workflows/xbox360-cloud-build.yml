@@ -1,4 +1,5 @@
 name: Compilar SMB Xbox 360
+# PR observability run for connector-visible Actions logs
 
 on:
   workflow_dispatch:
