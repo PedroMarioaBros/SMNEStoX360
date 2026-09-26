@@ -75,8 +75,9 @@ jobs:
           rm -rf .openxechain-src
           git clone https://github.com/OpenXeChain/buildscript.git .openxechain-src
           git -C .openxechain-src checkout --detach "$OPENXECHAIN_COMMIT"
-          git -C .openxechain-src config url."https://github.com/".insteadOf "git@github.com:"
-          git -C .openxechain-src config --add url."https://github.com/".insteadOf "ssh://git@github.com/"
+          sed -i 's#git@github.com:#https://github.com/#g; s#ssh://git@github.com/#https://github.com/#g' .openxechain-src/.gitmodules
+          echo "Gitmodules apos conversao para HTTPS:"
+          cat .openxechain-src/.gitmodules
           git -C .openxechain-src submodule sync --recursive
           git -C .openxechain-src submodule update --init --recursive
           mkdir -p "$OPENXECHAIN_PREFIX"
