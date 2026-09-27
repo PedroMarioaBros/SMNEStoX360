@@ -56,7 +56,7 @@ EOF
 echo "nathsou pin verification: PASS ($PIN; 19 blobs)"
 
 # Xenon is big-endian. Make the palette-cache key byte-order independent.
-git -C "$UPSTREAM" apply "$ROOT/patches/nathsou-ppu-endian.patch"
+git -C "$UPSTREAM" apply -p0 "$ROOT/patches/nathsou-ppu-endian.patch"
 
 # C99 plain-inline public functions do not emit cross-TU definitions under
 # Clang/GCC. These two functions are public API and are called from smb_main.c.
