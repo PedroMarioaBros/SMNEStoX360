@@ -86,7 +86,7 @@ SOURCES=(
   "$LIB/common.c"
   "$ROOT/src/platform/xex/video_fb.c"
   "$ROOT/src/platform/xex/audio_xex.c"
-  "$ROOT/src/platform/xex/rom_verify.c"
+  "$ROOT/src/platform/xex/embedded_chr.S"
   "$ROOT/src/platform/xex/smb_main.c"
 )
 
@@ -103,7 +103,7 @@ magic="$(dd if="$XEX" bs=1 count=4 2>/dev/null)"
 test "$magic" = "XEX2"
 
 sha256sum "$PE" "$XEX" | tee "$OUT/SHA256SUMS.txt"
-printf 'project_commit=%s\nnathsou_commit=%s\nopenxechain_prefix=%s\nartifact=default.xex\n' \
+printf 'project_commit=%s\nnathsou_commit=%s\nopenxechain_prefix=%s\nartifact=default.xex\nembedded_chr=assets/SMB_v026.chr\nembedded_chr_sha256=5e22a5c60aef64263ac7b17997479dfdad23389d1f0756c224412c8f7a5535d0\n' \
   "$(git -C "$ROOT" rev-parse HEAD)" "$PIN" "$TC" > "$OUT/BUILD_MANIFEST.txt"
 
 printf 'SMB360 XEX build PASS: %s\n' "$XEX"
