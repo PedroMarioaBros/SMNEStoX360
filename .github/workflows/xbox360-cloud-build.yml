@@ -124,9 +124,10 @@ jobs:
           cp "$SMB360_XEX_WORK/out/SHA256SUMS.txt" artifact/SMB360/SHA256SUMS.txt
           cp "$SMB360_XEX_WORK/out/BUILD_MANIFEST.txt" artifact/SMB360/BUILD_MANIFEST.txt
           cat > artifact/SMB360/LEIA-ME.txt <<'EOF'
-          SMB360 - build nativo Xbox 360 gerado pelo GitHub Actions.
-          A ROM nao e distribuida neste pacote.
-          Coloque a ROM do usuario como smb.nes ao lado de default.xex.
+          SMB360 - build nativo/autocontido para Xbox 360 gerado pelo GitHub Actions.
+          Esta versao incorpora no executavel os dados CHR da SMB_v026 usados pelo port.
+          Nao coloque smb.nes ao lado do executavel: nenhuma ROM externa e necessaria em tempo de execucao.
+          Para testar no Xbox 360, copie a pasta SMB360 e inicie default.xex.
           EOF
           (
             cd artifact
