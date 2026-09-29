@@ -111,7 +111,9 @@ int main(void) {
     cpu_init();
     apu_init(48000u);
     ppu_init((uint8_t *)smb360_embedded_chr);
-    printf("SMB360 XEX: embedded SMB_v026 CHR initialized (%u bytes)\n",\n           (unsigned)SMB360_EMBEDDED_CHR_SIZE);\n    if (!smb360_xex_fb_open(&fb)) {
+    printf("SMB360 XEX: embedded SMB_v026 CHR initialized (%u bytes)\\n",
+           (unsigned)SMB360_EMBEDDED_CHR_SIZE);
+    if (!smb360_xex_fb_open(&fb)) {
         printf("SMB360 XEX: active framebuffer discovery failed\n");
         return 4;
     }
