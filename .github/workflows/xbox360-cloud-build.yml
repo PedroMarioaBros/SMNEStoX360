@@ -114,20 +114,28 @@ jobs:
           XEX="$SMB360_XEX_WORK/out/default.xex"
           test -s "$XEX"
           test "$(dd if="$XEX" bs=1 count=4 2>/dev/null)" = "XEX2"
-          sha256sum "$XEX"
+          BOOT_XEX="$SMB360_XEX_WORK/out/boot-test.xex"
+          test -s "$BOOT_XEX"
+          test "$(dd if="$BOOT_XEX" bs=1 count=4 2>/dev/null)" = "XEX2"
+          sha256sum "$XEX" "$BOOT_XEX"
           ls -lh "$SMB360_XEX_WORK/out/"
 
       - name: Montar pacote de teste
         run: |
           mkdir -p artifact/SMB360
           cp "$SMB360_XEX_WORK/out/default.xex" artifact/SMB360/default.xex
+          cp "$SMB360_XEX_WORK/out/boot-test.xex" artifact/SMB360/boot-test.xex
           cp "$SMB360_XEX_WORK/out/SHA256SUMS.txt" artifact/SMB360/SHA256SUMS.txt
           cp "$SMB360_XEX_WORK/out/BUILD_MANIFEST.txt" artifact/SMB360/BUILD_MANIFEST.txt
           cat > artifact/SMB360/LEIA-ME.txt <<'EOF'
           SMB360 - build nativo/autocontido para Xbox 360 gerado pelo GitHub Actions.
           Esta versao incorpora no executavel os dados CHR da SMB_v026 usados pelo port.
           Nao coloque smb.nes ao lado do executavel: nenhuma ROM externa e necessaria em tempo de execucao.
-          Para testar no Xbox 360, copie a pasta SMB360 e inicie default.xex.
+          DIAGNOSTICO DE HARDWARE:
+          1. Execute boot-test.xex PRIMEIRO. Ele nao inicializa SMB, video bruto, audio ou controle.
+          2. Se boot-test.xex der Fatal Crash, o problema esta no startup/link/XEX/toolchain.
+          3. Se boot-test.xex permanecer executando sem Fatal Crash, o startup foi validado no hardware.
+          default.xex continua sendo o build completo e NAO deve ser usado como prova enquanto o diagnostico estiver em andamento.
           EOF
           (
             cd artifact
