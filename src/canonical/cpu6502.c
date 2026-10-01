@@ -12,12 +12,12 @@ static uint8_t imm(smb360_cpu6502*c){return rd(c,c->pc++);}
 static void branch(smb360_cpu6502*c,int take){int8_t d=(int8_t)imm(c);if(take)c->pc=(uint16_t)(c->pc+d);}
 
 void smb360_cpu6502_init(smb360_cpu6502*c,smb360_nrom*b){memset(c,0,sizeof(*c));c->bus=b;c->s=0xFD;c->p=F_U|F_I;}
-void smb360_cpu6502_reset(smb360_cpu6502*c){c->s=0xFD;c->p=F_U|F_I;c->pc=rd16(c,0xFFFC);c->cycles=7;c->stopped=0;}
+void smb360_cpu6502_reset(smb360_cpu6502*c){c->s=0xFD;c->p=F_U|F_I;c->pc=rd16(c,0xFFFC);c->cycles=7;c->last_cycles=7;c->stopped=0;}
 
 int smb360_cpu6502_step(smb360_cpu6502*c){
  uint8_t o;
  if(c->stopped)return 0;
- o=rd(c,c->pc++);
+ o=rd(c,c->pc++); c->last_cycles=2;
  switch(o){
   case 0x78:c->p|=F_I;break;                         /* SEI */
   case 0xD8:c->p&=(uint8_t)~F_D;break;              /* CLD */
@@ -44,6 +44,6 @@ int smb360_cpu6502_step(smb360_cpu6502*c){
   case 0xEA:break;                                   /* NOP */
   default:c->stopped=o;return 0;                    /* deliberate: expose next missing opcode */
  }
- c->cycles++;
+ c->cycles += c->last_cycles;
  return 1;
 }
