@@ -43,6 +43,8 @@ int smb360_cpu6502_step(smb360_cpu6502*c){
   case 0x88:c->y--;nz(c,c->y);c->last_cycles=2;break;                /* DEY */
   case 0xC8:c->y++;nz(c,c->y);c->last_cycles=2;break;                /* INY */
   case 0x29:c->a&=imm(c);nz(c,c->a);c->last_cycles=2;break;          /* AND # */
+  case 0x24:{uint8_t v=rd(c,imm(c));c->p=(uint8_t)((c->p&~(F_N|F_V|F_Z))|(v&(F_N|F_V))|((c->a&v)?0:F_Z));c->last_cycles=3;}break; /* BIT zp */
+  case 0x2C:{uint8_t v=rd(c,absop(c));c->p=(uint8_t)((c->p&~(F_N|F_V|F_Z))|(v&(F_N|F_V))|((c->a&v)?0:F_Z));c->last_cycles=4;}break; /* BIT abs */          /* AND # */
   case 0xC9:{uint8_t v=imm(c),r=(uint8_t)(c->a-v);c->p=(uint8_t)((c->p&~F_C)|(c->a>=v?F_C:0));nz(c,r);c->last_cycles=2;}break;
   case 0xE0:{uint8_t v=imm(c),r=(uint8_t)(c->x-v);c->p=(uint8_t)((c->p&~F_C)|(c->x>=v?F_C:0));nz(c,r);c->last_cycles=2;}break; /* CPX # */
   case 0xC0:{uint8_t v=imm(c),r=(uint8_t)(c->y-v);c->p=(uint8_t)((c->p&~F_C)|(c->y>=v?F_C:0));nz(c,r);c->last_cycles=2;}break; /* CPY # */
