@@ -26,9 +26,15 @@ int smb360_cpu6502_step(smb360_cpu6502*c){
   case 0xD8:c->p&=(uint8_t)~F_D;c->last_cycles=2;break;              /* CLD */
   case 0xA2:c->x=imm(c);nz(c,c->x);c->last_cycles=2;break;           /* LDX # */
   case 0xA0:c->y=imm(c);nz(c,c->y);c->last_cycles=2;break;           /* LDY # */
-  case 0xA9:c->a=imm(c);nz(c,c->a);c->last_cycles=2;break;           /* LDA # */
+  case 0xA9:c->a=imm(c);nz(c,c->a);c->last_cycles=2;break;
+  case 0xA5:c->a=rd(c,imm(c));nz(c,c->a);c->last_cycles=3;break;       /* LDA zp */
+  case 0xB5:{uint8_t z=imm(c);c->a=rd(c,(uint8_t)(z+c->x));nz(c,c->a);c->last_cycles=4;}break; /* LDA zp,X */           /* LDA # */
   case 0xAD:c->a=rd(c,absop(c));nz(c,c->a);c->last_cycles=4;break;
   case 0xBD:{uint16_t b=absop(c),a=(uint16_t)(b+c->x);c->a=rd(c,a);nz(c,c->a);c->last_cycles=(uint32_t)(4+((b&0xff00u)!=(a&0xff00u)));}break; /* LDA abs,X */   /* LDA abs */
+  case 0x85:wr(c,imm(c),c->a);c->last_cycles=3;break;                  /* STA zp */
+  case 0x95:{uint8_t z=imm(c);wr(c,(uint8_t)(z+c->x),c->a);c->last_cycles=4;}break; /* STA zp,X */
+  case 0x86:wr(c,imm(c),c->x);c->last_cycles=3;break;                  /* STX zp */
+  case 0x84:wr(c,imm(c),c->y);c->last_cycles=3;break;                  /* STY zp */
   case 0x8D:wr(c,absop(c),c->a);c->last_cycles=4;break;              /* STA abs */
   case 0x8E:wr(c,absop(c),c->x);c->last_cycles=4;break;              /* STX abs */
   case 0x9A:c->s=c->x;c->last_cycles=2;break;                        /* TXS */
@@ -38,10 +44,14 @@ int smb360_cpu6502_step(smb360_cpu6502*c){
   case 0xC8:c->y++;nz(c,c->y);c->last_cycles=2;break;                /* INY */
   case 0x29:c->a&=imm(c);nz(c,c->a);c->last_cycles=2;break;          /* AND # */
   case 0xC9:{uint8_t v=imm(c),r=(uint8_t)(c->a-v);c->p=(uint8_t)((c->p&~F_C)|(c->a>=v?F_C:0));nz(c,r);c->last_cycles=2;}break;
+  case 0xE0:{uint8_t v=imm(c),r=(uint8_t)(c->x-v);c->p=(uint8_t)((c->p&~F_C)|(c->x>=v?F_C:0));nz(c,r);c->last_cycles=2;}break; /* CPX # */
+  case 0xC0:{uint8_t v=imm(c),r=(uint8_t)(c->y-v);c->p=(uint8_t)((c->p&~F_C)|(c->y>=v?F_C:0));nz(c,r);c->last_cycles=2;}break; /* CPY # */
   case 0xD0:branch(c,!(c->p&F_Z));break;             /* BNE */
   case 0xF0:branch(c,(c->p&F_Z));break;              /* BEQ */
   case 0x10:branch(c,!(c->p&F_N));break;             /* BPL */
-  case 0x30:branch(c,(c->p&F_N));break;\n  case 0xB0:branch(c,(c->p&F_C));break;              /* BCS */              /* BMI */
+  case 0x30:branch(c,(c->p&F_N));break;\n  case 0xB0:branch(c,(c->p&F_C));break;              /* BCS */
+  case 0x90:branch(c,!(c->p&F_C));break;             /* BCC */              /* BMI */
+  case 0x91:{uint8_t z=imm(c);uint16_t b=(uint16_t)(rd(c,z)|((uint16_t)rd(c,(uint8_t)(z+1))<<8));wr(c,(uint16_t)(b+c->y),c->a);c->last_cycles=6;}break; /* STA (zp),Y */
   case 0x4C:c->pc=absop(c);c->last_cycles=3;break;                    /* JMP abs */
   case 0x20:{uint16_t t=absop(c),r=(uint16_t)(c->pc-1);push(c,(uint8_t)(r>>8));push(c,(uint8_t)r);c->pc=t;c->last_cycles=6;}break;
   case 0x60:{uint8_t l=pop(c),h=pop(c);c->pc=(uint16_t)(((uint16_t)h<<8)|l);c->pc++;c->last_cycles=6;}break;
