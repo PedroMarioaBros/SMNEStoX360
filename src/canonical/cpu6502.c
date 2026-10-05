@@ -38,11 +38,18 @@ int smb360_cpu6502_step(smb360_cpu6502*c){
   case 0x8D:wr(c,absop(c),c->a);c->last_cycles=4;break;              /* STA abs */
   case 0x8E:wr(c,absop(c),c->x);c->last_cycles=4;break;              /* STX abs */
   case 0x9A:c->s=c->x;c->last_cycles=2;break;                        /* TXS */
+  case 0xAA:c->x=c->a;nz(c,c->x);c->last_cycles=2;break;               /* TAX */
+  case 0xA8:c->y=c->a;nz(c,c->y);c->last_cycles=2;break;               /* TAY */
+  case 0x8A:c->a=c->x;nz(c,c->a);c->last_cycles=2;break;               /* TXA */
+  case 0x98:c->a=c->y;nz(c,c->a);c->last_cycles=2;break;               /* TYA */
+  case 0xBA:c->x=c->s;nz(c,c->x);c->last_cycles=2;break;               /* TSX */
   case 0xE8:c->x++;nz(c,c->x);c->last_cycles=2;break;                /* INX */
   case 0xCA:c->x--;nz(c,c->x);c->last_cycles=2;break;                /* DEX */
   case 0x88:c->y--;nz(c,c->y);c->last_cycles=2;break;                /* DEY */
   case 0xC8:c->y++;nz(c,c->y);c->last_cycles=2;break;                /* INY */
-  case 0x29:c->a&=imm(c);nz(c,c->a);c->last_cycles=2;break;          /* AND # */
+  case 0x29:c->a&=imm(c);nz(c,c->a);c->last_cycles=2;break;
+  case 0x09:c->a|=imm(c);nz(c,c->a);c->last_cycles=2;break;           /* ORA # */
+  case 0x49:c->a^=imm(c);nz(c,c->a);c->last_cycles=2;break;           /* EOR # */          /* AND # */
   case 0x24:{uint8_t v=rd(c,imm(c));c->p=(uint8_t)((c->p&~(F_N|F_V|F_Z))|(v&(F_N|F_V))|((c->a&v)?0:F_Z));c->last_cycles=3;}break; /* BIT zp */
   case 0x2C:{uint8_t v=rd(c,absop(c));c->p=(uint8_t)((c->p&~(F_N|F_V|F_Z))|(v&(F_N|F_V))|((c->a&v)?0:F_Z));c->last_cycles=4;}break; /* BIT abs */          /* AND # */
   case 0xC9:{uint8_t v=imm(c),r=(uint8_t)(c->a-v);c->p=(uint8_t)((c->p&~F_C)|(c->a>=v?F_C:0));nz(c,r);c->last_cycles=2;}break;
@@ -57,6 +64,10 @@ int smb360_cpu6502_step(smb360_cpu6502*c){
   case 0x4C:c->pc=absop(c);c->last_cycles=3;break;                    /* JMP abs */
   case 0x20:{uint16_t t=absop(c),r=(uint16_t)(c->pc-1);push(c,(uint8_t)(r>>8));push(c,(uint8_t)r);c->pc=t;c->last_cycles=6;}break;
   case 0x60:{uint8_t l=pop(c),h=pop(c);c->pc=(uint16_t)(((uint16_t)h<<8)|l);c->pc++;c->last_cycles=6;}break;
+  case 0x18:c->p&=(uint8_t)~F_C;c->last_cycles=2;break;                 /* CLC */
+  case 0x38:c->p|=F_C;c->last_cycles=2;break;                           /* SEC */
+  case 0x58:c->p&=(uint8_t)~F_I;c->last_cycles=2;break;                 /* CLI */
+  case 0xB8:c->p&=(uint8_t)~F_V;c->last_cycles=2;break;                 /* CLV */
   case 0xEA:c->last_cycles=2;break;                                   /* NOP */
   default:c->stopped=o;return 0;                    /* deliberate: expose next missing opcode */
  }
