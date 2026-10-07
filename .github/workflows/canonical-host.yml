@@ -1,0 +1,33 @@
+name: Canonical NES host tests
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'src/canonical/**'
+      - 'tests/test_cpu6502*'
+      - 'tests/test_canonical_nrom.c'
+      - 'tests/test_ppu*'
+      - 'tests/run_canonical_rom.c'
+      - 'tests/run_host_tests.sh'
+      - 'tools/run_canonical.py'
+      - '.github/workflows/canonical-host.yml'
+  pull_request:
+    paths:
+      - 'src/canonical/**'
+      - 'tests/**'
+      - 'tools/run_canonical.py'
+      - '.github/workflows/canonical-host.yml'
+permissions:
+  contents: read
+jobs:
+  host:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        sanitize: ['0', '1']
+    steps:
+      - uses: actions/checkout@v4
+      - name: Compile runner and run synthetic tests (no ROM)
+        env:
+          SANITIZE: ${{ matrix.sanitize }}
+        run: sh tests/run_host_tests.sh

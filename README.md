@@ -1,42 +1,60 @@
-# SMB360
+# SMB360 — SMB_v026 no Xbox 360
 
-Clean-room platform shell for a native Xbox 360 homebrew port of Super Mario Bros gameplay logic.
-No Nintendo ROM, level data, graphics, music or other proprietary assets are included.
+O produto final pretendido é um `default.xex` que inicia diretamente a ROM
+SMB_v026 integrada ao executável, sem seletor de ROM ou interface de emulador.
+**Ainda não existe um XEX validado dessa arquitetura canônica.**
 
+## Fonte de verdade
 
-### Xenon artifact verification
+A ROM do proprietário é a fonte exclusiva de PRG, CHR, dados e comportamento.
+O runtime em `src/canonical/` executa seu PRG 6502 original.
+Nenhuma recriação de SMB de terceiros é usada nesse caminho.
 
-`scripts/build_xenon_with_nathsou.sh` now runs a strict toolchain preflight before compiling and verifies the resulting `smb360.elf32` as a 32-bit big-endian PowerPC ELF before accepting it. This prevents a missing/incorrect SDK or wrong-architecture output from being mistaken for a usable XeLL payload.
+- ROM SHA-256: `57fb4ee14288853bc0c8a5a629a103e51e87a4ebae1cc699b435060d2690b047`
+- NROM-256, 32 KiB PRG, 8 KiB CHR, mirroring vertical.
+- [Identidade canônica](docs/SMB_V026_CANONICAL_ROM.md)
+- [Checkpoint e limitações atuais](docs/WORK_CHECKPOINT.md)
 
-## PC validation
+## Compilar e testar no host
+
+Requisitos: compilador C99 e Python 3. Não requer SDK Xbox para estes testes.
 
 ```sh
-./scripts/build_pc.sh
+sh tests/run_host_tests.sh
+python3 tools/run_canonical.py /caminho/SMB_v026.nes
+python3 tools/run_canonical.py /caminho/SMB_v026.nes \
+  --instructions 5000000 --input tests/canonical_start_right.input \
+  --frame build/gameplay.bin
 ```
 
-## Xbox 360 cross-build
+O wrapper valida SHA-256 integral, PRG e CHR antes de executar.
+O runner C direto valida tamanho/header, mas não SHA-256: use o wrapper.
+`frame.bin` contém 256 × 240 índices de paleta de 6 bits do último quadro
+completo, sem header; não é imagem RGB nem referência comprovada de fidelidade.
+As entradas de controle são eventos `frame máscara_hex` na ordem
+A, B, Select, Start, Up, Down, Left, Right (bits 0 a 7).
+Os frames são contados a partir de zero.
 
-Install/use LibXenon, export `DEVKITXENON`, ensure its binaries are on `PATH`, then run:
+Para ASan/UBSan:
 
 ```sh
-./scripts/build_xenon.sh
+SANITIZE=1 sh tests/run_host_tests.sh
 ```
 
-The project also contains a Docker helper following Free60's documented prebuilt-image workflow.
+Em ambientes sob ptrace que impedem LeakSanitizer, acrescente
+`ASAN_OPTIONS=detect_leaks=0` tanto aos testes quanto à execução da ROM.
+Isso mantém AddressSanitizer e UndefinedBehaviorSanitizer ativos.
 
-## ROM handling
+## Estado e Xbox
 
-`tools/romcheck.py` only validates a ROM supplied locally by the user. Strict identity checking targets the verified headered SMB1 World dump (40,976 bytes; SHA-1 `33d23c2f2cfa4c9efec87f7bc1321ce3ce6c89bd`). ROM files are git-ignored.
+CPU: 151 opcodes oficiais implementados; não é uma certificação cycle-perfect.
+PPU funcional inicial, NMI, DMA e controle disponíveis no host; áudio ausente.
+O checkpoint separa implementação, testes sintéticos, execução da ROM e hardware.
 
-When an external `nathsou/smb` checkout is available, `docs/NATHSOU_REAL_CORE_RUNBOOK.md` describes the headless real-core build path. The checkout is staged before compilation and receives an idempotent endian-portability patch; the user checkout itself is not modified. For Xbox 360, `scripts/build_xenon_with_nathsou.sh /path/to/smb` stages the same checkout and enables the production `SMB360_WITH_NATHSOU_CORE` gameplay path.
+Os backends `src/platform/`, integrações `nathsou` e scripts Xbox antigos
+são históricos e **não estão ligados ao runtime canônico**. Não construir um
+jogo novo por esses caminhos sem a migração deliberada.
+O build antigo #16 sofreu Fatal Crash imediato no Xbox 360 e não é funcional.
 
-## Verified status
-
-Previous percentage estimates were retired after a clean recovery audit. The project now reports evidence-backed acceptance gates rather than pretending infrastructure points equal total effort. See `docs/ACCEPTANCE_GATES.md`.
-
-The primary gameplay-core candidate is now `nathsou/smb`, an Apache-2.0 static recompilation with its platform layer separable from the C99 core. `smb-vanilla-port` remains reference-only because no explicit repository license was found in the audited upstream. Nintendo ROM/assets are never bundled. See `docs/CORE_SELECTION.md`.
-
-
-## ROM-independent hardware diagnostics
-
-The Xenon runtime includes a generated 256x240 video/controller/audio diagnostic mode. If the real SMB core or an accepted owner ROM is unavailable, the Xbox build enters diagnostics instead of halting. This lets the first `xenon.elf` validate LibXenon video, controller input, audio, and 60 Hz pacing without bundling game assets.
+A retomada Xbox deve seguir: boot mínimo → loop → vídeo seguro → controle →
+runtime canônico → áudio. Não reutilizar endereços de framebuffer hardcoded.
