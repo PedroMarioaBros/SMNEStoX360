@@ -18,6 +18,6 @@ int main(int argc,char**argv){
   (unsigned long long)ran,m.cpu.pc,(unsigned)(m.cpu.stopped&255),
   (unsigned long long)m.cpu.cycles,(unsigned long long)m.ppu.frame,
   (unsigned)m.ppu.scanline,(unsigned)m.ppu.dot);
- free(rom);
+ {unsigned used=0,i;for(i=0;i<256;i++)if(m.cpu.opcode_hits[i])used++;printf("unique_opcodes=%u\n",used);printf("opcodes:");for(i=0;i<256;i++)if(m.cpu.opcode_hits[i])printf(" %02X:%llu",i,(unsigned long long)m.cpu.opcode_hits[i]);printf("\n");}\n free(rom);
  return 0;
 }
