@@ -22,7 +22,7 @@ void smb360_cpu6502_reset(smb360_cpu6502*c){c->s=0xFD;c->p=F_U|F_I;c->pc=rd16(c,
 int smb360_cpu6502_step(smb360_cpu6502*c){
  uint8_t o;
  if(c->stopped)return 0;
- o=rd(c,c->pc++); c->last_cycles=2;
+ o=rd(c,c->pc++); c->opcode_hits[o]++; c->last_cycles=2;
  switch(o){
   case 0x78:c->p|=F_I;c->last_cycles=2;break;                         /* SEI */
   case 0xD8:c->p&=(uint8_t)~F_D;c->last_cycles=2;break;              /* CLD */
