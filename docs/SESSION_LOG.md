@@ -79,3 +79,30 @@ A identidade do commit que contém uma entrada pode ser consultada no histórico
 - Diagnóstico adicional no mesmo roteiro: frame 516, PC $8057, ppu_v=$632a, ppu_t=$000a, fine-X 3, PPUCTRL $90, PPUMASK $1e, 333 sprite-zero hits. A nametable 0 contém dados em linhas superiores, porém o quadro final tem topo visual vazio. Evidência bruta: docs/evidence/2026-10-07/inspect-5m.txt.
 - Interpretação atual: existe estado gráfico de status, mas a composição funcional está aplicando scroll vertical/horizontal ao HUD; ainda não há correção publicada. Não afirmar que essa é a causa final até capturar a primeira divergência com uma referência ou um trace de writes PPU.
 - Próxima ação permanece implementar/instrumentar separação de v/t e região fixa do HUD baseada na semântica de scroll da PPU, com teste sintético e comparação do mesmo roteiro. Não inserir condição específica para endereços do SMB.
+
+## S005 — 07/10/2026 UTC, correção de timing e auditoria do HUD
+
+- HEAD recebido: 11cd0245985577ea7d6ef3a3e47ff015e06f13ed. Clone limpo,
+  hashes canônicos e sete suítes host confirmados antes de editar.
+- Correção de diagnóstico: o quadro bruto anterior contém HUD visível.
+  As afirmações de topo vazio nas S001–S004 ficam supersedidas por esta evidência.
+  Não houve patch de gameplay/scroll para desenhar o HUD.
+- Implementado o dot omitido dos frames ímpares NTSC com rendering ativo.
+  Testes de 89.342/89.341 clocks, paridade com rendering desligado e trocas
+  de PPUMASK no limite. Referência técnica: NESdev PPU frame timing/rendering.
+- Falha durante desenvolvimento: a primeira fixture sintética não fornecia CHR
+  e causou segmentation fault ao habilitar rendering. Corrigida para inicializar
+  NROM com arrays PRG/CHR válidos. Não mascarar o acesso no runtime.
+- Novos testes falham contra ppu_timing.c do HEAD antigo; falha esperada registrada.
+- Criada conversão reproduzível dos índices para PNG com stdlib; PNG decodificado
+  com Pillow preservou todos os índices. Cores ilustrativas, não validação NTSC.
+- Medições novas: 5m/15.390.305 ciclos/frame 516/207:88/99 opcodes/510 NMIs;
+  50m/154.288.005 ciclos/frame 5180/219:340/100 opcodes/5174 NMIs.
+  PC $8057, sem opcode bloqueador. Primeiro NMI $8082/frame 3/ciclo 116.744.
+  Quadros finais mantêm os hashes históricos. Não é aumento do recorde de 50m.
+- Logs completos de opcode hits, imagem e comandos em docs/evidence/S005/.
+- CI foi atualizado para comparar com o log S005, pois os contadores mudaram.
+- Próximo passo: referência independente alinhada com a mesma ROM; sem
+  certificação integral do gameplay, áudio ou Xbox. Nenhum XEX novo produzido.
+- Validação final: sete suítes normais e ASan/UBSan passaram; execução sanitizada
+  de 5m reproduziu integralmente log e quadro. Leak detection desabilitado.

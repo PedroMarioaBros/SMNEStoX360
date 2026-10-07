@@ -9,6 +9,16 @@ void smb360_ppu_timing_init(smb360_ppu_timing *p, smb360_nrom *bus) {
 
 void smb360_ppu_timing_step(smb360_ppu_timing *p, uint32_t n) {
     while(n--) {
+        /* NTSC: with rendering enabled, odd frames omit pre-render dot 340.
+         * The frame counter starts even and advances even when rendering is off.
+         * See https://www.nesdev.org/wiki/PPU_frame_timing . */
+        if (p->scanline==261u && p->dot==339u && (p->frame&1u) &&
+            (p->bus->ppu_regs[1]&0x18u)) {
+            p->dot=0u;
+            p->scanline=0u;
+            ++p->frame;
+            continue;
+        }
         ++p->dot;
         if (p->scanline<240u && p->dot>=1u && p->dot<=256u) {
             if(p->dot==1u)smb360_ppu_render_line(p->bus,p->scanline);

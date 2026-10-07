@@ -41,4 +41,4 @@ jobs:
         run: |
           python3 tools/verify_repository.py
           python3 tools/run_canonical.py --instructions 5000000 --input tests/canonical_start_right.input --frame build/ci.bin > build/ci.txt
-          diff -u docs/evidence/2026-10-07/start-right.txt build/ci.txt
+          diff -u docs/evidence/S005/start-right.txt build/ci.txt

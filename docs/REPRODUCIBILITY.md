@@ -21,13 +21,13 @@ python3 tools/run_canonical.py --instructions 5000000 \
 ~~~
 
 O argumento de ROM é opcional e usa assets/canonical/SMB_v026.nes por padrão.
-Para verificar a reprodução contra o registro da S001:
+Para verificar a reprodução contra o registro atual da S005 (os logs S001 são históricos):
 
 ~~~sh
 python3 tools/run_canonical.py --instructions 5000000 \
   --input tests/canonical_start_right.input --frame build/gameplay.bin \
   > build/reproduced.txt
-diff -u docs/evidence/2026-10-07/start-right.txt build/reproduced.txt
+diff -u docs/evidence/S005/start-right.txt build/reproduced.txt
 ~~~
 
 ## Mapa dos arquivos
@@ -43,7 +43,9 @@ diff -u docs/evidence/2026-10-07/start-right.txt build/reproduced.txt
 | Ferramentas e scripts de build | tools/, scripts/ |
 | Outputs da S001, inclusive binários de teste | artifacts/session-S001-host.tar.xz |
 | Inventário de bytes e SHA-256, incluindo membros do arquivo | artifacts/inventory.json |
-| Logs de execução e diagnóstico | docs/evidence/2026-10-07/ |
+| Logs de execução e diagnóstico | docs/evidence/2026-10-07/ e docs/evidence/S005/ |
+| Quadros brutos e PNG da S005 | docs/evidence/S005/frames.tar.xz e start-right.png |
+| Conversor de quadro para PNG | tools/frame_to_png.py |
 | Fontes temporárias preservadas do desenvolvimento S001 | docs/evidence/2026-10-07/source/ |
 | Continuidade | START_HERE.md, AGENTS.md, docs/WORK_CHECKPOINT.md, NEXT_STEPS.md, SESSION_LOG.md |
 
@@ -71,7 +73,8 @@ em assets/canonical/. Nenhuma etapa de retomada depende desses scripts.
 Não há XEX novo do core canônico, APU implementada ou referência NES já
 configurada para a comparação diferencial. Armazenar todos os arquivos
 existentes não significa que esses marcos foram concluídos.
-O próximo trabalho técnico permanece investigar o HUD ausente.
+O próximo trabalho técnico é configurar comparação independente. O diagnóstico
+de HUD ausente foi retirado na S005 após conferir os pixels reais.
 
 ## Regra de preservação
 

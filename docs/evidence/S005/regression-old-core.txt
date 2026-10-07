@@ -1,0 +1,3 @@
+Expected failure: new timing tests against pre-S005 ppu_timing.c
+returncode=-6
+old-timing-test: tests/test_ppu_timing.c:23: frame_lengths: Assertion `p.frame==frame+1u && p.scanline==0 && p.dot==0' failed.

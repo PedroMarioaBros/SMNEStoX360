@@ -35,6 +35,7 @@ para o próximo.
 ## Estado resumido
 
 Runtime canônico executa no host e já produziu quadros; fidelidade gráfica
-continua pendente. O próximo problema é investigar o HUD ausente.
+continua pendente. S005 corrigiu o timing NTSC de frames ímpares e demonstrou
+que o HUD já estava presente. Próximo passo: comparação independente da mesma ROM.
 Nenhum novo XEX desta arquitetura foi validado no Xbox.
 Consulte sempre o checkpoint e NEXT_STEPS.md: este resumo não substitui os dois.

@@ -1,5 +1,37 @@
 # Checkpoint operacional — 2026-10-07 UTC (06/10 no Brasil)
 
+## Estado atual — S005, 07/10/2026 UTC
+
+Entrada: `11cd0245985577ea7d6ef3a3e47ff015e06f13ed`. Esta seção substitui
+os diagnósticos de HUD ausente das sessões anteriores: a conversão direta dos
+61.440 índices do quadro mostra MARIO, MUNDO, TEMPO, pontuação e moedas.
+Não houve correção de HUD; a conclusão visual anterior estava errada.
+Imagem e evidência: [S005](evidence/S005/README.md).
+
+Implementado nesta sessão: omissão do dot 340 no pre-render dos frames ímpares
+NTSC quando background ou sprites estão habilitados. A paridade avança também
+com rendering desligado. Testes cobrem duração dos frames, máscaras independentes
+e habilitação/desabilitação junto ao limite. O teste novo falha no core anterior.
+Não torna a PPU cycle-perfect; CPU/PPU continuam sincronizadas por instrução.
+
+| Cenário S005 | Instruções | Ciclos CPU | Frame | Linha/dot | PC | Opcodes | NMIs |
+|---|---:|---:|---:|---|---|---:|---:|
+| Start/direita | 5.000.000 | 15.390.305 | 516 | 207/88 | $8057 | 99 | 510 |
+| Prolongado | 50.000.000 | 154.288.005 | 5.180 | 219/340 | $8057 | 100 | 5.174 |
+
+Sem opcode bloqueador; 333/4.997 sprite-zero hits respectivamente. Primeiro NMI
+continua $8082, frame 3, ciclo CPU 116.744 após a entrada. Hashes dos quadros
+permanecem iguais aos históricos. O limite máximo medido continua 50 milhões;
+esta sessão não aumentou esse recorde. Hits completos nos logs S005.
+
+Ferramenta nova: `python3 tools/frame_to_png.py build/gameplay.bin build/gameplay.png`
+converte índices em PNG sem dependências externas. Paleta RGB ilustrativa,
+sem emulação de sinal analógico ou emphasis; não usar cor RGB como prova de fidelidade.
+
+Próxima tarefa: configurar referência independente com a mesma ROM e alinhar
+reset/entrada/captura antes de comparar estados e pixels. Não presumir novamente
+que todo o HUD está ausente. Áudio/APU e execução Xbox ainda pendentes.
+
 ## Ordem permanente de continuidade (atualizada na S002)
 
 Todo novo chat/Work começa em [START_HERE.md](../START_HERE.md) e deve cumprir
@@ -9,7 +41,7 @@ resultados e tentativas. Antes da resposta final, atualizar este checkpoint,
 commits e confirmar HEAD remoto. O sucessor deve preservar e repetir o processo.
 
 A S002 definiu o protocolo. A S003 colocou a ROM e os outputs no GitHub.
-As medições de avanço técnico abaixo são da S001; S003 fez verificações de reprodução.
+As medições históricas abaixo são da S001; o estado S005 está no início deste arquivo.
 A tarefa ativa e os próximos comandos copiáveis estão em NEXT_STEPS.md.
 
 ## Retomar daqui
@@ -111,14 +143,10 @@ em todos os modos e estados.** Testes externos de conformidade continuam necess�
    de fetch/shift registers; snapshot por linha simplifica scroll, especialmente
    alterações durante a linha. Não modela dummy reads do CPU, microciclos de
    interrupções, atraso de polling IRQ após CLI/SEI/PLP ou janelas de supressão NMI.
-2. Imagem de título foi inspecionada e contém MUNDO/TEMPO/MARIO/LUIGI.
-   Imagem após Start/movimento mostra cenário de fase, sprites e Mario,
-   mas o HUD não aparece no quadro final de 5 milhões. **Pendência gráfica
-   explícita; não declarar esse quadro correto.** Diagnóstico inicial no frame
-   500 encontrou scroll zero no topo e sprite-zero hit por volta da linha 31,
-   seguido da mudança de scroll; falta comparar VRAM/pixels com referência. S004 confirmou que a nametable contém dados de status nas linhas superiores, enquanto o estado final está em ppu_v=$632a, ppu_t=$000a, fine-X 3; a hipótese de scroll incorreto foi registrada, sem ser tratada como causa comprovada.
+2. Diagnóstico antigo de HUD ausente retirado na S005 por evidência dos pixels.
+   A imagem tem elementos de HUD; fidelidade completa ainda exige referência.
 3. Render não modela o bug de overflow de sprites, pipeline de avaliação,
-   efeitos de escritas durante rendering, odd-frame skipped dot, paleta analógica
+   efeitos de escritas durante rendering, paleta analógica
    ou color emphasis. PPUSTATUS races, reset/power-up e CPU open bus incompletos.
 4. DMA é cópia instantânea + stall agregado, sem arbitragem ciclo a ciclo.
 5. APU permanece placeholder. Nenhum áudio correto produzido. $6000-$7FFF
@@ -157,7 +185,7 @@ direita+A em 220–269, direita em 270–359, soltar depois.
 ## Próximo bloqueio e sequência
 
 Prioridade imediata: comparar quadros/VRAM/scroll com uma referência usando
-EXATAMENTE a mesma ROM; investigar HUD ausente e ajustar o pipeline PPU sem
+EXATAMENTE a mesma ROM; localizar divergências demonstráveis e ajustar a PPU sem
 patch de gameplay. Ampliar conformidade CPU com testes independentes.
 Depois: entrada interativa host, áudio/APU e backend Xbox mínimo seguro.
 
