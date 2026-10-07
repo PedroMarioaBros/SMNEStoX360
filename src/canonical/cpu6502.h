@@ -11,6 +11,7 @@ typedef struct {
     uint64_t cycles;
     int stopped;
     uint32_t last_cycles;
+    uint64_t opcode_hits[256];
     smb360_nrom *bus;
 } smb360_cpu6502;
 
