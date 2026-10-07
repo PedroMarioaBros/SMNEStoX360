@@ -1,5 +1,9 @@
 # SMB360 — SMB_v026 no Xbox 360
 
+**Novo chat ou Work: leia [START_HERE.md](START_HERE.md) antes de trabalhar.**
+O registro de cada avanço, da próxima ação e do próximo comando no GitHub é
+obrigatório para toda sessão e todo sucessor.
+
 O produto final pretendido é um `default.xex` que inicia diretamente a ROM
 SMB_v026 integrada ao executável, sem seletor de ROM ou interface de emulador.
 **Ainda não existe um XEX validado dessa arquitetura canônica.**

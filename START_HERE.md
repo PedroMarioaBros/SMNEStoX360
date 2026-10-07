@@ -1,0 +1,37 @@
+# COMECE AQUI — continuidade do SMNEStoX360
+
+Esta é a entrada operacional para qualquer novo chat, Work ou agente.
+O GitHub é a fonte persistente do estado do projeto; não depender da memória
+de uma conversa anterior.
+
+## Ordem obrigatória de leitura
+
+1. [AGENTS.md](AGENTS.md): regras permanentes.
+2. [Protocolo de continuidade](docs/CONTINUITY_PROTOCOL.md): como iniciar,
+   registrar avanços e encerrar toda sessão.
+3. [Checkpoint atual](docs/WORK_CHECKPOINT.md): implementação, evidências e limites.
+4. [Próxima ação](docs/NEXT_STEPS.md): tarefa ativa e próximos comandos.
+5. [Histórico de sessões](docs/SESSION_LOG.md): o que já foi feito e tentado.
+6. [ROM canônica](docs/SMB_V026_CANONICAL_ROM.md): identidade e arquitetura.
+
+Leia o HEAD remoto antes de editar. As instruções de continuidade devem ser
+mantidas e cumpridas por cada sucessor, que também deve deixar o estado pronto
+para o próximo.
+
+## Comando de retomada para colar em outro chat
+
+> Continue o projeto PedroMarioaBros/SMNEStoX360. Leia START_HERE.md no HEAD
+> atual do GitHub e siga integralmente AGENTS.md e o protocolo de continuidade.
+> Leia o checkpoint, o histórico e NEXT_STEPS.md antes de trabalhar.
+> Execute a próxima tarefa pendente, preservando a ROM canônica.
+> Registre cada avanço e tentativa relevante, atualize o próximo comando,
+> faça commits e confirme a publicação remota antes da resposta final.
+> Não reinicie etapas concluídas sem uma razão técnica registrada.
+> Se faltar acesso ou a ROM, registre o bloqueio real, sem inventar progresso.
+
+## Estado resumido
+
+Runtime canônico executa no host e já produziu quadros; fidelidade gráfica
+continua pendente. O próximo problema é investigar o HUD ausente.
+Nenhum novo XEX desta arquitetura foi validado no Xbox.
+Consulte sempre o checkpoint e NEXT_STEPS.md: este resumo não substitui os dois.

@@ -1,10 +1,22 @@
 # Checkpoint operacional — 2026-10-07 UTC (06/10 no Brasil)
 
+## Ordem permanente de continuidade (atualizada na S002)
+
+Todo novo chat/Work começa em [START_HERE.md](../START_HERE.md) e deve cumprir
+[CONTINUITY_PROTOCOL.md](CONTINUITY_PROTOCOL.md). A cada avanço, registrar
+resultados e tentativas. Antes da resposta final, atualizar este checkpoint,
+[SESSION_LOG.md](SESSION_LOG.md) e [NEXT_STEPS.md](NEXT_STEPS.md), publicar
+commits e confirmar HEAD remoto. O sucessor deve preservar e repetir o processo.
+
+A sessão S002 só alterou documentação. Os resultados técnicos abaixo são da S001.
+A tarefa ativa e os próximos comandos copiáveis estão em NEXT_STEPS.md.
+
 ## Retomar daqui
 
 Repositório: PedroMarioaBros/SMNEStoX360, branch main.
 Implementação desta sessão: commit `13e6249255c7f3a9b4dd1921bad360db4e3f9035`.
-O commit seguinte contém este checkpoint, documentação e CI sintético.
+O commit 4c438b85fdb27b4deaf6cfec319e66ad2586b50c publicou a primeira versão
+deste checkpoint, as evidências e o CI sintético.
 
 **Marco: execução do PRG canônico no host, entrada NMI real em $8082,
 quadros de título/fase e controles roteirizados. Ainda NÃO é port integral
@@ -117,8 +129,10 @@ em todos os modos e estados.** Testes externos de conformidade continuam necess�
    que leak detection foi validado.
 8. Push por git HTTPS local não tinha credencial. Publicação foi feita pela
    conexão GitHub autorizada, com expected HEAD, e árvore remota conferida.
-9. Workflow CI foi adicionado no commit documental; os resultados acima são
-   locais. Não chamar CI de verde sem consultar o run.
+9. CI do commit 4c438b85fdb27b4deaf6cfec319e66ad2586b50c foi consultado e
+   concluiu success: https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/37561513602.
+   As medições da ROM acima são locais. Não transferir esse sucesso
+   automaticamente para commits futuros.
 
 ## Reproduzir
 
