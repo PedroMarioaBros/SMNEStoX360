@@ -9,7 +9,7 @@ Estado: aguardando retomada técnica; a S003 tornou os arquivos e a ROM disponí
 A ROM chegou a 50 milhões de instruções sem opcode bloqueador e já gera
 quadros. Não reiniciar implementação da CPU ou voltar à arquitetura antiga.
 O problema observado é que o quadro de 5 milhões após Start/direita não
-mostra o HUD. A causa ainda não foi confirmada.
+mostra o HUD. A causa ainda não foi confirmada. A medição S004 encontrou ppu_v=$632a, ppu_t=$000a, fine-X 3 e nametable com dados de status nas linhas superiores; o quadro final continua sem HUD. A hipótese atual é composição incorreta do scroll na região fixa do status.
 
 ## Próximos comandos
 
@@ -51,7 +51,7 @@ não substituição do gameplay ou fonte de dados do jogo.
 Ainda não foi selecionada/configurada uma referência para essa comparação;
 esse é um trabalho pendente, não uma dependência já pronta.
 
-Instrumentar os writes PPU e localizar a primeira divergência concreta.
+Instrumentar os writes PPU e localizar a primeira divergência concreta. Começar pela captura de PPUCTRL, PPUSCROLL, PPUADDR e PPUDATA por frame, comparando v, t, fine_x, nametable e pixels nas linhas 0–31. Confirmar quando o jogo troca o scroll para a fase e como a PPU real mantém a região de status. A evidência S004 está em docs/evidence/2026-10-07/inspect-5m.txt.
 Corrigir somente depois de demonstrar a causa; criar teste que capture a
 regressão observada. Não forçar pixels, flags ou estado específico de SMB.
 

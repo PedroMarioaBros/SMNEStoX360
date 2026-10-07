@@ -116,7 +116,7 @@ em todos os modos e estados.** Testes externos de conformidade continuam necess�
    mas o HUD não aparece no quadro final de 5 milhões. **Pendência gráfica
    explícita; não declarar esse quadro correto.** Diagnóstico inicial no frame
    500 encontrou scroll zero no topo e sprite-zero hit por volta da linha 31,
-   seguido da mudança de scroll; falta comparar VRAM/pixels com referência.
+   seguido da mudança de scroll; falta comparar VRAM/pixels com referência. S004 confirmou que a nametable contém dados de status nas linhas superiores, enquanto o estado final está em ppu_v=$632a, ppu_t=$000a, fine-X 3; a hipótese de scroll incorreto foi registrada, sem ser tratada como causa comprovada.
 3. Render não modela o bug de overflow de sprites, pipeline de avaliação,
    efeitos de escritas durante rendering, odd-frame skipped dot, paleta analógica
    ou color emphasis. PPUSTATUS races, reset/power-up e CPU open bus incompletos.
