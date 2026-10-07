@@ -8,7 +8,8 @@ resultados e tentativas. Antes da resposta final, atualizar este checkpoint,
 [SESSION_LOG.md](SESSION_LOG.md) e [NEXT_STEPS.md](NEXT_STEPS.md), publicar
 commits e confirmar HEAD remoto. O sucessor deve preservar e repetir o processo.
 
-A sessão S002 só alterou documentação. Os resultados técnicos abaixo são da S001.
+A S002 definiu o protocolo. A S003 colocou a ROM e os outputs no GitHub.
+As medições de avanço técnico abaixo são da S001; S003 fez verificações de reprodução.
 A tarefa ativa e os próximos comandos copiáveis estão em NEXT_STEPS.md.
 
 ## Retomar daqui
@@ -24,13 +25,13 @@ validado nem jogo validado no Xbox 360.**
 
 ## Identidade e entrada
 
-A ROM foi encontrada nos arquivos do proprietário, sem baixar ROM de terceiros.
-Os hashes integrais ROM/PRG/CHR coincidiram com
-[SMB_V026_CANONICAL_ROM.md](SMB_V026_CANONICAL_ROM.md).
-Nenhuma nova ROM, PRG ou imagem de assets foi adicionada ao Git.
-Nesta sessão o input local estava em `../rom/SMB_v026.nes`; não presumir que
-esse caminho sobreviverá. Se ausente, localizar SMB_v026.nes nos arquivos do
-proprietário e verificar hashes, ou pedir ao proprietário o arquivo.
+Na S001, a ROM foi recuperada dos arquivos do proprietário, sem obter outra ROM.
+Na S003, por instrução expressa do proprietário, passou a ser versionada em
+assets/canonical/SMB_v026.nes, com PRG, CHR e manifest na mesma pasta.
+Os hashes coincidem com [SMB_V026_CANONICAL_ROM.md](SMB_V026_CANONICAL_ROM.md).
+Não há mais dependência de anexos do ChatGPT para executar o core.
+Outputs da S001 foram preservados em artifacts/session-S001-host.tar.xz;
+inventário e procedimentos em [REPRODUCIBILITY.md](REPRODUCIBILITY.md).
 
 ## Auditoria inicial e progressão medida
 
@@ -138,11 +139,11 @@ em todos os modos e estados.** Testes externos de conformidade continuam necess�
 
 ```sh
 sh tests/run_host_tests.sh
-python3 tools/run_canonical.py /caminho/SMB_v026.nes
-python3 tools/run_canonical.py /caminho/SMB_v026.nes \
+python3 tools/run_canonical.py assets/canonical/SMB_v026.nes
+python3 tools/run_canonical.py assets/canonical/SMB_v026.nes \
   --instructions 5000000 --input tests/canonical_start_right.input \
   --frame build/gameplay.bin
-python3 tools/run_canonical.py /caminho/SMB_v026.nes \
+python3 tools/run_canonical.py assets/canonical/SMB_v026.nes \
   --instructions 50000000 --input tests/canonical_start_right.input \
   --frame build/long-run.bin
 ```
@@ -164,7 +165,7 @@ Xbox: **nenhum novo XEX produzido ou testado nesta sessão.** Build histórico #
 teve Fatal Crash imediato. Estado de boot-test.xex não foi revalidado aqui.
 Não ligar core novo ao vídeo antigo com endereços hardcoded.
 A futura entrega deve embutir PRG/CHR canônicos no default.xex, sem ROM externa,
-mas o host usa arquivo privado para validação nesta etapa.
+e o host usa agora a ROM versionada em assets/canonical/ para validação.
 
 ## Referências técnicas consultadas
 

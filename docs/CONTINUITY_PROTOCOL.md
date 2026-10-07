@@ -27,8 +27,8 @@ a versão mais conveniente. Instruções novas do proprietário prevalecem.
 1. Obter HEAD remoto, branch e estado local. Preservar alterações de terceiros.
 2. Ler START_HERE.md e os arquivos indicados, inclusive a última entrada do diário.
 3. Identificar exatamente a tarefa ativa e o último resultado verificado.
-4. Conferir acesso à ROM canônica quando a tarefa exigir; validar fingerprint.
-   Caminhos locais antigos não são garantia de que o arquivo esteja disponível.
+4. Usar assets/canonical/SMB_v026.nes do próprio checkout e validar fingerprint.
+   Executar python3 tools/verify_repository.py para conferir assets e arquivo histórico.
 5. Comunicar brevemente o ponto de retomada e começar a tarefa pendente.
 6. Não refazer descobertas, implementações ou medições concluídas como se fossem
    progresso novo. Repetições para baseline/regressão são permitidas, identificadas
@@ -55,8 +55,14 @@ Se uma experiência ainda quebrar testes, não publicá-la como implementação
 validada em main. Usar branch de trabalho para preservar a experiência quando
 necessário, registrando branch, falha e como retomar. Nunca perder o diagnóstico.
 
-Não versionar ROM/PRG, credenciais, URLs assinadas ou dumps privados. Registrar
-identidade/hash e procedimentos de acesso, em vez dos bytes protegidos.
+Atualização explícita do proprietário na S003 (06/10/2026 às 23:30):
+ROM, PRG, CHR e todos os arquivos do projeto necessários à continuidade devem
+estar no GitHub. Essa ordem substitui a restrição anterior de não versionar ROM.
+Guardar evidências, ferramentas e outputs únicos; outputs volumosos podem ficar
+em arquivos compactados versionados, acompanhados de inventário e hashes.
+Não deixar arquivos necessários apenas no ChatGPT ou no ambiente temporário.
+Credenciais, tokens e URLs assinadas não são arquivos do projeto e não devem
+ser publicados. As ferramentas padrão de compilação são dependências documentadas.
 
 ## Antes de encerrar ou responder com resultado final
 

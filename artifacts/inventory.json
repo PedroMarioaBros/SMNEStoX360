@@ -1,0 +1,152 @@
+{
+  "session": "S003",
+  "files": [
+    {
+      "path": "artifacts/session-S001-host.tar.xz",
+      "bytes": 368656,
+      "sha256": "d5c581177b9be286ff08bdc288a1fbee4c1b6fa574020323269cad554effa462"
+    },
+    {
+      "path": "assets/canonical/SMB_v026.chr",
+      "bytes": 8192,
+      "sha256": "5e22a5c60aef64263ac7b17997479dfdad23389d1f0756c224412c8f7a5535d0"
+    },
+    {
+      "path": "assets/canonical/SMB_v026.nes",
+      "bytes": 40976,
+      "sha256": "57fb4ee14288853bc0c8a5a629a103e51e87a4ebae1cc699b435060d2690b047"
+    },
+    {
+      "path": "assets/canonical/SMB_v026.prg",
+      "bytes": 32768,
+      "sha256": "9f5b4f73bde569269645e154a1c8e43308afb2f156baa76e977296d7ca4ed9a4"
+    },
+    {
+      "path": "assets/canonical/manifest.json",
+      "bytes": 448,
+      "sha256": "497838a85802314135d0a68494adcf9782e317e990485f44f460cce738f8118e"
+    }
+  ],
+  "archive_members": [
+    {
+      "path": "build/test_ppu_render",
+      "bytes": 691472,
+      "sha256": "4902038f48d8d14b97aa4cb16975f36deca7630bf08c056ab910b88a5cdcc4c4"
+    },
+    {
+      "path": "build/long-run.log",
+      "bytes": 1451,
+      "sha256": "d890ce5ccd1a5efab1b867ba2f84fa07f5f56e296a0b53e71d79c290d15a45f6"
+    },
+    {
+      "path": "build/gameplay.bin",
+      "bytes": 61440,
+      "sha256": "f8f3847872da7e7768e9244513f789240f2eabdb64404a777a066948009659e5"
+    },
+    {
+      "path": "build/test_cpu6502",
+      "bytes": 714528,
+      "sha256": "4e72e3ee234c0e870af85d0bb75f1853e6b3a01f3abf3c3b5460d4f121d59c64"
+    },
+    {
+      "path": "build/sanitized.log",
+      "bytes": 1345,
+      "sha256": "f392b708ee3d4035180fb3bc4f3a67e18ddd9f7d3f1250ce3f69761d2316e2bd"
+    },
+    {
+      "path": "build/title.png",
+      "bytes": 7796,
+      "sha256": "a0bbf27caef77265f22661957988e001727019c195ec721f25d96fa79e90e203"
+    },
+    {
+      "path": "build/gameplay-repeat.log",
+      "bytes": 1345,
+      "sha256": "f392b708ee3d4035180fb3bc4f3a67e18ddd9f7d3f1250ce3f69761d2316e2bd"
+    },
+    {
+      "path": "build/test_ppu_registers",
+      "bytes": 704680,
+      "sha256": "fc35077d8cfdb48684f8279d97e03bb088e8e2e20baa61c8dea5a341a6861454"
+    },
+    {
+      "path": "build/test_ppu_timing",
+      "bytes": 689640,
+      "sha256": "099e18f202423b27ce82b8625654206f5351ff6315f8d2fbf736319a35480912"
+    },
+    {
+      "path": "build/run_canonical_rom",
+      "bytes": 720392,
+      "sha256": "74b25c61b99e00a877c818b782dc3fa9b65e454970672fe53e4bcb6b576c65e7"
+    },
+    {
+      "path": "build/test_cpu6502_reset",
+      "bytes": 690896,
+      "sha256": "3e28705f310cea14d88cec220891d64c10c0ad0fcc62a4b0a9151bf9617155b5"
+    },
+    {
+      "path": "build/test_canonical_nrom",
+      "bytes": 691680,
+      "sha256": "b4bdf1fd7e17456f5d6b52ff0be662d9f7ce89131724a9790c0f50522e28f02b"
+    },
+    {
+      "path": "build/trace_ppu",
+      "bytes": 29688,
+      "sha256": "ef4ffb8e435f90ca6b769258e2dc844b7999e8588ff94cf359ddba771fe69d1c"
+    },
+    {
+      "path": "build/title.bin",
+      "bytes": 61440,
+      "sha256": "5c7385892f60b6add2f719404b2cbf85e17237d02f2cb7a6035808ffc7e85f4d"
+    },
+    {
+      "path": "build/gameplay-repeat.bin",
+      "bytes": 61440,
+      "sha256": "f8f3847872da7e7768e9244513f789240f2eabdb64404a777a066948009659e5"
+    },
+    {
+      "path": "build/title.log",
+      "bytes": 1166,
+      "sha256": "a4d74fdb1c5e679fa6e758f90230280bcef8cb7500769e0902deeaece6dec350"
+    },
+    {
+      "path": "build/rom/manifest.json",
+      "bytes": 448,
+      "sha256": "497838a85802314135d0a68494adcf9782e317e990485f44f460cce738f8118e"
+    },
+    {
+      "path": "build/rom/SMB_v026.chr",
+      "bytes": 8192,
+      "sha256": "5e22a5c60aef64263ac7b17997479dfdad23389d1f0756c224412c8f7a5535d0"
+    },
+    {
+      "path": "build/rom/SMB_v026.prg",
+      "bytes": 32768,
+      "sha256": "9f5b4f73bde569269645e154a1c8e43308afb2f156baa76e977296d7ca4ed9a4"
+    },
+    {
+      "path": "build/long-run.bin",
+      "bytes": 61440,
+      "sha256": "55f6578d9ff482a6617fc4a5b6688da5ad58c40263b3fe2c096e9fa5d68cbf9c"
+    },
+    {
+      "path": "build/sanitized.bin",
+      "bytes": 61440,
+      "sha256": "f8f3847872da7e7768e9244513f789240f2eabdb64404a777a066948009659e5"
+    },
+    {
+      "path": "build/test_cpu6502_shifts",
+      "bytes": 693384,
+      "sha256": "edb58a624e8482ea10465756d175083af78a78507e44e782369c795dce1949e6"
+    },
+    {
+      "path": "build/gameplay.log",
+      "bytes": 1345,
+      "sha256": "f392b708ee3d4035180fb3bc4f3a67e18ddd9f7d3f1250ce3f69761d2316e2bd"
+    },
+    {
+      "path": "build/gameplay.png",
+      "bytes": 5187,
+      "sha256": "6ebba08c070a86a41ebf8c307e5e5031d231e635051cdc49923477c37783c0df"
+    }
+  ]
+}

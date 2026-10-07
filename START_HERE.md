@@ -2,7 +2,9 @@
 
 Esta é a entrada operacional para qualquer novo chat, Work ou agente.
 O GitHub é a fonte persistente do estado do projeto; não depender da memória
-de uma conversa anterior.
+de uma conversa anterior. A ROM e os assets estão em assets/canonical/;
+consulte [REPRODUCIBILITY.md](docs/REPRODUCIBILITY.md) para um clone autossuficiente
+em arquivos do projeto.
 
 ## Ordem obrigatória de leitura
 
@@ -27,7 +29,8 @@ para o próximo.
 > Registre cada avanço e tentativa relevante, atualize o próximo comando,
 > faça commits e confirme a publicação remota antes da resposta final.
 > Não reinicie etapas concluídas sem uma razão técnica registrada.
-> Se faltar acesso ou a ROM, registre o bloqueio real, sem inventar progresso.
+> Use a ROM versionada em assets/canonical/ e confira seus hashes.
+> Se faltar acesso ao GitHub, registre o bloqueio real, sem inventar progresso.
 
 ## Estado resumido
 

@@ -10,12 +10,18 @@ on:
       - 'tests/run_canonical_rom.c'
       - 'tests/run_host_tests.sh'
       - 'tools/run_canonical.py'
+      - 'tools/verify_repository.py'
+      - 'assets/canonical/**'
+      - 'artifacts/**'
       - '.github/workflows/canonical-host.yml'
   pull_request:
     paths:
       - 'src/canonical/**'
       - 'tests/**'
       - 'tools/run_canonical.py'
+      - 'tools/verify_repository.py'
+      - 'assets/canonical/**'
+      - 'artifacts/**'
       - '.github/workflows/canonical-host.yml'
 permissions:
   contents: read
@@ -31,3 +37,8 @@ jobs:
         env:
           SANITIZE: ${{ matrix.sanitize }}
         run: sh tests/run_host_tests.sh
+      - name: Verify repository inputs and reproduce canonical ROM baseline
+        run: |
+          python3 tools/verify_repository.py
+          python3 tools/run_canonical.py --instructions 5000000 --input tests/canonical_start_right.input --frame build/ci.bin > build/ci.txt
+          diff -u docs/evidence/2026-10-07/start-right.txt build/ci.txt

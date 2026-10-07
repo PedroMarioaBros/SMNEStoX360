@@ -4,7 +4,9 @@ A partir desta etapa, o projeto trata exclusivamente a ROM fornecida pelo propri
 
 ## Identidade verificada
 
-- Arquivo local: SMB_v026.nes
+- Arquivo versionado: assets/canonical/SMB_v026.nes
+- PRG/CHR e manifest: assets/canonical/
+- Inclusão autorizada expressamente pelo proprietário na sessão S003, 06/10/2026.
 - Tamanho: 40.976 bytes
 - SHA-256 ROM: 57fb4ee14288853bc0c8a5a629a103e51e87a4ebae1cc699b435060d2690b047
 - Formato: iNES

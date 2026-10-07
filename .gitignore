@@ -11,3 +11,6 @@ __pycache__/
 *.log
 
 build*/
+
+# Canonical ROM explicitly authorized for GitHub storage by owner, S003.
+!assets/canonical/SMB_v026.nes

@@ -46,3 +46,26 @@ A identidade do commit que contém uma entrada pode ser consultada no histórico
   Testes de CPU/ROM NÃO foram reexecutados; as medidas acima pertencem à S001.
 - Pendência técnica preservada: HUD ausente; próximo comando em NEXT_STEPS.md.
 - Evidência da publicação desta entrada: histórico Git deste arquivo e HEAD remoto.
+
+## S003 — 06/10/2026, arquivos completos e ROM no GitHub
+
+- Ordem explícita do proprietário: incluir também a ROM e todos os arquivos
+  do projeto no GitHub, sem depender de anexos ou estado do ChatGPT.
+- HEAD de entrada: 99624149fbc0cffc00fbe88eee5e5a9274f03b47.
+- Essa ordem substitui a proibição anterior de versionar ROM/PRG.
+- ROM, PRG, CHR e manifest incluídos em assets/canonical/; hashes canônicos
+  confirmados. .gitignore ganhou exceção específica para essa ROM.
+- Outputs completos de build da S001 preservados em
+  artifacts/session-S001-host.tar.xz, com inventário SHA-256 de arquivos e membros:
+  binários host, logs, screenshots, quadros brutos, resultados repetidos/sanitizados
+  e extração da ROM. Fontes temporárias também preservadas como histórico.
+- Runner Python agora usa a ROM versionada por padrão. Novo verificador de
+  integridade e guia REPRODUCIBILITY.md documentam retomada por clone limpo.
+- AGENTS, protocolo, README, ponto de entrada, checkpoint e próximos comandos
+  atualizados para não procurar ROM no ChatGPT.
+- Verificação: exportação limpa dos arquivos do índice, sem copiar o antigo
+  build nem usar ../rom; sete suítes passaram e cenário de 5 milhões gerou
+  log e hash de quadro idênticos ao registro S001.
+- Objetos binários enviados ao GitHub tiveram Git blob SHA conferido com o local.
+- Sem alteração de gameplay. HUD ausente permanece como próxima tarefa.
+- Nenhum XEX novo. Não extrapolar os resultados host para o Xbox.

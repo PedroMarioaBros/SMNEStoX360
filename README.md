@@ -19,14 +19,23 @@ Nenhuma recriação de SMB de terceiros é usada nesse caminho.
 - [Identidade canônica](docs/SMB_V026_CANONICAL_ROM.md)
 - [Checkpoint e limitações atuais](docs/WORK_CHECKPOINT.md)
 
+## Arquivos completos no GitHub
+
+A ROM está em [assets/canonical/SMB_v026.nes](assets/canonical/SMB_v026.nes),
+com PRG, CHR e manifest na mesma pasta, conforme autorização expressa do
+proprietário na S003. Não é necessário recuperar anexos no ChatGPT.
+[REPRODUCIBILITY.md](docs/REPRODUCIBILITY.md) lista arquivos, dependências,
+inventário dos outputs históricos e comandos para retomar de um clone limpo.
+
 ## Compilar e testar no host
 
 Requisitos: compilador C99 e Python 3. Não requer SDK Xbox para estes testes.
 
 ```sh
+python3 tools/verify_repository.py
 sh tests/run_host_tests.sh
-python3 tools/run_canonical.py /caminho/SMB_v026.nes
-python3 tools/run_canonical.py /caminho/SMB_v026.nes \
+python3 tools/run_canonical.py assets/canonical/SMB_v026.nes
+python3 tools/run_canonical.py assets/canonical/SMB_v026.nes \
   --instructions 5000000 --input tests/canonical_start_right.input \
   --frame build/gameplay.bin
 ```

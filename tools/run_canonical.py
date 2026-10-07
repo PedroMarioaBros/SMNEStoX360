@@ -8,7 +8,7 @@ from extract_canonical_rom import EXPECTED_ROM_SHA256, EXPECTED_PRG_SHA256, EXPE
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("rom", type=Path)
+    ap.add_argument("rom", nargs="?", type=Path, default=Path("assets/canonical/SMB_v026.nes"))
     ap.add_argument("--runner", type=Path, default=Path("build/run_canonical_rom"))
     ap.add_argument("--instructions", type=int, default=1_000_000)
     ap.add_argument("--frame", type=Path, default=Path("build/frame.bin"))

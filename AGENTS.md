@@ -9,7 +9,11 @@
    -Wall -Wextra -Werror → teste. Verifique escapes/newlines em C.
 4. Rode sh tests/run_host_tests.sh. Execução canônica deve passar pelo wrapper
    tools/run_canonical.py (validação SHA-256 ROM/PRG/CHR).
-5. Não publicar ROM, PRG ou outros novos dumps de assets. ROM é input privado.
+5. Por ordem explícita do proprietário (S003), a ROM, PRG e CHR canônicos ficam
+   versionados em assets/canonical/. Todo arquivo necessário à continuidade deve
+   estar no GitHub, inclusive evidências e ferramentas. Não depender de anexos,
+   memória ou arquivos exclusivos do ChatGPT. Conferir hashes antes de executar.
+   Nunca incluir credenciais, tokens ou URLs assinadas.
 6. Opcodes não oficiais devem parar. Não tratar como NOP para mascarar erro.
 7. Não inventar métricas, commits ou sucesso de hardware. Separar implementado,
    compilado, teste sintético, validado na ROM e validado no Xbox.

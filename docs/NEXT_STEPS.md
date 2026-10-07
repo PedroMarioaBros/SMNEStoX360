@@ -1,8 +1,8 @@
 # Próxima ação — atualizar em todo checkpoint
 
-Última atualização: sessão S002, 06/10/2026 (America/Sao_Paulo).
+Última atualização: sessão S003, 06/10/2026 (America/Sao_Paulo).
 Último core verificado: 13e6249255c7f3a9b4dd1921bad360db4e3f9035.
-Estado: aguardando retomada técnica; a sessão S002 alterou somente documentação.
+Estado: aguardando retomada técnica; a S003 tornou os arquivos e a ROM disponíveis no GitHub.
 
 ## Tarefa ativa: investigar HUD ausente no quadro da fase
 
@@ -18,14 +18,15 @@ No checkout atualizado, depois de ler os documentos de START_HERE.md:
 ```sh
 git status --short
 git log -3 --oneline
+python3 tools/verify_repository.py
 sh tests/run_host_tests.sh
 ```
 
 Esse teste estabelece o baseline da nova sessão, não um marco novo.
-Localize a ROM do proprietário e substitua o caminho abaixo pelo caminho real:
+A ROM já está versionada; use diretamente o caminho abaixo:
 
 ```sh
-python3 tools/run_canonical.py /caminho/real/SMB_v026.nes \
+python3 tools/run_canonical.py assets/canonical/SMB_v026.nes \
   --instructions 5000000 \
   --input tests/canonical_start_right.input \
   --frame build/hud-baseline.bin
@@ -63,8 +64,8 @@ regressão observada. Não forçar pixels, flags ou estado específico de SMB.
 
 ## Dependências e caminhos alternativos
 
-- Sem ROM canônica: recuperar dos arquivos autorizados ou pedir ao proprietário;
-  continuar apenas trabalho sintético independente dela, sem usar outra ROM.
+- Se a ROM não aparecer no checkout: conferir branch/commit e refazer o clone
+  do GitHub; ela está em assets/canonical/SMB_v026.nes. Não buscar outra ROM.
 - Sem referência disponível: registrar bloqueio, avançar diagnóstico sintético
   do PPU ou conformidade independente da CPU, deixando clara a validação faltante.
 - Sem acesso de escrita GitHub: informar o bloqueio; não dizer que publicou.
