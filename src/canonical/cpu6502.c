@@ -58,7 +58,8 @@ int smb360_cpu6502_step(smb360_cpu6502*c){
   case 0xD0:branch(c,!(c->p&F_Z));break;             /* BNE */
   case 0xF0:branch(c,(c->p&F_Z));break;              /* BEQ */
   case 0x10:branch(c,!(c->p&F_N));break;             /* BPL */
-  case 0x30:branch(c,(c->p&F_N));break;\n  case 0xB0:branch(c,(c->p&F_C));break;              /* BCS */
+  case 0x30:branch(c,(c->p&F_N));break;
+  case 0xB0:branch(c,(c->p&F_C));break;              /* BCS */
   case 0x90:branch(c,!(c->p&F_C));break;             /* BCC */              /* BMI */
   case 0x91:{uint8_t z=imm(c);uint16_t b=(uint16_t)(rd(c,z)|((uint16_t)rd(c,(uint8_t)(z+1))<<8));wr(c,(uint16_t)(b+c->y),c->a);c->last_cycles=6;}break; /* STA (zp),Y */
   case 0x4C:c->pc=absop(c);c->last_cycles=3;break;                    /* JMP abs */
