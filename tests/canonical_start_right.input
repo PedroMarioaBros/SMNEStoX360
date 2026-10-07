@@ -1,0 +1,6 @@
+# PPU frame, NES button mask (A B Select Start Up Down Left Right)
+100 08
+102 00
+220 81
+270 80
+360 00

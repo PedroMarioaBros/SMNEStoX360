@@ -22,7 +22,7 @@ void smb360_cpu6502_reset(smb360_cpu6502*c){c->s=0xFD;c->p=F_U|F_I;c->pc=rd16(c,
 int smb360_cpu6502_step(smb360_cpu6502*c){
  uint8_t o;
  if(c->stopped)return 0;
- o=rd(c,c->pc++); c->opcode_hits[o]++; c->last_cycles=2;
+ c->opcode_pc=c->pc; o=rd(c,c->pc++); c->opcode_hits[o]++; c->last_cycles=2;
  switch(o){
   case 0x78:c->p|=F_I;c->last_cycles=2;break;                         /* SEI */
   case 0xD8:c->p&=(uint8_t)~F_D;c->last_cycles=2;break;              /* CLD */
@@ -45,8 +45,8 @@ int smb360_cpu6502_step(smb360_cpu6502*c){
   case 0x8A:c->a=c->x;nz(c,c->a);c->last_cycles=2;break;               /* TXA */
   case 0x98:c->a=c->y;nz(c,c->a);c->last_cycles=2;break;               /* TYA */
   case 0xBA:c->x=c->s;nz(c,c->x);c->last_cycles=2;break;               /* TSX */
-  case 0xE6:{uint8_t z=imm(c),v=(uint8_t)(rd(c,z)+1u);wr(c,z,v);nz(c,v);c->last_cycles=5;}break; /* INC zp */
-  case 0xC6:{uint8_t z=imm(c),v=(uint8_t)(rd(c,z)-1u);wr(c,z,v);nz(c,v);c->last_cycles=5;}break; /* DEC zp */
+  case 0xE6:{uint8_t z=imm(c),v=rd(c,z);wr(c,z,v);v++;wr(c,z,v);nz(c,v);c->last_cycles=5;}break; /* INC zp */
+  case 0xC6:{uint8_t z=imm(c),v=rd(c,z);wr(c,z,v);v--;wr(c,z,v);nz(c,v);c->last_cycles=5;}break; /* DEC zp */
   case 0xE8:c->x++;nz(c,c->x);c->last_cycles=2;break;                /* INX */
   case 0xCA:c->x--;nz(c,c->x);c->last_cycles=2;break;                /* DEX */
   case 0x88:c->y--;nz(c,c->y);c->last_cycles=2;break;                /* DEY */
@@ -76,8 +76,121 @@ int smb360_cpu6502_step(smb360_cpu6502*c){
   case 0x58:c->p&=(uint8_t)~F_I;c->last_cycles=2;break;                 /* CLI */
   case 0xB8:c->p&=(uint8_t)~F_V;c->last_cycles=2;break;                 /* CLV */
   case 0xEA:c->last_cycles=2;break;                                   /* NOP */
+  case 0x01:{uint8_t z=(uint8_t)(imm(c)+c->x);uint16_t a=(uint16_t)(rd(c,z)|((uint16_t)rd(c,(uint8_t)(z+1))<<8));uint8_t v=rd(c,a);c->a|=v;nz(c,c->a);c->last_cycles=6;}break;
+  case 0x05:{uint16_t a=imm(c);uint8_t v=rd(c,a);c->a|=v;nz(c,c->a);c->last_cycles=3;}break;
+  case 0x0D:{uint16_t a=absop(c);uint8_t v=rd(c,a);c->a|=v;nz(c,c->a);c->last_cycles=4;}break;
+  case 0x11:{uint8_t z=imm(c);uint16_t b=(uint16_t)(rd(c,z)|((uint16_t)rd(c,(uint8_t)(z+1))<<8)),a=(uint16_t)(b+c->y);uint8_t v=rd(c,a);c->a|=v;nz(c,c->a);c->last_cycles=5+((b&0xff00u)!=(a&0xff00u));}break;
+  case 0x15:{uint16_t a=(uint8_t)(imm(c)+c->x);uint8_t v=rd(c,a);c->a|=v;nz(c,c->a);c->last_cycles=4;}break;
+  case 0x19:{uint16_t b=absop(c),a=(uint16_t)(b+c->y);uint8_t v=rd(c,a);c->a|=v;nz(c,c->a);c->last_cycles=4+((b&0xff00u)!=(a&0xff00u));}break;
+  case 0x1D:{uint16_t b=absop(c),a=(uint16_t)(b+c->x);uint8_t v=rd(c,a);c->a|=v;nz(c,c->a);c->last_cycles=4+((b&0xff00u)!=(a&0xff00u));}break;
+  case 0x21:{uint8_t z=(uint8_t)(imm(c)+c->x);uint16_t a=(uint16_t)(rd(c,z)|((uint16_t)rd(c,(uint8_t)(z+1))<<8));uint8_t v=rd(c,a);c->a&=v;nz(c,c->a);c->last_cycles=6;}break;
+  case 0x25:{uint16_t a=imm(c);uint8_t v=rd(c,a);c->a&=v;nz(c,c->a);c->last_cycles=3;}break;
+  case 0x2D:{uint16_t a=absop(c);uint8_t v=rd(c,a);c->a&=v;nz(c,c->a);c->last_cycles=4;}break;
+  case 0x31:{uint8_t z=imm(c);uint16_t b=(uint16_t)(rd(c,z)|((uint16_t)rd(c,(uint8_t)(z+1))<<8)),a=(uint16_t)(b+c->y);uint8_t v=rd(c,a);c->a&=v;nz(c,c->a);c->last_cycles=5+((b&0xff00u)!=(a&0xff00u));}break;
+  case 0x35:{uint16_t a=(uint8_t)(imm(c)+c->x);uint8_t v=rd(c,a);c->a&=v;nz(c,c->a);c->last_cycles=4;}break;
+  case 0x39:{uint16_t b=absop(c),a=(uint16_t)(b+c->y);uint8_t v=rd(c,a);c->a&=v;nz(c,c->a);c->last_cycles=4+((b&0xff00u)!=(a&0xff00u));}break;
+  case 0x3D:{uint16_t b=absop(c),a=(uint16_t)(b+c->x);uint8_t v=rd(c,a);c->a&=v;nz(c,c->a);c->last_cycles=4+((b&0xff00u)!=(a&0xff00u));}break;
+  case 0x41:{uint8_t z=(uint8_t)(imm(c)+c->x);uint16_t a=(uint16_t)(rd(c,z)|((uint16_t)rd(c,(uint8_t)(z+1))<<8));uint8_t v=rd(c,a);c->a^=v;nz(c,c->a);c->last_cycles=6;}break;
+  case 0x45:{uint16_t a=imm(c);uint8_t v=rd(c,a);c->a^=v;nz(c,c->a);c->last_cycles=3;}break;
+  case 0x4D:{uint16_t a=absop(c);uint8_t v=rd(c,a);c->a^=v;nz(c,c->a);c->last_cycles=4;}break;
+  case 0x51:{uint8_t z=imm(c);uint16_t b=(uint16_t)(rd(c,z)|((uint16_t)rd(c,(uint8_t)(z+1))<<8)),a=(uint16_t)(b+c->y);uint8_t v=rd(c,a);c->a^=v;nz(c,c->a);c->last_cycles=5+((b&0xff00u)!=(a&0xff00u));}break;
+  case 0x55:{uint16_t a=(uint8_t)(imm(c)+c->x);uint8_t v=rd(c,a);c->a^=v;nz(c,c->a);c->last_cycles=4;}break;
+  case 0x59:{uint16_t b=absop(c),a=(uint16_t)(b+c->y);uint8_t v=rd(c,a);c->a^=v;nz(c,c->a);c->last_cycles=4+((b&0xff00u)!=(a&0xff00u));}break;
+  case 0x5D:{uint16_t b=absop(c),a=(uint16_t)(b+c->x);uint8_t v=rd(c,a);c->a^=v;nz(c,c->a);c->last_cycles=4+((b&0xff00u)!=(a&0xff00u));}break;
+  case 0x61:{uint8_t z=(uint8_t)(imm(c)+c->x);uint16_t a=(uint16_t)(rd(c,z)|((uint16_t)rd(c,(uint8_t)(z+1))<<8));uint8_t v=rd(c,a);adc(c,v);c->last_cycles=6;}break;
+  case 0x65:{uint16_t a=imm(c);uint8_t v=rd(c,a);adc(c,v);c->last_cycles=3;}break;
+  case 0x6D:{uint16_t a=absop(c);uint8_t v=rd(c,a);adc(c,v);c->last_cycles=4;}break;
+  case 0x71:{uint8_t z=imm(c);uint16_t b=(uint16_t)(rd(c,z)|((uint16_t)rd(c,(uint8_t)(z+1))<<8)),a=(uint16_t)(b+c->y);uint8_t v=rd(c,a);adc(c,v);c->last_cycles=5+((b&0xff00u)!=(a&0xff00u));}break;
+  case 0x75:{uint16_t a=(uint8_t)(imm(c)+c->x);uint8_t v=rd(c,a);adc(c,v);c->last_cycles=4;}break;
+  case 0x79:{uint16_t b=absop(c),a=(uint16_t)(b+c->y);uint8_t v=rd(c,a);adc(c,v);c->last_cycles=4+((b&0xff00u)!=(a&0xff00u));}break;
+  case 0x7D:{uint16_t b=absop(c),a=(uint16_t)(b+c->x);uint8_t v=rd(c,a);adc(c,v);c->last_cycles=4+((b&0xff00u)!=(a&0xff00u));}break;
+  case 0xA1:{uint8_t z=(uint8_t)(imm(c)+c->x);uint16_t a=(uint16_t)(rd(c,z)|((uint16_t)rd(c,(uint8_t)(z+1))<<8));uint8_t v=rd(c,a);c->a=v;nz(c,v);c->last_cycles=6;}break;
+  case 0xB1:{uint8_t z=imm(c);uint16_t b=(uint16_t)(rd(c,z)|((uint16_t)rd(c,(uint8_t)(z+1))<<8)),a=(uint16_t)(b+c->y);uint8_t v=rd(c,a);c->a=v;nz(c,v);c->last_cycles=5+((b&0xff00u)!=(a&0xff00u));}break;
+  case 0xB9:{uint16_t b=absop(c),a=(uint16_t)(b+c->y);uint8_t v=rd(c,a);c->a=v;nz(c,v);c->last_cycles=4+((b&0xff00u)!=(a&0xff00u));}break;
+  case 0xC1:{uint8_t z=(uint8_t)(imm(c)+c->x);uint16_t a=(uint16_t)(rd(c,z)|((uint16_t)rd(c,(uint8_t)(z+1))<<8));uint8_t v=rd(c,a);uint8_t r=(uint8_t)(c->a-v);c->p=(uint8_t)((c->p&~F_C)|(c->a>=v?F_C:0));nz(c,r);c->last_cycles=6;}break;
+  case 0xC5:{uint16_t a=imm(c);uint8_t v=rd(c,a);uint8_t r=(uint8_t)(c->a-v);c->p=(uint8_t)((c->p&~F_C)|(c->a>=v?F_C:0));nz(c,r);c->last_cycles=3;}break;
+  case 0xCD:{uint16_t a=absop(c);uint8_t v=rd(c,a);uint8_t r=(uint8_t)(c->a-v);c->p=(uint8_t)((c->p&~F_C)|(c->a>=v?F_C:0));nz(c,r);c->last_cycles=4;}break;
+  case 0xD1:{uint8_t z=imm(c);uint16_t b=(uint16_t)(rd(c,z)|((uint16_t)rd(c,(uint8_t)(z+1))<<8)),a=(uint16_t)(b+c->y);uint8_t v=rd(c,a);uint8_t r=(uint8_t)(c->a-v);c->p=(uint8_t)((c->p&~F_C)|(c->a>=v?F_C:0));nz(c,r);c->last_cycles=5+((b&0xff00u)!=(a&0xff00u));}break;
+  case 0xD5:{uint16_t a=(uint8_t)(imm(c)+c->x);uint8_t v=rd(c,a);uint8_t r=(uint8_t)(c->a-v);c->p=(uint8_t)((c->p&~F_C)|(c->a>=v?F_C:0));nz(c,r);c->last_cycles=4;}break;
+  case 0xD9:{uint16_t b=absop(c),a=(uint16_t)(b+c->y);uint8_t v=rd(c,a);uint8_t r=(uint8_t)(c->a-v);c->p=(uint8_t)((c->p&~F_C)|(c->a>=v?F_C:0));nz(c,r);c->last_cycles=4+((b&0xff00u)!=(a&0xff00u));}break;
+  case 0xDD:{uint16_t b=absop(c),a=(uint16_t)(b+c->x);uint8_t v=rd(c,a);uint8_t r=(uint8_t)(c->a-v);c->p=(uint8_t)((c->p&~F_C)|(c->a>=v?F_C:0));nz(c,r);c->last_cycles=4+((b&0xff00u)!=(a&0xff00u));}break;
+  case 0xE1:{uint8_t z=(uint8_t)(imm(c)+c->x);uint16_t a=(uint16_t)(rd(c,z)|((uint16_t)rd(c,(uint8_t)(z+1))<<8));uint8_t v=rd(c,a);sbc(c,v);c->last_cycles=6;}break;
+  case 0xE5:{uint16_t a=imm(c);uint8_t v=rd(c,a);sbc(c,v);c->last_cycles=3;}break;
+  case 0xED:{uint16_t a=absop(c);uint8_t v=rd(c,a);sbc(c,v);c->last_cycles=4;}break;
+  case 0xF1:{uint8_t z=imm(c);uint16_t b=(uint16_t)(rd(c,z)|((uint16_t)rd(c,(uint8_t)(z+1))<<8)),a=(uint16_t)(b+c->y);uint8_t v=rd(c,a);sbc(c,v);c->last_cycles=5+((b&0xff00u)!=(a&0xff00u));}break;
+  case 0xF5:{uint16_t a=(uint8_t)(imm(c)+c->x);uint8_t v=rd(c,a);sbc(c,v);c->last_cycles=4;}break;
+  case 0xF9:{uint16_t b=absop(c),a=(uint16_t)(b+c->y);uint8_t v=rd(c,a);sbc(c,v);c->last_cycles=4+((b&0xff00u)!=(a&0xff00u));}break;
+  case 0xFD:{uint16_t b=absop(c),a=(uint16_t)(b+c->x);uint8_t v=rd(c,a);sbc(c,v);c->last_cycles=4+((b&0xff00u)!=(a&0xff00u));}break;
+  case 0x81:{uint8_t z=(uint8_t)(imm(c)+c->x);uint16_t a=(uint16_t)(rd(c,z)|((uint16_t)rd(c,(uint8_t)(z+1))<<8));wr(c,a,c->a);c->last_cycles=6;}break;
+  case 0x99:{uint16_t b=absop(c),a=(uint16_t)(b+c->y);wr(c,a,c->a);c->last_cycles=5;}break;
+  case 0x9D:{uint16_t b=absop(c),a=(uint16_t)(b+c->x);wr(c,a,c->a);c->last_cycles=5;}break;
+  case 0x94:{uint16_t a=(uint8_t)(imm(c)+c->x);wr(c,a,c->y);c->last_cycles=4;}break;
+  case 0x8C:{uint16_t a=absop(c);wr(c,a,c->y);c->last_cycles=4;}break;
+  case 0x96:{uint16_t a=(uint8_t)(imm(c)+c->y);wr(c,a,c->x);c->last_cycles=4;}break;
+  case 0xA6:{uint16_t a=imm(c);uint8_t v=rd(c,a);c->x=v;nz(c,v);c->last_cycles=3;}break;
+  case 0xB6:{uint16_t a=(uint8_t)(imm(c)+c->y);uint8_t v=rd(c,a);c->x=v;nz(c,v);c->last_cycles=4;}break;
+  case 0xAE:{uint16_t a=absop(c);uint8_t v=rd(c,a);c->x=v;nz(c,v);c->last_cycles=4;}break;
+  case 0xBE:{uint16_t b=absop(c),a=(uint16_t)(b+c->y);uint8_t v=rd(c,a);c->x=v;nz(c,v);c->last_cycles=4+((b&0xff00u)!=(a&0xff00u));}break;
+  case 0xA4:{uint16_t a=imm(c);uint8_t v=rd(c,a);c->y=v;nz(c,v);c->last_cycles=3;}break;
+  case 0xB4:{uint16_t a=(uint8_t)(imm(c)+c->x);uint8_t v=rd(c,a);c->y=v;nz(c,v);c->last_cycles=4;}break;
+  case 0xAC:{uint16_t a=absop(c);uint8_t v=rd(c,a);c->y=v;nz(c,v);c->last_cycles=4;}break;
+  case 0xBC:{uint16_t b=absop(c),a=(uint16_t)(b+c->x);uint8_t v=rd(c,a);c->y=v;nz(c,v);c->last_cycles=4+((b&0xff00u)!=(a&0xff00u));}break;
+  case 0xE4:{uint16_t a=imm(c);uint8_t v=rd(c,a);uint8_t r=(uint8_t)(c->x-v);c->p=(uint8_t)((c->p&~F_C)|(c->x>=v?F_C:0));nz(c,r);c->last_cycles=3;}break;
+  case 0xEC:{uint16_t a=absop(c);uint8_t v=rd(c,a);uint8_t r=(uint8_t)(c->x-v);c->p=(uint8_t)((c->p&~F_C)|(c->x>=v?F_C:0));nz(c,r);c->last_cycles=4;}break;
+  case 0xC4:{uint16_t a=imm(c);uint8_t v=rd(c,a);uint8_t r=(uint8_t)(c->y-v);c->p=(uint8_t)((c->p&~F_C)|(c->y>=v?F_C:0));nz(c,r);c->last_cycles=3;}break;
+  case 0xCC:{uint16_t a=absop(c);uint8_t v=rd(c,a);uint8_t r=(uint8_t)(c->y-v);c->p=(uint8_t)((c->p&~F_C)|(c->y>=v?F_C:0));nz(c,r);c->last_cycles=4;}break;
+  case 0x06:{uint16_t a=imm(c);uint8_t v=rd(c,a);wr(c,a,v);c->p=(uint8_t)((c->p&~F_C)|((v>>7)&1));v=(uint8_t)((v<<1));wr(c,a,v);nz(c,v);c->last_cycles=5;}break;
+  case 0x16:{uint16_t a=(uint8_t)(imm(c)+c->x);uint8_t v=rd(c,a);wr(c,a,v);c->p=(uint8_t)((c->p&~F_C)|((v>>7)&1));v=(uint8_t)((v<<1));wr(c,a,v);nz(c,v);c->last_cycles=6;}break;
+  case 0x0E:{uint16_t a=absop(c);uint8_t v=rd(c,a);wr(c,a,v);c->p=(uint8_t)((c->p&~F_C)|((v>>7)&1));v=(uint8_t)((v<<1));wr(c,a,v);nz(c,v);c->last_cycles=6;}break;
+  case 0x1E:{uint16_t b=absop(c),a=(uint16_t)(b+c->x);uint8_t v=rd(c,a);wr(c,a,v);c->p=(uint8_t)((c->p&~F_C)|((v>>7)&1));v=(uint8_t)((v<<1));wr(c,a,v);nz(c,v);c->last_cycles=7;}break;
+  case 0x0A:{uint8_t v=c->a;c->p=(uint8_t)((c->p&~F_C)|((v>>7)&1));v=(uint8_t)((v<<1));c->a=v;nz(c,v);}break;
+  case 0x26:{uint16_t a=imm(c);uint8_t v=rd(c,a);wr(c,a,v);uint8_t carry=(uint8_t)((c->p&F_C)!=0);c->p=(uint8_t)((c->p&~F_C)|((v>>7)&1));v=(uint8_t)((v<<1)|carry);wr(c,a,v);nz(c,v);c->last_cycles=5;}break;
+  case 0x36:{uint16_t a=(uint8_t)(imm(c)+c->x);uint8_t v=rd(c,a);wr(c,a,v);uint8_t carry=(uint8_t)((c->p&F_C)!=0);c->p=(uint8_t)((c->p&~F_C)|((v>>7)&1));v=(uint8_t)((v<<1)|carry);wr(c,a,v);nz(c,v);c->last_cycles=6;}break;
+  case 0x2E:{uint16_t a=absop(c);uint8_t v=rd(c,a);wr(c,a,v);uint8_t carry=(uint8_t)((c->p&F_C)!=0);c->p=(uint8_t)((c->p&~F_C)|((v>>7)&1));v=(uint8_t)((v<<1)|carry);wr(c,a,v);nz(c,v);c->last_cycles=6;}break;
+  case 0x3E:{uint16_t b=absop(c),a=(uint16_t)(b+c->x);uint8_t v=rd(c,a);wr(c,a,v);uint8_t carry=(uint8_t)((c->p&F_C)!=0);c->p=(uint8_t)((c->p&~F_C)|((v>>7)&1));v=(uint8_t)((v<<1)|carry);wr(c,a,v);nz(c,v);c->last_cycles=7;}break;
+  case 0x2A:{uint8_t v=c->a;uint8_t carry=(uint8_t)((c->p&F_C)!=0);c->p=(uint8_t)((c->p&~F_C)|((v>>7)&1));v=(uint8_t)((v<<1)|carry);c->a=v;nz(c,v);}break;
+  case 0x46:{uint16_t a=imm(c);uint8_t v=rd(c,a);wr(c,a,v);c->p=(uint8_t)((c->p&~F_C)|(v&1));v=(uint8_t)((v>>1));wr(c,a,v);nz(c,v);c->last_cycles=5;}break;
+  case 0x56:{uint16_t a=(uint8_t)(imm(c)+c->x);uint8_t v=rd(c,a);wr(c,a,v);c->p=(uint8_t)((c->p&~F_C)|(v&1));v=(uint8_t)((v>>1));wr(c,a,v);nz(c,v);c->last_cycles=6;}break;
+  case 0x4E:{uint16_t a=absop(c);uint8_t v=rd(c,a);wr(c,a,v);c->p=(uint8_t)((c->p&~F_C)|(v&1));v=(uint8_t)((v>>1));wr(c,a,v);nz(c,v);c->last_cycles=6;}break;
+  case 0x5E:{uint16_t b=absop(c),a=(uint16_t)(b+c->x);uint8_t v=rd(c,a);wr(c,a,v);c->p=(uint8_t)((c->p&~F_C)|(v&1));v=(uint8_t)((v>>1));wr(c,a,v);nz(c,v);c->last_cycles=7;}break;
+  case 0x4A:{uint8_t v=c->a;c->p=(uint8_t)((c->p&~F_C)|(v&1));v=(uint8_t)((v>>1));c->a=v;nz(c,v);}break;
+  case 0x66:{uint16_t a=imm(c);uint8_t v=rd(c,a);wr(c,a,v);uint8_t carry=(uint8_t)((c->p&F_C)!=0);c->p=(uint8_t)((c->p&~F_C)|(v&1));v=(uint8_t)((v>>1)|(carry<<7));wr(c,a,v);nz(c,v);c->last_cycles=5;}break;
+  case 0x76:{uint16_t a=(uint8_t)(imm(c)+c->x);uint8_t v=rd(c,a);wr(c,a,v);uint8_t carry=(uint8_t)((c->p&F_C)!=0);c->p=(uint8_t)((c->p&~F_C)|(v&1));v=(uint8_t)((v>>1)|(carry<<7));wr(c,a,v);nz(c,v);c->last_cycles=6;}break;
+  case 0x6E:{uint16_t a=absop(c);uint8_t v=rd(c,a);wr(c,a,v);uint8_t carry=(uint8_t)((c->p&F_C)!=0);c->p=(uint8_t)((c->p&~F_C)|(v&1));v=(uint8_t)((v>>1)|(carry<<7));wr(c,a,v);nz(c,v);c->last_cycles=6;}break;
+  case 0x7E:{uint16_t b=absop(c),a=(uint16_t)(b+c->x);uint8_t v=rd(c,a);wr(c,a,v);uint8_t carry=(uint8_t)((c->p&F_C)!=0);c->p=(uint8_t)((c->p&~F_C)|(v&1));v=(uint8_t)((v>>1)|(carry<<7));wr(c,a,v);nz(c,v);c->last_cycles=7;}break;
+  case 0x6A:{uint8_t v=c->a;uint8_t carry=(uint8_t)((c->p&F_C)!=0);c->p=(uint8_t)((c->p&~F_C)|(v&1));v=(uint8_t)((v>>1)|(carry<<7));c->a=v;nz(c,v);}break;
+  case 0xD6:{uint16_t a=(uint8_t)(imm(c)+c->x);uint8_t v=rd(c,a);wr(c,a,v);v=(uint8_t)(v-1);wr(c,a,v);nz(c,v);c->last_cycles=6;}break;
+  case 0xCE:{uint16_t a=absop(c);uint8_t v=rd(c,a);wr(c,a,v);v=(uint8_t)(v-1);wr(c,a,v);nz(c,v);c->last_cycles=6;}break;
+  case 0xDE:{uint16_t b=absop(c),a=(uint16_t)(b+c->x);uint8_t v=rd(c,a);wr(c,a,v);v=(uint8_t)(v-1);wr(c,a,v);nz(c,v);c->last_cycles=7;}break;
+  case 0xF6:{uint16_t a=(uint8_t)(imm(c)+c->x);uint8_t v=rd(c,a);wr(c,a,v);v=(uint8_t)(v+1);wr(c,a,v);nz(c,v);c->last_cycles=6;}break;
+  case 0xEE:{uint16_t a=absop(c);uint8_t v=rd(c,a);wr(c,a,v);v=(uint8_t)(v+1);wr(c,a,v);nz(c,v);c->last_cycles=6;}break;
+  case 0xFE:{uint16_t b=absop(c),a=(uint16_t)(b+c->x);uint8_t v=rd(c,a);wr(c,a,v);v=(uint8_t)(v+1);wr(c,a,v);nz(c,v);c->last_cycles=7;}break;
+  case 0x50:{branch(c,!(c->p&F_V));}break;
+  case 0x70:{branch(c,c->p&F_V);}break;
+  case 0xF8:{c->p|=F_D;}break;
+  case 0x48:{push(c,c->a);c->last_cycles=3;}break;
+  case 0x08:{push(c,c->p|F_B|F_U);c->last_cycles=3;}break;
+  case 0x68:{c->a=pop(c);nz(c,c->a);c->last_cycles=4;}break;
+  case 0x28:{c->p=(uint8_t)((pop(c)&~F_B)|F_U);c->last_cycles=4;}break;
+  case 0x6C:{uint16_t a=absop(c);uint8_t l=rd(c,a);c->pc=(uint16_t)(l|((uint16_t)rd(c,(uint16_t)((a&0xff00u)|((a+1)&0xffu)))<<8));c->last_cycles=5;}break;
+  case 0x00:{c->pc++;push(c,(uint8_t)(c->pc>>8));push(c,(uint8_t)c->pc);push(c,c->p|F_B|F_U);c->p|=F_I;c->pc=rd16(c,0xfffe);c->last_cycles=7;}break;
+  case 0x40:{uint8_t l,h;c->p=(uint8_t)((pop(c)&~F_B)|F_U);l=pop(c);h=pop(c);c->pc=(uint16_t)(l|((uint16_t)h<<8));c->last_cycles=6;}break;
   default:c->stopped=o;return 0;                    /* deliberate: expose next missing opcode */
  }
  c->cycles += c->last_cycles;
  return 1;
+}
+
+/* Instruction-boundary interrupt service, not cycle-exact pin polling. */
+static void interrupt_entry(smb360_cpu6502 *c, uint16_t vector) {
+ push(c,(uint8_t)(c->pc>>8));push(c,(uint8_t)c->pc);
+ push(c,(uint8_t)((c->p&~F_B)|F_U));c->p|=F_I;
+ c->pc=rd16(c,vector);c->last_cycles=7;c->cycles+=7;
+}
+void smb360_cpu6502_nmi(smb360_cpu6502 *c) {
+ if(!c->stopped) interrupt_entry(c,0xfffa);
+}
+int smb360_cpu6502_irq(smb360_cpu6502 *c) {
+ if(c->stopped || (c->p&F_I)) return 0;
+ interrupt_entry(c,0xfffe);return 1;
 }

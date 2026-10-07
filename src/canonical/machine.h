@@ -10,6 +10,8 @@ typedef struct {
  smb360_cpu6502 cpu;
  smb360_ppu_timing ppu;
  uint64_t instructions;
+ uint64_t nmi_count, first_nmi_cycle, first_nmi_frame;
+ uint16_t first_nmi_pc;
 } smb360_machine;
 
 void smb360_machine_init(smb360_machine *m,const uint8_t *prg,const uint8_t *chr);
