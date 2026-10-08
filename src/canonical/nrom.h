@@ -14,6 +14,7 @@ typedef struct {
     const uint8_t *chr;
     uint8_t controller1;
     uint8_t controller_shift;
+    uint8_t controller2, controller2_shift;
     uint8_t controller_strobe;
     uint8_t ppu_status;
     uint8_t ppu_write_latch;
@@ -32,6 +33,7 @@ void smb360_nrom_init(smb360_nrom *m, const uint8_t *prg, const uint8_t *chr);
 uint8_t smb360_nrom_read(smb360_nrom *m, uint16_t addr);
 void smb360_nrom_write(smb360_nrom *m, uint16_t addr, uint8_t value);
 void smb360_nrom_set_controller1(smb360_nrom *m, uint8_t buttons);
+void smb360_nrom_set_controller2(smb360_nrom *m, uint8_t buttons);
 void smb360_nrom_set_vblank(smb360_nrom *m, int active);
 
 uint8_t smb360_nrom_ppu_read(const smb360_nrom *m, uint16_t addr);

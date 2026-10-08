@@ -1,6 +1,40 @@
 # Checkpoint operacional — 2026-10-07 UTC (06/10 no Brasil)
 
-## Estado atual — S005, 07/10/2026 UTC
+## Estado atual — S006, encerramento 08/10/2026
+
+HEAD recebido: e99b80760d72387a8729b2fb9ddd3056cfa0bf22.
+Marco: comparação independente executada contra binjnes fixado, mesma ROM,
+sem deslocar capturas nem excluir RAM: **600/600 quadros idle e 6000/6000
+quadros com roteiro coincidem; toda a RAM de 2048 bytes também coincide**.
+Evidências: [S006](evidence/S006/README.md). A ferramenta e fonte de referência
+MIT estão no GitHub, sem uso da referência como gameplay do produto.
+
+A comparação inicialmente encontrou RAM divergente em 5895 das 6000 capturas,
+começando na captura 103 ($06fd/$074b), mesmo com imagens iguais. O barramento
+lia $4017 do placeholder APU: writes eram interpretados como botões fantasmas.
+Implementados controle 2, latch compartilhado por $4016 e shifts independentes;
+$4017 write continua separado no placeholder APU. Após a correção: zero divergências.
+Testes cobrem strobe, oito bits, retenção do latch, independência dos controles,
+retorno 1 após oito leituras e separação das escritas de áudio.
+
+Execução diferencial longa: **57.751.826 instruções**, 178.680.628 ciclos CPU,
+captura/frame 5999, linha/dot 241/6, 5992 NMIs antes de processar o NMI dessa captura.
+Novo maior número efetivamente medido; não equivale a certificação do jogo inteiro.
+Roteiro solta os controles após intervalo 359, não é jogabilidade humana contínua.
+Cobertura de opcodes não foi exportada pelo adaptador diferencial.
+
+Runner tradicional de 5m: 15.391.133 ciclos, frame 516, linha/dot 214/185,
+PC $8057, 99 opcodes, 510 NMIs, 333 sprite hits. Primeiro NMI continua
+$8082/frame 3/ciclo 116.744. Quadro mantém hash f8f38478…659e5.
+Log/hits completos em evidence/S006/start-right.txt. Execução normal e sanitizada
+reproduziram log/quadro; sete suítes normais e ASan/UBSan passaram (sem leaks).
+
+Etapas: ROM/persistência prontas; CPU oficial implementada; vídeo/controles
+funcionais e comparados nestes cenários; falta bancada host interativa para
+controle manual, APU/áudio e backend Xbox seguro. Nenhum XEX novo nem hardware
+validado. Próximo trabalho e comandos em NEXT_STEPS.md.
+
+## Histórico — S005, 07/10/2026 UTC
 
 Entrada: `11cd0245985577ea7d6ef3a3e47ff015e06f13ed`. Esta seção substitui
 os diagnósticos de HUD ausente das sessões anteriores: a conversão direta dos
@@ -151,8 +185,8 @@ em todos os modos e estados.** Testes externos de conformidade continuam necess�
 4. DMA é cópia instantânea + stall agregado, sem arbitragem ciclo a ciclo.
 5. APU permanece placeholder. Nenhum áudio correto produzido. $6000-$7FFF
    ainda retorna zero; não foi comprovado hardware de expansão adicional.
-6. Sem validação diferencial por quadro/estado contra execução NES de referência;
-   alterações específicas da ROM não foram auditadas integralmente.
+6. S006 validou pixels/RAM em dois cenários contra referência independente;
+   demais cenários, áudio e alterações específicas da ROM não foram auditados integralmente.
 7. LeakSanitizer falhou no ambiente sob ptrace (/proc inacessível). Repetido com
    ASAN_OPTIONS=detect_leaks=0: AddressSanitizer e UBSan passaram. Não afirmar
    que leak detection foi validado.

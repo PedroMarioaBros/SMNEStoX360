@@ -11,6 +11,10 @@ void smb360_nrom_set_controller1(smb360_nrom *m, uint8_t buttons) {
     m->controller1 = buttons;
 }
 
+void smb360_nrom_set_controller2(smb360_nrom *m, uint8_t buttons) {
+    m->controller2 = buttons;
+}
+
 static void update_nmi(smb360_nrom *m) {
     uint8_t line=(uint8_t)((m->ppu_status & m->ppu_regs[0] & 0x80u)!=0);
     if(line && !m->nmi_line) m->nmi_pending=1;
@@ -64,10 +68,13 @@ uint8_t smb360_nrom_read(smb360_nrom *m, uint16_t a) {
         }
         m->ppu_open_bus=v;return v;
     }
-    if(a==0x4016u) {
-        uint8_t v=(uint8_t)((m->controller_strobe?m->controller1:m->controller_shift)&1u);
+    if(a==0x4016u || a==0x4017u) {
+        /* Reads select a controller; $4017 writes still address the APU. */
+        uint8_t *shift=a==0x4016u?&m->controller_shift:&m->controller2_shift;
+        uint8_t buttons=a==0x4016u?m->controller1:m->controller2;
+        uint8_t v=(uint8_t)((m->controller_strobe?buttons:*shift)&1u);
         if(!m->controller_strobe)
-            m->controller_shift=(uint8_t)((m->controller_shift>>1)|0x80u);
+            *shift=(uint8_t)((*shift>>1)|0x80u);
         return v;
     }
     if(a>=0x4000u && a<=0x4017u) return m->apu_io[a-0x4000u];
@@ -103,7 +110,10 @@ void smb360_nrom_write(smb360_nrom *m,uint16_t a,uint8_t v) {
     if(a==0x4014u){m->dma_page=v;m->dma_pending=1;return;}
     if(a==0x4016u){
         uint8_t strobe=v&1u;
-        if(strobe || m->controller_strobe)m->controller_shift=m->controller1;
+        if(strobe || m->controller_strobe){
+            m->controller_shift=m->controller1;
+            m->controller2_shift=m->controller2;
+        }
         m->controller_strobe=strobe;return;
     }
     if(a>=0x4000u && a<=0x4017u)m->apu_io[a-0x4000u]=v;

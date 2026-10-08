@@ -45,6 +45,25 @@ int main(void){
  smb360_nrom_write(&m.bus,0x4016,0);
  for(i=0;i<8;i++)assert(smb360_nrom_read(&m.bus,0x4016)==((0xa5u>>i)&1));
  assert(smb360_nrom_read(&m.bus,0x4016)==1);
+ /* Both controllers latch from $4016, but shift independently. APU writes
+  * at $4017 must never become phantom button presses on port 2. */
+ smb360_nrom_set_controller1(&m.bus,0xa5);
+ smb360_nrom_set_controller2(&m.bus,0);
+ smb360_nrom_write(&m.bus,0x4017,0xff);
+ smb360_nrom_write(&m.bus,0x4016,1);
+ assert(smb360_nrom_read(&m.bus,0x4017)==0);
+ smb360_nrom_set_controller2(&m.bus,0x5b);
+ assert(smb360_nrom_read(&m.bus,0x4017)==1);
+ assert(smb360_nrom_read(&m.bus,0x4017)==1);
+ smb360_nrom_write(&m.bus,0x4016,0);
+ smb360_nrom_set_controller2(&m.bus,0);
+ for(i=0;i<8;i++)assert(smb360_nrom_read(&m.bus,0x4017)==((0x5bu>>i)&1));
+ assert(smb360_nrom_read(&m.bus,0x4017)==1);
+ for(i=0;i<8;i++)assert(smb360_nrom_read(&m.bus,0x4016)==((0xa5u>>i)&1));
+ smb360_nrom_write(&m.bus,0x4016,1);smb360_nrom_write(&m.bus,0x4016,0);
+ for(i=0;i<8;i++)assert(smb360_nrom_read(&m.bus,0x4017)==0);
+ assert(smb360_nrom_read(&m.bus,0x4017)==1);
+ assert(m.bus.apu_io[0x17]==0xff);
  for(i=0;i<256;i++)m.bus.ram[0x200+i]=(uint8_t)i;
  prg[0]=0x8d;prg[1]=0x14;prg[2]=0x40;m.cpu.a=2;
  m.bus.oam_addr=0xf0;before=m.cpu.cycles;

@@ -1,0 +1,33 @@
+{
+  "frames": {
+    "captures": 6000,
+    "equal_captures": 6000,
+    "different_captures": 0,
+    "first_difference": null,
+    "canonical_sha256": "2b5ae8f24e6a527020c578c012e1837a336551f203f69d9723f0f7bddbc4d216",
+    "reference_sha256": "2b5ae8f24e6a527020c578c012e1837a336551f203f69d9723f0f7bddbc4d216"
+  },
+  "ram": {
+    "captures": 6000,
+    "equal_captures": 105,
+    "different_captures": 5895,
+    "first_difference": {
+      "capture": 103,
+      "different_bytes": 2,
+      "first_offsets": [
+        {
+          "offset": 1789,
+          "canonical": 255,
+          "reference": 0
+        },
+        {
+          "offset": 1867,
+          "canonical": 255,
+          "reference": 0
+        }
+      ]
+    },
+    "canonical_sha256": "02c47614b70c8cb9332327e78987f5cf29e0f22d6ed170d62f7e75f35e585784",
+    "reference_sha256": "b7c3b2c2820bc099afcf9915bd7b2495b4312bf27e31ce3d2a2f5aaee7200f80"
+  }
+}

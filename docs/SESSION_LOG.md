@@ -106,3 +106,33 @@ A identidade do commit que contém uma entrada pode ser consultada no histórico
   certificação integral do gameplay, áudio ou Xbox. Nenhum XEX novo produzido.
 - Validação final: sete suítes normais e ASan/UBSan passaram; execução sanitizada
   de 5m reproduziu integralmente log e quadro. Leak detection desabilitado.
+
+## S006 — 07–08/10/2026, referência independente e controle 2
+
+- HEAD: e99b80760d72387a8729b2fb9ddd3056cfa0bf22. Hashes canônicos e
+  sete suítes confirmados antes das alterações.
+- Obtido binjnes e2f5871a28ff189daa82b70be9324a42e2aaf9fd; licença MIT.
+  Fonte usada preservada byte a byte em tests/reference/vendor, com manifest.
+- Adaptador captura cada VBlank; binjnes usa evento dot 2, core usa fronteira de
+  instrução após dot 1. Ordinais alinhados sem offset; entradas após captura
+  anterior, antes do polling NMI, diferente do roteiro antigo por início de frame.
+- Inicialmente: 600 idle e 6000 scripted com pixels iguais. RAM scripted divergia
+  em 5895 capturas, primeira 103, endereços $06fd/$074b.
+- Causa: reads $4017 devolviam apu_io, confundindo writes APU com controle 2.
+  Implementado segundo controle e separação de leitura/escrita com teste sintético.
+- Depois: 600/600 idle e 6000/6000 scripted com pixels e RAM integral iguais.
+  57.751.826 instruções, 178.680.628 ciclos, frame 5999, linha/dot 241/6,
+  5992 NMIs no ponto capturado. Maior contagem medida, não gameplay completo.
+- Ferramenta compare_reference.py verifica ROM/PRG/CHR e fonte fixada, compila,
+  executa e retorna erro se qualquer quadro ou byte de RAM divergir.
+- Falha inicial: -Werror em upstream detectou format-security no disassembler.
+  Exceção somente para esse warning upstream, fonte intacto. Tentativa subsequente
+  sem binário de referência falhou; capturas refeitas depois da compilação válida.
+- Host: sete suítes normais e sanitizadas passaram. Runner tradicional 5m normal
+  e ASan/UBSan produziu log e quadro idênticos; leak detection desabilitado.
+- CI atualizado para novo baseline e comparação curta 600+600. Resultado remoto
+  ainda não consultado nesta entrada; execução local não prova CI remoto verde.
+- Evidências completas compactadas com hashes em docs/evidence/S006, incluindo
+  capturas antes/depois e logs. Nada único necessário fica só no chat.
+- Próxima etapa: host interativo reutilizando core canônico e controles, preservando
+  teste diferencial. APU e Xbox permanecem pendentes; nenhum XEX novo.

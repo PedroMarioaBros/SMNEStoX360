@@ -10,6 +10,8 @@ on:
       - 'tests/run_canonical_rom.c'
       - 'tests/run_host_tests.sh'
       - 'tools/run_canonical.py'
+      - 'tools/compare_reference.py'
+      - 'tests/reference/**'
       - 'tools/verify_repository.py'
       - 'assets/canonical/**'
       - 'artifacts/**'
@@ -19,6 +21,8 @@ on:
       - 'src/canonical/**'
       - 'tests/**'
       - 'tools/run_canonical.py'
+      - 'tools/compare_reference.py'
+      - 'tests/reference/**'
       - 'tools/verify_repository.py'
       - 'assets/canonical/**'
       - 'artifacts/**'
@@ -41,4 +45,18 @@ jobs:
         run: |
           python3 tools/verify_repository.py
           python3 tools/run_canonical.py --instructions 5000000 --input tests/canonical_start_right.input --frame build/ci.bin > build/ci.txt
-          diff -u docs/evidence/S005/start-right.txt build/ci.txt
+          diff -u docs/evidence/S006/start-right.txt build/ci.txt
+  reference:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Compare pixels and CPU RAM with pinned reference
+        run: python3 tools/compare_reference.py --idle-frames 600 --input-frames 600
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: canonical-reference-report
+          path: |
+            build/reference/report.json
+            build/reference/compile.log
+            build/reference/*.csv

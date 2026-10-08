@@ -1,0 +1,18 @@
+{
+  "repository": "https://github.com/binji/binjnes",
+  "commit": "e2f5871a28ff189daa82b70be9324a42e2aaf9fd",
+  "license": "MIT",
+  "archive_sha256": "f3017a5e726d81acc6bd2e64ded36b61678592b58e8210f5b660b8ee25be6134",
+  "files": {
+    "LICENSE": "85a646746fecd24ea3dcfdfe814a614419826a2119048e69f09b5c62a6b1e420",
+    "src/common.c": "b6d446b0defa1e4cfc7349d0c1590fb177e27c347386d4a33e9d061e688f1120",
+    "src/common.h": "b6bb16a9dfb480002ae71f39af650273f304124c04b248b160aca0de9cbd83d4",
+    "src/memory.h": "01e8ee44eea4bd085b29a66774fec4ddaee1c5b3f7f5c8d749396330ae06c7d2",
+    "src/cartdb.c": "afcbdaababde3863b6da0be699c105d20b05f8e61f4da741d8df234482b92ebe",
+    "src/cartdb.h": "4aa8b7a78f04a0e456cee68a33ba926f097a515ea93d44dad59b3bf4c7d03399",
+    "src/cartdb.inc.h": "03849e3872bd907a2556351ff3d521586d2538374c216c984fb740aea7bf102a",
+    "src/emulator.c": "7ab92e2104e31f769d7dc86d9c1120082fefaee1d1ee789dbde30b58b84a9a9d",
+    "src/emulator.h": "5b53df6baa1d52e983a08e5d2c6061ab94077e654ce075a8e38010f064b1af30",
+    "src/vec.h": "9d19520817f2790089057d1c272edf803717ff16912bd1204ff84fd7dd5d027a"
+  }
+}

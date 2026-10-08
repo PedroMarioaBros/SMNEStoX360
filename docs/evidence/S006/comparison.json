@@ -1,0 +1,45 @@
+{
+  "reference_commit": "e2f5871a28ff189daa82b70be9324a42e2aaf9fd",
+  "rom_sha256": "57fb4ee14288853bc0c8a5a629a103e51e87a4ebae1cc699b435060d2690b047",
+  "capture_policy": "zero-based VBlank sequence; input set after previous capture",
+  "pixel_format": "61440 six-bit palette indices; emphasis rejected",
+  "ram_format": "all 2048 CPU RAM bytes; no exclusions",
+  "scenarios": {
+    "idle": {
+      "frames": {
+        "captures": 600,
+        "equal_captures": 600,
+        "different_captures": 0,
+        "first_difference": null,
+        "canonical_sha256": "7b7e760b5ce433d20459f8eee0f1196af155c3683cbcff09f0499498cb4bd5d3",
+        "reference_sha256": "7b7e760b5ce433d20459f8eee0f1196af155c3683cbcff09f0499498cb4bd5d3"
+      },
+      "ram": {
+        "captures": 600,
+        "equal_captures": 600,
+        "different_captures": 0,
+        "first_difference": null,
+        "canonical_sha256": "253a5df85e70946055a9279ebe4c42efddcc5005441b13c0777af5f8928a812c",
+        "reference_sha256": "253a5df85e70946055a9279ebe4c42efddcc5005441b13c0777af5f8928a812c"
+      }
+    },
+    "input": {
+      "frames": {
+        "captures": 6000,
+        "equal_captures": 6000,
+        "different_captures": 0,
+        "first_difference": null,
+        "canonical_sha256": "2b5ae8f24e6a527020c578c012e1837a336551f203f69d9723f0f7bddbc4d216",
+        "reference_sha256": "2b5ae8f24e6a527020c578c012e1837a336551f203f69d9723f0f7bddbc4d216"
+      },
+      "ram": {
+        "captures": 6000,
+        "equal_captures": 6000,
+        "different_captures": 0,
+        "first_difference": null,
+        "canonical_sha256": "b7c3b2c2820bc099afcf9915bd7b2495b4312bf27e31ce3d2a2f5aaee7200f80",
+        "reference_sha256": "b7c3b2c2820bc099afcf9915bd7b2495b4312bf27e31ce3d2a2f5aaee7200f80"
+      }
+    }
+  }
+}

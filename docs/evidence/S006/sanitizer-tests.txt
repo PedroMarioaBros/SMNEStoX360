@@ -1,0 +1,14 @@
+canonical NROM bus: PASS
+test_canonical_nrom: PASS
+canonical 6502 reset/smoke: PASS
+test_cpu6502_reset: PASS
+test_ppu_timing: PASS
+ADC/SBC exhaustive binary+decimal-flag cases: 524288 PASS
+CPU addressing/stack/interrupts/stop: PASS
+test_cpu6502: PASS
+ASL/ROL/LSR/ROR all values/carry/address forms: 10240 PASS
+test_cpu6502_shifts: PASS
+PPU registers/memory/controller/OAM DMA: PASS
+test_ppu_registers: PASS
+PPU pixels/sprite-zero/priority/clipping/Y increment: PASS
+test_ppu_render: PASS
