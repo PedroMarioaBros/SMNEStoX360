@@ -1,6 +1,29 @@
 # Checkpoint operacional — 2026-10-07 UTC (06/10 no Brasil)
 
-## Estado atual — S006, encerramento 08/10/2026
+## Estado atual — S007, 08/10/2026
+
+HEAD de entrada: edfdc149bb6d3a47cceac03a82f5bd345a5d9177.
+Entregue frontend host SDL2 com PRG/CHR canônicos embutidos, janela direta,
+teclado para dois jogadores e suporte implementado a dois gamepads/hotplug.
+Build verifica hashes antes de gerar o header. Não carrega .nes em runtime.
+Não altera src/canonical. Comandos e controles: [HOST_FRONTEND.md](HOST_FRONTEND.md).
+
+Validado automaticamente com SDL dummy: 600 quadros, 5.794.218 instruções,
+17.865.924 ciclos, 593 NMIs, **101 opcodes distintos**, PC $8057, frame 599,
+linha/dot 241/6. Seis eventos de teclado atravessaram a fila SDL.
+Leitura da saída do renderer: 61.440 pixels lógicos conferidos.
+Quadro final idêntico ao binjnes S006/captura 599, SHA-256
+fbde38b3940b02a1515202b5ab5ad36f828fc46bd5c5a7296bd1c1aa88f05bfc.
+Execução em diretório vazio comprova ausência de dependência de ROM externa.
+
+Sete suítes host passaram. Smoke SDL normal e ASan/UBSan passaram e produziram
+quadros idênticos (leak detection desabilitado). Logs, hits, imagem, binário host
+e hashes em evidence/S007/. Gamepads físicos, sessão manual e desempenho real
+com janela NÃO testados. APU ainda ausente; nenhum XEX novo.
+Recorde de instruções continua 57.751.826 da S006, não aumentou nesta sessão.
+Próxima etapa: APU por canais, começando pela base temporal e pulse 1 com testes.
+
+## Histórico — S006, encerramento 08/10/2026
 
 HEAD recebido: e99b80760d72387a8729b2fb9ddd3056cfa0bf22.
 Marco: comparação independente executada contra binjnes fixado, mesma ROM,

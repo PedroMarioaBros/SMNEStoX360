@@ -1,0 +1,2 @@
+ROM SHA-256 verified: 57fb4ee14288853bc0c8a5a629a103e51e87a4ebae1cc699b435060d2690b047
+Built: /workspace/scratch/6fa225fa0449/repo/build/host/smb-v026-host

@@ -136,3 +136,26 @@ A identidade do commit que contém uma entrada pode ser consultada no histórico
   capturas antes/depois e logs. Nada único necessário fica só no chat.
 - Próxima etapa: host interativo reutilizando core canônico e controles, preservando
   teste diferencial. APU e Xbox permanecem pendentes; nenhum XEX novo.
+
+## S007 — 08/10/2026, host SDL2 com ROM embutida
+
+- Entrada: edfdc149bb6d3a47cceac03a82f5bd345a5d9177; árvore limpa, hashes
+  verificados. Core canônico mantido sem alterações.
+- Implementados build com fingerprint obrigatório e PRG/CHR embutidos, frontend
+  SDL2 com vídeo, teclado 2 jogadores, suporte a 2 gamepads/hotplug, pausa/foco.
+- Dependências: runtime SDL2 2.30.0 presente; headers/pkg-config ausentes.
+  apt-get falhou por permissões setgroups/seteuid. Sem escalada: headers obtidos
+  do SDL oficial release-2.30.0, commit 859844eae358447be8d66e6da59b6fb3df0ed778.
+  Documentada instalação padrão libsdl2-dev e alternativa de headers locais.
+- Corrigida duplicação potencial de gamepads entre enumeração inicial e evento
+  DEVICEADDED, verificando instance ID antes de abrir outro handle.
+- Teste SDL em diretório vazio: 600 quadros, 5.794.218 instruções, 17.865.924
+  ciclos, 593 NMIs, 101 opcodes; seis transições de teclado. Sem ROM externa.
+- Readback SDL conferiu 61.440 pixels; quadro final bate binjnes S006/captura 599.
+- Sete suítes host passaram. Smoke normal e ASan/UBSan passaram, dumps iguais;
+  leak detection desabilitado. Nenhum teste manual/gamepad físico/tempo real.
+- CI ganhou build SDL e smoke; resultado remoto não confirmado nesta entrada.
+- Evidências e binário Linux x86-64 preservados em docs/evidence/S007, com hashes.
+  O programa só grava dump quando --dump é solicitado. Sem arquivo automático.
+- Não é produto Xbox: sem APU, XEX ou teste físico. Próxima ação: base temporal
+  APU e primeiro canal com testes; frontend pronto para teste humano em Linux.
