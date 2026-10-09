@@ -114,3 +114,22 @@ seguro sem confundir ferramentas históricas com o port.
   `assets/canonical/`. Teste da branch aprovado em `37892058096`.
 - WAV disponível no workflow em Artifacts como
   `canonical-s013-audio-wav` (id 11598404861).
+
+## Validação independente do merge na main
+
+- Commit de merge do código S013:
+  `64a7edaa76c14b069da283023bab38d1b64e1173`.
+- Workflow host em `main`:
+  https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/37892331535
+  status **completed/success**, quatro jobs
+  (`host (0)`, `host (1)`, `reference`, `frontend`).
+  Não usar o CI do commit anterior para alegar sucesso desse merge;
+  este run o comprova separadamente.
+- WAV de 600 quadros arquivado como
+  `canonical-s013-audio-wav`, artifact id `11599295620`,
+  não expirado na verificação, retenção configurada de 30 dias.
+  O arquivo é reproduzível pelos comandos acima.
+- Workflow histórico "Compilar SMB Xbox 360" continua reportando
+  `failure` (run 37892331507), conforme bloqueio preexistente
+  https://github.com/PedroMarioaBros/SMNEStoX360/issues/8 .
+  Isso não invalida a validação host, nem prova boot no Xbox.
