@@ -3,8 +3,9 @@
 ## S010 — terceiro canal APU, triangle, validado no host
 
 Entrada: main `030813421ed1aff21e5b6289392a48c9f2c17d1c`;
-trabalho em `work/s010-apu-triangle-20261009`, PR #5:
+branch `work/s010-apu-triangle-20261009` integrada via PR #5:
 https://github.com/PedroMarioaBros/SMNEStoX360/pull/5 .
+Merge/squash publicado na main: `dee528eabe2eb0f0c349d265d3ec256ba4ec91cf`.
 Implementado o canal triangle da APU Ricoh 2A03 em `apu.[ch]`:
 registradores $4008/$400A/$400B, timer a cada ciclo CPU (pulse1/2
 continuam CPU/2), contador linear com reload/control, length counter,
