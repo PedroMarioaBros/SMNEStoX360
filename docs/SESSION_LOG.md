@@ -338,3 +338,13 @@ A identidade do commit que contém uma entrada pode ser consultada no histórico
   tradução nativa PPC ou saída PCM. Próximo passo: DMC, DMA/IRQ e
   validação de áudio, com instruções em `docs/NEXT_STEPS.md`.
   Evidência detalhada: `docs/evidence/S011/README.md`.
+
+### Fechamento S011 — publicação remota (09/10/2026)
+
+- Pull Request #6: https://github.com/PedroMarioaBros/SMNEStoX360/pull/6
+  integrada por squash na main, commit `d8a9c0a60a2aa46b92276d1ece0c0558204dc2e3`.
+- Código validado no commit `19b5e2977aef8d98bea0c84c044d13318685b2a5`:
+  https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/37890367890 .
+  Todos os quatro jobs concluíram success. Commits documentais seguintes
+  não modificaram o core. Não extrapolar para hardware/áudio real.
+- Próxima tarefa S012 é DMC com DMA/IRQ e testes; comandos em NEXT_STEPS.md.
