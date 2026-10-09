@@ -640,3 +640,17 @@ A identidade do commit que contém uma entrada pode ser consultada no histórico
   pronto, com link Actions e guia; em paralelo S016
   gráfico Xbox seguro e proposta de tradução PPC.
   Evidência em `docs/evidence/S015/README.md`.
+
+### Fechamento S015 — integração no GitHub
+
+- PR #11 https://github.com/PedroMarioaBros/SMNEStoX360/pull/11
+  integrada na main por squash
+  `bd9775a84d1b9451f61bc5d79bf1df0b2002952d`.
+- Commit final do código na branch
+  `94a01f0af3798984d5ff88d16800690db10a64fc`:
+  XEX canônico CI `37966684272` `success`;
+  host CI `37966684264` `success` nos quatro jobs.
+  XEX artifact id `11633472546`, contendo guia físico.
+- CI pós-merge está em runs `37966878615` (XEX)
+  e `37966878630` (host); conferir resultado
+  dos dois antes de solicitar teste físico.
