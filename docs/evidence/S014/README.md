@@ -120,3 +120,19 @@ testar PCM/Xbox áudio. Em paralelo, projetar tradução 6502→PPC
 sem interpretador, mantendo o PRG original; comparar waveform
 com binjnes e refinar DMC DMA/IRQ.
 Instruções operacionais atualizadas em `docs/NEXT_STEPS.md`.
+
+## PR #10 e reteste do commit completo
+
+- Revisão do diff: 11 arquivos, **zero** alterações em `assets/canonical/`.
+- PR #10 https://github.com/PedroMarioaBros/SMNEStoX360/pull/10
+  integrada por squash à main em `b3a0aa56d6b45be588cec0ebfd936f1cb070ce07`.
+- Commit final da branch `577e14041ab7de586b62cedf4f864d132d610043`:
+  - workflow XEX canônico
+    https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/37958685203 :
+    **success**, novo artifact `smb360-CANONICAL-DIAGNOSTIC-xex`
+    id **11630856127** (ZIP 153451 bytes, 30 dias);
+  - workflow host
+    https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/37958685211 :
+    **success**, 4 jobs normal, ASan/UBSan, reference e frontend.
+- Isto valida código e empacotamento do commit final da branch,
+  **não** execução Xbox. CI pós-merge deve ser conferido separadamente.
