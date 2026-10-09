@@ -1,4 +1,54 @@
-# Checkpoint operacional — 2026-10-09 (S009)
+# Checkpoint operacional — 2026-10-09 (S010)
+
+## S010 — terceiro canal APU, triangle, validado no host
+
+Entrada: main `030813421ed1aff21e5b6289392a48c9f2c17d1c`;
+trabalho em `work/s010-apu-triangle-20261009`, PR #5:
+https://github.com/PedroMarioaBros/SMNEStoX360/pull/5 .
+Implementado o canal triangle da APU Ricoh 2A03 em `apu.[ch]`:
+registradores $4008/$400A/$400B, timer a cada ciclo CPU (pulse1/2
+continuam CPU/2), contador linear com reload/control, length counter,
+32 fases 0–15 e retenção do DAC ao interromper o sequenciador.
+Leitura do status $4015 ganha bit2; escrita habilita/desabilita apenas
+o length do triangle. $400B não reseta a fase. `tests/test_apu_triangle.c`
+adicionado aos testes host (normal e san) e `test_ppu_registers.c`
+ampliado para isolamento do barramento. Workflow passa a disparar
+também em alterações em `tests/test_apu*`.
+
+A ROM canônica **não foi alterada**. Hash SHA-256 da cópia do proprietário
+verificado localmente: ROM `57fb4ee14288853bc0c8a5a629a103e51e87a4ebae1cc699b435060d2690b047`;
+PRG `9f5b4f73bde569269645e154a1c8e43308afb2f156baa76e977296d7ca4ed9a4`;
+CHR `5e22a5c60aef64263ac7b17997479dfdad23389d1f0756c224412c8f7a5535d0`.
+
+**Validação do código**: commit `73ca0151d153448e8d13cca07bdf395fd93618cd`,
+GitHub Actions https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/37889762682,
+status `completed/success`; jobs host normal, ASan/UBSan, referência e
+frontend SDL, todos aprovados. 10 suítes host passaram nos dois modos,
+incluindo pulse1, pulse2, triangle e integração ao barramento.
+Binjnes: idle 600/600 pixels e 600/600 estados RAM; entrada 600/600 pixels
+e 600/600 estados RAM. SDL readback 61.440 pixels aprovado, quadro 599
+com hash idêntico à referência. Não houve comparação de waveform de áudio.
+
+Durante o desenvolvimento duas execuções CI falharam porque uma fixture
+supunha parada do nível triangle imediatamente após $4008; o gate muda
+no próximo quarter-frame. Fixture corrigida, CI final verde, sem alteração
+artificial no core. Clone direto no container ficou bloqueado por DNS;
+o teste completo foi feito no GitHub Actions, não localmente.
+Detalhes e links em [evidence/S010](evidence/S010/README.md).
+
+**Limites:** três canais com níveis DAC implementados (pulse1, pulse2,
+triangle), mas ainda sem som audível. Faltam noise, DMC, mixer,
+resampler/PCM/SDL áudio, IRQ APU ligada à CPU, precisão por microciclo
+e validação independente de som. Nenhum novo `default.xex` desta
+arquitetura canônica foi testado no Xbox 360. O core ainda executa 6502
+por runtime de software, não traduz o jogo nativamente para PowerPC.
+Próximo passo técnico: canal noise com testes e comparação diferencial;
+ver NEXT_STEPS.md. Não declarar percentual global inventado.
+
+---
+
+# Checkpoints históricos preservados (S009 e anteriores)
+
 
 ## S009 — segundo canal pulse da APU integrado à main
 
