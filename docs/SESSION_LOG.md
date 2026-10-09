@@ -247,3 +247,46 @@ A identidade do commit que contém uma entrada pode ser consultada no histórico
   Alvo final continua sem XEX canônico testado no Xbox. Próxima tarefa:
   triangle ($4008/$400A/$400B, linear/length/timer) com novos testes,
   regressão e evidências; comandos em `docs/NEXT_STEPS.md`.
+
+## S010 — 09/10/2026, terceiro canal APU (triangle) e validação
+
+- HEAD de entrada main: `030813421ed1aff21e5b6289392a48c9f2c17d1c`.
+  Branch `work/s010-apu-triangle-20261009`; PR #5:
+  https://github.com/PedroMarioaBros/SMNEStoX360/pull/5 .
+- ROM do proprietário preservada, hashes ROM/PRG/CHR conferidos
+  localmente no anexo; CI verificou assets no checkout GitHub.
+- `src/canonical/apu.[ch]` estendido com triangle: $4008 linear,
+  $400A/$400B período e comprimento, $4015 bit2, sequência 32 níveis,
+  timer a CPU/1, linear no quarter frame e length no half frame.
+  Output DAC retido durante gate; $400B não reinicia fase.
+  Pulse1/2 mantidos, sem outra ROM ou gameplay alternativo.
+- Adicionado `tests/test_apu_triangle.c` cobrindo sequência inteira,
+  timer, gates, comprimento/halt, reload, status e separação pulse.
+  `tests/test_ppu_registers.c` reforça independência dos registradores
+  triangle e leitura de controle 2 em $4017.
+  Workflow inclui `tests/test_apu*` na lista de mudanças que disparam CI.
+- Falhas reais e corrigidas: workflows
+  https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/37889678133
+  e https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/37889702475
+  falharam no teste `test_gates_hold_last_level`.
+  O teste confundia o momento da escrita em $4008 com a efetiva
+  parada após o próximo quarter frame. Corrigido no commit
+  `95657fe2732472b72c6c4c6ff08de0392faff49a`;
+  o runtime não foi manipulado para esconder a falha.
+- CI do último commit de código/infra
+  `73ca0151d153448e8d13cca07bdf395fd93618cd`:
+  https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/37889762682
+  **success**, quatro jobs: host normal, ASan/UBSan,
+  binjnes reference e frontend SDL. 10 suites normais/san PASS.
+  Comparador de ROM: idle 600/600 pixels e RAM; roteiro
+  600/600 pixels e RAM, sem exclusão de memória.
+  SDL readback 61.440 pixels PASS, captura 599 bate binjnes.
+- O clone local via git HTTPS falhou por DNS; testes completos
+  executados no GitHub Actions (não localmente). Apenas fingerprint
+  da ROM do proprietário foi computado no ambiente local.
+- Evidências e limites em `docs/evidence/S010/README.md`.
+  Ainda não há áudio audível/PCM, nem noise/DMC/mixer/IRQ integrada,
+  nem XEX canônico validado em hardware. A arquitetura continua
+  CPU 6502 por software, sem tradução PowerPC nativa.
+- Próximo passo documentado: noise com LFSR e envelope/length
+  em `docs/NEXT_STEPS.md`; testar e registrar nova sessão.
