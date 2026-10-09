@@ -116,3 +116,12 @@ em `docs/NEXT_STEPS.md`.
   `assets/canonical/`. O código que passou CI é o mesmo da branch de
   implementação; os commits posteriores até o merge foram documentais.
 - Próxima tarefa DMC/IRQ/DMA: `docs/NEXT_STEPS.md`.
+
+### Checagem adicional pós-merge na main
+
+- Workflow `canonical-host.yml` do commit de integração
+  `d8a9c0a60a2aa46b92276d1ece0c0558204dc2e3`:
+  https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/37890597158
+  **completed/success**; `reference`, `host (0)`, `host (1)` e
+  `frontend` concluídos com sucesso. Trata-se do mesmo código S011
+  já testado na branch, confirmado após merge. Não certifica Xbox nem áudio.
