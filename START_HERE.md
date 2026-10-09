@@ -39,10 +39,11 @@ continua pendente. S005 corrigiu o timing NTSC de frames ímpares e demonstrou
 que o HUD já estava presente. S006 comparou pixels/RAM com referência, corrigiu
 o controle 2. S007 entregou frontend host SDL2 com assets embutidos e smoke
 automatizado; teste manual pendente. S008/S009 implementaram pulse1 e
-pulse2 da APU. S010 implementou triangle e validou o novo canal com
-10 suítes host e comparação de 600+600 pixels/RAM contra a referência
-independente. **Três canais DAC sem áudio PCM ou som audível**. A próxima
-tarefa é noise, depois DMC, mixer e saída de áudio. Nenhum novo XEX
-canônico foi validado no Xbox 360; a CPU 6502 segue em runtime de software,
-sem tradução nativa para PowerPC.
+pulse2 da APU; S010 implementou triangle. S011 acrescentou noise,
+totalizando quatro canais DAC com 11 suítes host normais/sanitizadas
+aprovadas e regressão de 600+600 pixels/RAM contra referência.
+**Ainda não há áudio PCM nem som audível**. Próxima tarefa: DMC
+(última unidade APU básica), IRQ/DMA, depois mixer e reprodução SDL.
+Nenhum novo XEX canônico validado no Xbox; CPU 6502 executa
+em software e não foi traduzida nativamente para PowerPC.
 Consulte sempre o checkpoint e NEXT_STEPS.md: este resumo não substitui os dois.
