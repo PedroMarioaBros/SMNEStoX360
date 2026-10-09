@@ -193,3 +193,20 @@ A identidade do commit que contém uma entrada pode ser consultada no histórico
 - Evidência e comandos reproduzíveis: `docs/evidence/S008/README.md`.
   Próxima ação: conferir CI do HEAD, rodar/regredir comparação de 600+600
   pixels/RAM, corrigir divergências antes de revisão/merge.
+
+### Fechamento S008 — integração e verificação remota (09/10/2026)
+
+- GitHub Actions do commit de código `af36b563ee19543acd826bd89a768748e6ae0b5e`:
+  https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/37888390752,
+  status **success**. Quatro jobs passaram: host normal, host sanitizado,
+  frontend SDL e comparação diferencial com referência (600 idle e 600
+  scripted, pixels e RAM). Este resultado substitui a pendência de CI
+  registrada no início da sessão; não equivale a teste de áudio audível.
+- Pull request #3:
+  https://github.com/PedroMarioaBros/SMNEStoX360/pull/3,
+  integrado à branch main em squash commit
+  `f0af8dbf7236571760e03e6e36938ae61c44edab`.
+  HEAD remoto conferido após merge.
+- O código da S008 já faz parte da main. Próxima tarefa é pulse 2 e seus
+  testes de forma independente; documento operacional atualizado em
+  `docs/NEXT_STEPS.md`. Sem XEX novo, nenhum teste físico no Xbox.
