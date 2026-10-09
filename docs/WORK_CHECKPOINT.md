@@ -3,7 +3,8 @@
 ## S008 — base APU/pulse 1 em branch de trabalho
 
 Entrada no main: `f24d735559ca74eee7467224b5023402e64fdf69`.
-Branch publicada: `work/s008-apu-pulse1-20261009` (não integrada ao main).
+Branch desenvolvida: `work/s008-apu-pulse1-20261009`, integrada à main
+por PR #3 (squash) em `f0af8dbf7236571760e03e6e36938ae61c44edab`.
 A ROM canônica fornecida bateu os hashes completos de ROM, PRG e CHR;
 nenhum byte foi alterado.
 
@@ -23,13 +24,18 @@ foi possível rodar o checkout integral neste ambiente. GitHub Actions para
 o commit `a41845a49415e04c6d71407bb6928615c14c7195` concluiu
 **success** em https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/37888335327
 (já com APU ligada ao runtime e teste unitário incluído).
-O commit posterior de asserções adicionais em
-`tests/test_ppu_registers.c` requer checagem independente do CI.
-Não transferir verde de um commit para outro. Evidência: [S008](evidence/S008/README.md).
+O commit posterior de asserções adicionais em `tests/test_ppu_registers.c`
+foi também validado: GitHub Actions **success**, 4 jobs (host 0/1,
+frontend SDL e referência), para o commit `af36b563ee19543acd826bd89a768748e6ae0b5e`:
+https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/37888390752 .
+O run contempla 600 capturas idle e 600 com roteiro (pixels e RAM).
+Este sucesso não certifica precisão total de áudio/hardware e pertence ao
+commit de código acima, não a commits documentais posteriores. Evidência: [S008](evidence/S008/README.md).
 
 Nenhum novo `default.xex` nem teste físico. O XEX histórico com Fatal Crash
-não é uma versão validada. A comparação diferencial e eventual revisão/merge
-da branch são o próximo portão. Ver NEXT_STEPS.md.
+não é uma versão validada. A comparação diferencial curta passou; o merge foi concluído. Próximos
+passos: pulse 2 e expansão da APU, mantendo a regressão e os testes por canal.
+Ver NEXT_STEPS.md.
 
 ---
 
