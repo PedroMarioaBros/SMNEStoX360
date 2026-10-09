@@ -3,7 +3,9 @@
 ## S015 — diagnóstico XAM e dois controles Xbox
 
 HEAD de entrada `884c5db3defec68fbf58793fccbbc69a225584c2`.
-Branch `work/s015-observable-boot-20261009`. ROM original
+Branch `work/s015-observable-boot-20261009` integrada pela PR #11:
+https://github.com/PedroMarioaBros/SMNEStoX360/pull/11 .
+Commit squash na main `bd9775a84d1b9451f61bc5d79bf1df0b2002952d`. ROM original
 `SMB_v026.nes` preservada byte a byte e verificada por SHA-256.
 O core canônico continua sendo compilado sem nathsou.
 
