@@ -1,5 +1,5 @@
 /* S014: CANONICAL ROM diagnostic only. No unsafe framebuffer addresses.
- * Executes PRG/CHR from SMB_v026.nes through src/canonical/*.c.
+ * Executes PRG/CHR from SMB_v026.nes through the canonical C99 core.
  * Not a playable Xbox port: output currently goes to diagnostic stdout.
  * CPU6502 is still interpreted in C; no native PPC translation is claimed. */
 #include <stddef.h>
