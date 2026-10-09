@@ -45,5 +45,18 @@ Referências técnicas:
 - https://www.nesdev.org/wiki/APU_Sweep
 - https://www.nesdev.org/wiki/APU_Envelope
 
-Próxima etapa: verificar o CI do HEAD da branch, comparar 600 + 600 capturas
-(pixel e RAM) e investigar qualquer divergência antes de propor merge.
+## Fechamento (resultado posterior aos testes isolados)
+
+CI GitHub Actions `37888390752` para o commit de integração
+`af36b563ee19543acd826bd89a768748e6ae0b5e` terminou **success**:
+https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/37888390752
+Quatro jobs concluídos com sucesso (host normal, host sanitizado, frontend
+SDL e comparação 600+600 frames, pixels/RAM). Não extrapolar para fidelidade
+de APU ou execução no Xbox.
+
+PR #3 https://github.com/PedroMarioaBros/SMNEStoX360/pull/3
+foi integrado à main por squash em
+`f0af8dbf7236571760e03e6e36938ae61c44edab`.
+A próxima etapa mudou para implementação do segundo canal pulse 2
+e seus testes independentes; comandos exatos em `docs/NEXT_STEPS.md`.
+
