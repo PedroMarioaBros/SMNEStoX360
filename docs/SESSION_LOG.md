@@ -210,3 +210,40 @@ A identidade do commit que contém uma entrada pode ser consultada no histórico
 - O código da S008 já faz parte da main. Próxima tarefa é pulse 2 e seus
   testes de forma independente; documento operacional atualizado em
   `docs/NEXT_STEPS.md`. Sem XEX novo, nenhum teste físico no Xbox.
+
+## S009 — 09/10/2026, pulse 2 da APU e testes de regressão
+
+- HEAD de entrada: `248c8758f5421c7ed1c7bbf230b8e509c79f5d83`.
+  Trabalho em `work/s009-apu-pulse2-20261009`. Finalizado por
+  [PR #4](https://github.com/PedroMarioaBros/SMNEStoX360/pull/4),
+  merge/squash `652f4e2d7f71d26e6a4eb6f65d438aadd6f1c957`.
+- Rom de 40976 bytes conferida localmente por SHA-256, incluindo PRG/CHR;
+  valores sem mudança em SMB_V026_CANONICAL_ROM.md. Nenhum byte alterado.
+- Generalizado `apu.[ch]`: canais pulse 1/2 independentes, duty, timer,
+  envelope, comprimento, sweep e mute. Endereços $4004–$4007 adicionados,
+  $4015 bit1 de status/enable, saída DAC do pulse 2. Sweep negativo
+  difere entre canais: pulse1 subtrai change+1 e pulse2 subtrai change.
+  Sem áudio PCM/mixer; não há nova execução no Xbox.
+- Criado `tests/test_apu_pulse2.c`, incluindo quatro testes de
+  independência de frequência/fase, reload/status, sweep, envelope
+  e comprimento. Inserido em `tests/run_host_tests.sh` (normal/san).
+  `test_ppu_registers.c` passou a verificar writes nos dois canais,
+  $4015, controle 2 por $4017 e alinhamento de clocks.
+- Desenvolvimento das fixtures: duas falhas reais de teste antes do
+  sucesso; comprimento estava indexado como 254 em vez de 2 e saída
+  no instante de duty index 7 foi presumida não nula. Corrigidos valores
+  da fixture; nenhum patch artificial de gameplay/core.
+- Localmente: ambos os binários de teste de APU passaram com
+  `-std=c99 -Wall -Wextra -Werror` e repetidos com ASan/UBSan
+  (`detect_leaks=0`). Clone GitHub local bloqueado por DNS; testes
+  completos/ROM no CI, não fingir execução local completa.
+- CI no commit de código `3f877fd7d3802df35897d303105b7980d56ecd7a`:
+  [workflow 37889071037](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/37889071037),
+  **success**, quatro jobs (host normal, host sanitizado, frontend SDL,
+  referência diferencial). binjnes idle pixels/RAM = 600/600 e com
+  controles pixels/RAM = 600/600. Testes do pulse 1 e pulse 2 PASS
+  constam dos logs host. Não extrapolar para timing/som real.
+- Evidências: `docs/evidence/S009/README.md`, workflow e diff da PR.
+  Alvo final continua sem XEX canônico testado no Xbox. Próxima tarefa:
+  triangle ($4008/$400A/$400B, linear/length/timer) com novos testes,
+  regressão e evidências; comandos em `docs/NEXT_STEPS.md`.
