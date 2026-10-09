@@ -1,24 +1,33 @@
-# Próxima ação — S008, 09/10/2026
+# Próxima ação — após S008, 09/10/2026
 
-Leia START_HERE.md / AGENTS.md / CONTINUITY_PROTOCOL.md antes de agir.
-ROM canônica e o PRG/CHR não devem ser substituídos.
+Ler START_HERE.md, AGENTS.md e CONTINUITY_PROTOCOL.md. Usar sempre ROM
+canônica versionada, sem trocar PRG/CHR. S008 foi integrada à main pelo
+PR #3; merge/squash: `f0af8dbf7236571760e03e6e36938ae61c44edab`.
+CI do código `af36b563ee19543acd826bd89a768748e6ae0b5e`:
+https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/37888390752
+(success: host normal/san, SDL e referência curta 600+600).
 
-## Tarefa ativa: validar e consolidar a base APU em branch
+## Próxima tarefa técnica: pulse 2 (e testes dedicados)
 
-Branch: `work/s008-apu-pulse1-20261009`, derivada do main
-`f24d735559ca74eee7467224b5023402e64fdf69`.
+1. Verificar HEAD atual, ROM/PRG/CHR; repetir baseline apenas como regressão.
+2. Inspecionar `src/canonical/apu.[ch]` e `tests/test_apu_pulse.c`.
+   Generalizar canal pulse mantendo sinais e estado separados; canal 2 usa
+   complemento de dois no sweep negativo (diferente de pulse 1).
+3. Criar testes independentes de duty, envelope, length, timer, sweep,
+   reset de fase, enable em $4015 e saída DAC 0..15 de ambos canais.
+   Ampliar asserts de tempo APU/CPU/NMI/DMA no bus.
+4. Validar, com a ROM original, pixels/RAM contra o binjnes fixado, sem
+   permitir regressões no controle 2; registrar diferenças, não alterar hashes.
+5. Depois: triangle, noise, DMC, IRQ da APU conectada à CPU, mixer não-linear
+   e amostragem de PCM no SDL/host. Não declarar áudio funcional até haver
+   saída audível e comparação com referência.
 
-O módulo de áudio agora acompanha ciclos CPU (inclusive NMI e DMA).
-Pulse 1 implementado sinteticamente, ainda sem PCM nem mixer, outros canais
-não implementados. Testes sintéticos locais e CI do commit
-`a41845a49415e04c6d71407bb6928615c14c7195` passaram; o CI precisa
-confirmar o HEAD definitivo da branch após a asserção de integração.
-
-Com um clone limpo, executar:
+Comandos imediatos copiáveis:
 
 ```sh
-git fetch origin
-git switch work/s008-apu-pulse1-20261009
+git clone https://github.com/PedroMarioaBros/SMNEStoX360.git
+cd SMNEStoX360
+git log -1 --oneline
 python3 tools/verify_repository.py
 sh tests/run_host_tests.sh
 python3 tools/compare_reference.py --idle-frames 600 --input-frames 600
@@ -26,27 +35,22 @@ python3 tools/build_host.py
 python3 tests/test_host_frontend.py
 ```
 
-Requisitos: C99, Python 3, SDL2 dev e dependências de testes de referência
-incluídas no repositório. O comparador esperado continua **600/600 pixels
-e RAM idênticos em ambos os cenários**. Testes unitários devem passar e
-contagem `m.bus.apu.cpu_cycles == m.cpu.cycles` deve persistir inclusive
-após DMA. Conferir também job CI e commit exatos antes de interpretar sucesso.
+Esperado no HEAD de partida: testes host e frontend OK; 600/600 capturas
+idle + 600/600 scripted com pixels e RAM iguais. A comparação é limitada
+a esses roteiros, não a todas as modificações da ROM. Se o ambiente não
+permitir clone/local, registrar bloqueio e verificar execução específica de CI.
 
-Caso a comparação divirja, investigar acesso $4015, timing por instrução
-e alterações no frame sequencer. Não ajustar hashes para esconder falha.
-Documentar evidência (diferença de byte/frame) e preservar correção em branch.
+## Meta final Xbox 360
 
-Somente após validação completa e review, decidir merge da branch para main.
-Depois implementar canal pulse 2 e demais unidades APU (triangle/noise/DMC,
-mixagem, resampling para SDL), além da integração de IRQ, testes diferenciais
-de áudio e reprodução audível. Não declarar fidelidade de áudio neste estágio.
+Ainda sem default.xex dessa arquitetura validado no console. Continuar
+boot mínimo → loop → vídeo seguro → input/core → APU/áudio → XEX com
+assets embutidos → teste físico. Não reutilizar endereços hardcoded do
+backend que causou Fatal Crash #16.
 
-## Alvo final Xbox 360
+A arquitetura atual executa o código 6502 original via runtime (CPU/PPU
+implementados em software), não é ainda tradução nativa PowerPC livre de
+interpretação de opcodes. Esta distinção deve permanecer explícita ao avaliar
+a meta de port direto solicitada pelo proprietário.
 
-Boot mínimo → loop → vídeo seguro → entrada → runtime canônico → áudio →
-XEX autossuficiente → teste no console. O antigo build #16 teve Fatal Crash.
-Nenhum XEX da arquitetura atual foi validado em hardware. Não reutilizar
-endereços hardcoded de vídeo.
-
-Em toda sessão atualizar WORK_CHECKPOINT.md, SESSION_LOG.md e este arquivo;
-fazer commits, publicar e verificar o HEAD remoto.
+Em cada próxima sessão: atualizar WORK_CHECKPOINT.md, SESSION_LOG.md,
+NEXT_STEPS.md, publicar commits e confirmar HEAD remoto.
