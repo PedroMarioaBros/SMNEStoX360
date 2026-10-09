@@ -10,7 +10,7 @@ typedef struct {
 } smb360_apu_pulse;
 
 typedef struct {
-    smb360_apu_pulse pulse1;
+    smb360_apu_pulse pulse1, pulse2;
     uint64_t cpu_cycles;
     uint32_t frame_cycles;
     uint8_t enabled, frame_mode5, irq_inhibit, frame_irq;
@@ -22,7 +22,8 @@ void smb360_apu_init(smb360_apu *apu);
 void smb360_apu_write(smb360_apu *apu, uint16_t address, uint8_t value);
 uint8_t smb360_apu_read_status(smb360_apu *apu);
 void smb360_apu_step(smb360_apu *apu, uint32_t cpu_cycles);
-/* Pulse 1 DAC level (0..15), not mixed or resampled audio. */
+/* Individual pulse DAC levels (0..15), not mixed/resampled audio. */
 uint8_t smb360_apu_pulse1_output(const smb360_apu *apu);
+uint8_t smb360_apu_pulse2_output(const smb360_apu *apu);
 
 #endif

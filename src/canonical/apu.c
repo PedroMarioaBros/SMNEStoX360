@@ -12,21 +12,27 @@ static const uint8_t duty_table[4][8] = {
 
 void smb360_apu_init(smb360_apu *apu) { memset(apu, 0, sizeof(*apu)); }
 
-static int sweep_target(const smb360_apu_pulse *p) {
+/* Pulse 1 has a ones'-complement negative sweep; pulse 2 uses two's complement. */
+static int sweep_target(const smb360_apu_pulse *p, unsigned channel) {
     int change=(int)(p->period >> (p->sweep & 7u));
-    return (p->sweep & 8u) ? (int)p->period-change-1 : (int)p->period+change;
+    return (p->sweep & 8u) ? (int)p->period-change-(channel==0u ? 1 : 0)
+                             : (int)p->period+change;
 }
 
-uint8_t smb360_apu_pulse1_output(const smb360_apu *apu) {
-    const smb360_apu_pulse *p=&apu->pulse1;
-    if (!p->length || p->period<8u || sweep_target(p)>0x7ff ||
+static uint8_t pulse_output(const smb360_apu_pulse *p, unsigned channel) {
+    if (!p->length || p->period<8u || sweep_target(p,channel)>0x7ff ||
         !duty_table[p->control>>6][p->duty_step]) return 0;
     return (p->control & 0x10u) ? (p->control & 15u) : p->envelope_decay;
 }
 
-static void quarter_frame(smb360_apu *apu) {
-    smb360_apu_pulse *p=&apu->pulse1;
-    ++apu->quarter_clocks;
+uint8_t smb360_apu_pulse1_output(const smb360_apu *apu) {
+    return pulse_output(&apu->pulse1,0u);
+}
+uint8_t smb360_apu_pulse2_output(const smb360_apu *apu) {
+    return pulse_output(&apu->pulse2,1u);
+}
+
+static void quarter_pulse(smb360_apu_pulse *p) {
     if (p->envelope_start) {
         p->envelope_start=0;
         p->envelope_decay=15;
@@ -38,35 +44,54 @@ static void quarter_frame(smb360_apu *apu) {
     } else --p->envelope_divider;
 }
 
-static void half_frame(smb360_apu *apu) {
-    smb360_apu_pulse *p=&apu->pulse1;
+static void quarter_frame(smb360_apu *apu) {
+    ++apu->quarter_clocks;
+    quarter_pulse(&apu->pulse1);
+    quarter_pulse(&apu->pulse2);
+}
+
+static void half_pulse(smb360_apu_pulse *p, unsigned channel) {
     unsigned sweep_period=(p->sweep>>4)&7u;
-    ++apu->half_clocks;
     if (p->length && !(p->control&0x20u)) --p->length;
     if (!p->sweep_divider && (p->sweep&0x80u) && (p->sweep&7u) &&
-        p->period>=8u && sweep_target(p)<=0x7ff)
-        p->period=(uint16_t)sweep_target(p);
+        p->period>=8u && sweep_target(p,channel)<=0x7ff)
+        p->period=(uint16_t)sweep_target(p,channel);
     if (!p->sweep_divider || p->sweep_reload) {
         p->sweep_divider=(uint8_t)sweep_period;
         p->sweep_reload=0;
     } else --p->sweep_divider;
 }
 
+static void half_frame(smb360_apu *apu) {
+    ++apu->half_clocks;
+    half_pulse(&apu->pulse1,0u);
+    half_pulse(&apu->pulse2,1u);
+}
+
 void smb360_apu_write(smb360_apu *apu, uint16_t address, uint8_t value) {
-    smb360_apu_pulse *p=&apu->pulse1;
+    if (address>=0x4000u && address<=0x4007u) {
+        unsigned channel=(unsigned)((address-0x4000u)/4u);
+        unsigned reg=(unsigned)((address-0x4000u)%4u);
+        smb360_apu_pulse *p=channel==0u?&apu->pulse1:&apu->pulse2;
+        switch(reg) {
+        case 0: p->control=value; break;
+        case 1: p->sweep=value; p->sweep_reload=1; break;
+        case 2: p->period=(uint16_t)((p->period&0x700u)|value); break;
+        case 3:
+            p->period=(uint16_t)((p->period&0xffu)|((uint16_t)(value&7u)<<8));
+            if (apu->enabled&(1u<<channel)) p->length=length_table[value>>3];
+            p->duty_step=0;
+            p->envelope_start=1;
+            break;
+        default: break;
+        }
+        return;
+    }
     switch(address) {
-    case 0x4000u: p->control=value; break;
-    case 0x4001u: p->sweep=value; p->sweep_reload=1; break;
-    case 0x4002u: p->period=(uint16_t)((p->period&0x700u)|value); break;
-    case 0x4003u:
-        p->period=(uint16_t)((p->period&0xffu)|((uint16_t)(value&7u)<<8));
-        if (apu->enabled&1u) p->length=length_table[value>>3];
-        p->duty_step=0;
-        p->envelope_start=1;
-        break;
     case 0x4015u:
         apu->enabled=value&0x1fu;
-        if (!(value&1u)) p->length=0;
+        if (!(value&1u)) apu->pulse1.length=0;
+        if (!(value&2u)) apu->pulse2.length=0;
         break;
     case 0x4017u:
         apu->frame_mode5=(value>>7)&1u;
@@ -81,21 +106,26 @@ void smb360_apu_write(smb360_apu *apu, uint16_t address, uint8_t value) {
 
 uint8_t smb360_apu_read_status(smb360_apu *apu) {
     uint8_t result=(uint8_t)((apu->pulse1.length?1u:0u) |
+                              (apu->pulse2.length?2u:0u) |
                               (apu->frame_irq?0x40u:0u));
     apu->frame_irq=0;
     return result;
 }
 
+static void timer_pulse(smb360_apu_pulse *p) {
+    if (p->timer_divider) --p->timer_divider;
+    else {
+        p->timer_divider=p->period;
+        p->duty_step=(uint8_t)((p->duty_step-1u)&7u);
+    }
+}
+
 void smb360_apu_step(smb360_apu *apu, uint32_t cycles) {
     while(cycles--) {
-        smb360_apu_pulse *p=&apu->pulse1;
         ++apu->cpu_cycles;
         if (!(apu->cpu_cycles&1u)) {
-            if (p->timer_divider) --p->timer_divider;
-            else {
-                p->timer_divider=p->period;
-                p->duty_step=(uint8_t)((p->duty_step-1u)&7u);
-            }
+            timer_pulse(&apu->pulse1);
+            timer_pulse(&apu->pulse2);
         }
         if (apu->frame_reset_delay) {
             if (!--apu->frame_reset_delay) {
