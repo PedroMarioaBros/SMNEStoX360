@@ -1,22 +1,12 @@
-name: Compilar SMB Xbox 360
-# OpenXeChain XEX pipeline validated by run #21
+name: "LEGADO SMB Xbox 360 nathsou (manual, NAO OFICIAL)"
+# LEGADO preservado para consulta e reproducao historica.
+# Esta rota compila nathsou e usa backend xex antigo com Fatal Crash historico.
+# O script nao gera boot-test.xex, mas o workflow o exige; build falha na validacao.
+# Nao e o caminho canonico. Use canonical-xex.yml para o runtime SMB_v026.
+# Acionamento manual apenas: evita falhas automaticas e confusao no painel.
 
 on:
   workflow_dispatch:
-  push:
-    branches: [main]
-    paths:
-      - "src/**"
-      - "scripts/**"
-      - "patches/**"
-      - ".github/workflows/xbox360-cloud-build.yml"
-  pull_request:
-    branches: [main]
-    paths:
-      - "src/**"
-      - "scripts/**"
-      - "patches/**"
-      - ".github/workflows/xbox360-cloud-build.yml"
 
 permissions:
   contents: read
