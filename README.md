@@ -61,7 +61,11 @@ Isso mantém AddressSanitizer e UndefinedBehaviorSanitizer ativos.
 ## Estado e Xbox
 
 CPU: 151 opcodes oficiais implementados; não é uma certificação cycle-perfect.
-PPU funcional inicial, NMI, DMA e controle disponíveis no host; áudio ausente.
+PPU funcional inicial, NMI, DMA e controle disponíveis no host.
+Desde S008, a APU tem contador de quadros e primeiro canal pulse implementados
+com testes host, porém ainda **não produz áudio audível**: faltam os outros
+canais, mixer e saída PCM. A arquitetura atual executa o PRG 6502 original
+em runtime de software, não é ainda tradução nativa PowerPC.
 O checkpoint separa implementação, testes sintéticos, execução da ROM e hardware.
 
 Os backends `src/platform/`, integrações `nathsou` e scripts Xbox antigos
