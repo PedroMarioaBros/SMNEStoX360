@@ -48,8 +48,13 @@ teste com dispositivo físico nem waveform NES independente.
 **S014 compilou pela primeira vez o runtime canônico e a ROM
 SMB_v026.nes para XEX2 PowerPC próprio**, sem nathsou:
 novo artifact de diagnóstico headless, ver evidence/S014.
-A compilação passou no CI; o XEX ainda NÃO teve boot
-físico, vídeo, controles nem áudio no Xbox. Próxima S015:
-teste/diagnóstico de boot e backend de vídeo seguro.
-CPU 6502 continua interpretada, sem tradução nativa PPC.
+S015 ampliou o diagnóstico Xbox canônico com notificações XAM
+de início/conclusão, leitura de dois gamepads Xbox e validação
+de que a ROM inteira está realmente no PE PowerPC. O teste
+sintético de controles amplia para 14 suítes host.
+**Quando houver artifact da main com CI verde, o proprietário
+deve testar o boot no console** seguindo
+[TESTE_FISICO_S015.md](docs/TESTE_FISICO_S015.md).
+Ainda sem imagem nem áudio do Mario no Xbox e sem
+tradução estática PowerPC; o PRG 6502 é interpretado em C.
 Consulte sempre o checkpoint e NEXT_STEPS.md: este resumo não substitui os dois.
