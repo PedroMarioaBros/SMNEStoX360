@@ -9,8 +9,16 @@ static const uint8_t duty_table[4][8] = {
     {0,0,0,0,0,0,0,1}, {0,0,0,0,0,0,1,1},
     {0,0,0,0,1,1,1,1}, {1,1,1,1,1,1,0,0}
 };
+/* NTSC CPU noise periods are 4, 8, ..., 4068 M2 cycles.
+ * The noise divider is clocked at CPU/2; entries are period/2. */
+static const uint16_t noise_period_apu[16] = {
+    2,4,8,16,32,48,64,80,101,127,190,254,381,508,1017,2034
+};
 
-void smb360_apu_init(smb360_apu *apu) { memset(apu, 0, sizeof(*apu)); }
+void smb360_apu_init(smb360_apu *apu) {
+    memset(apu, 0, sizeof(*apu));
+    apu->noise.shift_register=1u; /* NES noise LFSR power-up seed. */
+}
 
 /* Pulse 1 has a ones'-complement negative sweep; pulse 2 uses two's complement. */
 static int sweep_target(const smb360_apu_pulse *p, unsigned channel) {
@@ -37,6 +45,28 @@ uint8_t smb360_apu_pulse2_output(const smb360_apu *apu) {
 uint8_t smb360_apu_triangle_output(const smb360_apu *apu) {
     unsigned step=apu->triangle.sequence_step;
     return (uint8_t)(step<16u ? 15u-step : step-16u);
+}
+
+uint8_t smb360_apu_noise_output(const smb360_apu *apu) {
+    const smb360_apu_noise *n=&apu->noise;
+    if (!n->length || (n->shift_register&1u)) return 0;
+    return (n->control&0x10u) ? (n->control&15u) : n->envelope_decay;
+}
+
+static void quarter_noise(smb360_apu_noise *n) {
+    if (n->envelope_start) {
+        n->envelope_start=0;
+        n->envelope_decay=15;
+        n->envelope_divider=n->control&15u;
+    } else if (!n->envelope_divider) {
+        n->envelope_divider=n->control&15u;
+        if (n->envelope_decay) --n->envelope_decay;
+        else if (n->control&0x20u) n->envelope_decay=15;
+    } else --n->envelope_divider;
+}
+
+static void half_noise(smb360_apu_noise *n) {
+    if (n->length && !(n->control&0x20u)) --n->length;
 }
 
 static void quarter_triangle(smb360_apu_triangle *t) {
@@ -76,6 +106,7 @@ static void quarter_frame(smb360_apu *apu) {
     quarter_pulse(&apu->pulse1);
     quarter_pulse(&apu->pulse2);
     quarter_triangle(&apu->triangle);
+    quarter_noise(&apu->noise);
 }
 
 static void half_pulse(smb360_apu_pulse *p, unsigned channel) {
@@ -95,6 +126,7 @@ static void half_frame(smb360_apu *apu) {
     half_pulse(&apu->pulse1,0u);
     half_pulse(&apu->pulse2,1u);
     half_triangle(&apu->triangle);
+    half_noise(&apu->noise);
 }
 
 void smb360_apu_write(smb360_apu *apu, uint16_t address, uint8_t value) {
@@ -130,11 +162,23 @@ void smb360_apu_write(smb360_apu *apu, uint16_t address, uint8_t value) {
         apu->triangle.linear_reload_flag=1u;
         /* Unlike pulse $4003/$4007, $400B does NOT reset phase. */
         break;
+    case 0x400cu:
+        apu->noise.control=value;
+        break;
+    case 0x400eu:
+        apu->noise.mode=(value>>7)&1u;
+        apu->noise.period_index=value&15u;
+        break;
+    case 0x400fu:
+        if (apu->enabled&8u) apu->noise.length=length_table[value>>3];
+        apu->noise.envelope_start=1u;
+        break;
     case 0x4015u:
         apu->enabled=value&0x1fu;
         if (!(value&1u)) apu->pulse1.length=0;
         if (!(value&2u)) apu->pulse2.length=0;
         if (!(value&4u)) apu->triangle.length=0;
+        if (!(value&8u)) apu->noise.length=0;
         break;
     case 0x4017u:
         apu->frame_mode5=(value>>7)&1u;
@@ -151,6 +195,7 @@ uint8_t smb360_apu_read_status(smb360_apu *apu) {
     uint8_t result=(uint8_t)((apu->pulse1.length?1u:0u) |
                               (apu->pulse2.length?2u:0u) |
                               (apu->triangle.length?4u:0u) |
+                              (apu->noise.length?8u:0u) |
                               (apu->frame_irq?0x40u:0u));
     apu->frame_irq=0;
     return result;
@@ -164,6 +209,18 @@ static void timer_pulse(smb360_apu_pulse *p) {
     }
 }
 
+/* Feedback bit 0 xor bit 1 (long mode), or bit 6 (short mode);
+ * shift always runs, even when the channel is disabled or its DAC muted. */
+static void timer_noise(smb360_apu_noise *n) {
+    if (n->timer_divider) --n->timer_divider;
+    else {
+        unsigned tap=n->mode ? 6u : 1u;
+        uint16_t feedback=(uint16_t)((n->shift_register ^ (n->shift_register>>tap))&1u);
+        n->shift_register=(uint16_t)((n->shift_register>>1)|(feedback<<14));
+        n->timer_divider=(uint16_t)(noise_period_apu[n->period_index]-1u);
+    }
+}
+
 void smb360_apu_step(smb360_apu *apu, uint32_t cycles) {
     while(cycles--) {
         ++apu->cpu_cycles;
@@ -171,6 +228,7 @@ void smb360_apu_step(smb360_apu *apu, uint32_t cycles) {
         if (!(apu->cpu_cycles&1u)) {
             timer_pulse(&apu->pulse1);
             timer_pulse(&apu->pulse2);
+            timer_noise(&apu->noise);
         }
         if (apu->frame_reset_delay) {
             if (!--apu->frame_reset_delay) {
