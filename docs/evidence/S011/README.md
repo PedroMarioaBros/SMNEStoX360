@@ -72,3 +72,38 @@ Referências exclusivamente de semântica de hardware, não de gameplay:
 - https://www.nesdev.org/wiki/APU_Noise
 - https://www.nesdev.org/wiki/APU_Envelope
 - https://www.nesdev.org/wiki/APU_registers
+
+## CI real e falha intermediária
+
+O commit de código testado é
+`19b5e2977aef8d98bea0c84c044d13318685b2a5`:
+https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/37890367890
+
+- Status final: **completed/success**, 4 jobs `success`:
+  `host (0)`, `host (1)`, `reference`, `frontend`.
+- `sh tests/run_host_tests.sh`: 11 suítes C99
+  `-Wall -Wextra -Werror` PASS no job normal e em ASan/UBSan
+  (LeakSanitizer desabilitado); `test_apu_noise: PASS`,
+  `test_ppu_registers: PASS`, `Repository assets and historical artifact: PASS`.
+- Comparação binjnes: `idle pixels: 600 / 600 RAM: 600 / 600`;
+  `input pixels: 600 / 600 RAM: 600 / 600` (todas as 2048
+  posições RAM por captura, nenhuma exclusão).
+- SDL dummy: `SDL rendered pixel readback: 61440 PASS`,
+  `Empty working directory (no ROM file): PASS`, quadro 599
+  com hash `fbde38b3940b02a1515202b5ab5ad36f828fc46bd5c5a7296bd1c1aa88f05bfc`.
+- O XEX histórico ainda **não** foi testado, não há geração de
+  áudio audível, e nenhum audio PCM/waveform foi comparado.
+
+A tentativa anterior falhou realmente:
+https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/37890305871,
+`tests/test_ppu_registers.c:88`, asserção
+`m.bus.apu.noise.shift_register==1u`. O teste presumia o seed
+de power-up intacto após o RESET CPU, mas o RESET já consome 7
+ciclos que avançam a APU. Corrigido no commit
+`19b5e2977aef8d98bea0c84c044d13318685b2a5`,
+passando a capturar o LFSR após RESET e verificar que
+escritas nos registradores não o reinicializam. Nenhum
+patch de gameplay ou mudança na ROM foi usado para passar.
+
+A próxima etapa DMC/IRQ/DMA está registrada com comandos e bloqueios
+em `docs/NEXT_STEPS.md`.
