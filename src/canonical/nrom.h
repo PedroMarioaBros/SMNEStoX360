@@ -2,6 +2,7 @@
 #define SMB360_CANONICAL_NROM_H
 #include <stddef.h>
 #include <stdint.h>
+#include "apu.h"
 
 #define SMB360_PRG_SIZE 32768u
 #define SMB360_CHR_SIZE 8192u
@@ -10,6 +11,7 @@ typedef struct {
     uint8_t ram[0x800];
     uint8_t ppu_regs[8];
     uint8_t apu_io[0x18];
+    smb360_apu apu;
     const uint8_t *prg;
     const uint8_t *chr;
     uint8_t controller1;

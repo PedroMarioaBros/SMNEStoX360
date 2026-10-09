@@ -159,3 +159,37 @@ A identidade do commit que contém uma entrada pode ser consultada no histórico
   O programa só grava dump quando --dump é solicitado. Sem arquivo automático.
 - Não é produto Xbox: sem APU, XEX ou teste físico. Próxima ação: base temporal
   APU e primeiro canal com testes; frontend pronto para teste humano em Linux.
+
+## S008 — 09/10/2026, início da APU Ricoh 2A03 e pulse 1
+
+- HEAD de entrada em main: `f24d735559ca74eee7467224b5023402e64fdf69`.
+  Continuidade feita em `work/s008-apu-pulse1-20261009` para manter
+  mudanças não certificadas fora de main.
+- Confirmado SHA-256 idêntico da ROM de 40.976 bytes e dos blocos PRG/CHR
+  canônicos do proprietário. Nenhum gameplay, gráfico ou som foi substituído.
+- Consultadas especificações NESdev de APU, pulse, sweep e envelope.
+- Módulo `apu.[ch]` criado: relógio por CPU, frame counter 4/5 passos,
+  pulse 1 com duty/timer/length/envelope/sweep, status parcial, IRQ flag
+  interna e saída DAC 0..15. Integrado em `nrom.[ch]` e `machine.c`.
+  APU recebe também os ciclos de interrupção e stall de DMA.
+- Preservado contrato $4017: writes para frame sequencer e reads somente
+  para o segundo controle. Teste existente preservado e expandido com
+  asserções de alinhamento APU/CPU, inclusive DMA. Novo `test_apu_pulse.c`
+  incorporado ao runner de testes.
+- Compilação e execução **isoladas** da APU em C99 com
+  `-Wall -Wextra -Werror` passaram; repetição ASan/UBSan passou, LeakSanitizer
+  desativado. Foram executadas três funções de teste novas cobrindo ciclos
+  e efeitos especificados. Não houve reprodução local do projeto completo:
+  `git clone` falhou com `Could not resolve host: github.com`.
+- CI GitHub Actions para `a41845a49415e04c6d71407bb6928615c14c7195`
+  concluiu **success**:
+  https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/37888335327 .
+  O commit `af36b563ee19543acd826bd89a768748e6ae0b5e`
+  adicionou asserções de integração depois daquele run; deve ser validado
+  pelo CI correspondente. Nenhum resultado de hardware foi medido.
+- Limites: ainda sem PCM, mixer, canal pulse 2, triangle, noise, DMC,
+  IRQ conectada à CPU ou precisão por microciclos. Clock agregado no final
+  das instruções; APU $4015 parcial. Sem áudio audível / XEX novo.
+- Evidência e comandos reproduzíveis: `docs/evidence/S008/README.md`.
+  Próxima ação: conferir CI do HEAD, rodar/regredir comparação de 600+600
+  pixels/RAM, corrigir divergências antes de revisão/merge.

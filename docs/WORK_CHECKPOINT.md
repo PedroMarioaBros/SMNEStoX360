@@ -1,4 +1,39 @@
-# Checkpoint operacional — 2026-10-07 UTC (06/10 no Brasil)
+# Checkpoint operacional — 2026-10-09 (S008)
+
+## S008 — base APU/pulse 1 em branch de trabalho
+
+Entrada no main: `f24d735559ca74eee7467224b5023402e64fdf69`.
+Branch publicada: `work/s008-apu-pulse1-20261009` (não integrada ao main).
+A ROM canônica fornecida bateu os hashes completos de ROM, PRG e CHR;
+nenhum byte foi alterado.
+
+Novo módulo `src/canonical/apu.[ch]` implementa contador de quadros NTSC
+4/5 passos e pulse 1: timer, duty, envelope, comprimento, sweep e mute.
+Conectado ao barramento e à contagem de CPU, NMI e DMA. Escrita $4017 segue
+para APU; leitura $4017 continua exclusivamente para o controle 2. Status
+$4015 foi implementado somente para pulse 1 e frame IRQ; a IRQ não
+está ligada ao CPU. Saída é apenas nível digital 0–15, **sem áudio audível**.
+Demais canais e mixer/PCM pendentes. Temporalidade é agregada por instrução,
+ainda não equivalente a clock por microciclo.
+
+Validação local isolada do módulo: compilação `-std=c99 -Wall -Wextra -Werror`
+e execução de `tests/test_apu_pulse.c` em normal e ASan/UBSan passaram.
+LeakSanitizer desativado. O clone local do GitHub falhou por DNS: não
+foi possível rodar o checkout integral neste ambiente. GitHub Actions para
+o commit `a41845a49415e04c6d71407bb6928615c14c7195` concluiu
+**success** em https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/37888335327
+(já com APU ligada ao runtime e teste unitário incluído).
+O commit posterior de asserções adicionais em
+`tests/test_ppu_registers.c` requer checagem independente do CI.
+Não transferir verde de um commit para outro. Evidência: [S008](evidence/S008/README.md).
+
+Nenhum novo `default.xex` nem teste físico. O XEX histórico com Fatal Crash
+não é uma versão validada. A comparação diferencial e eventual revisão/merge
+da branch são o próximo portão. Ver NEXT_STEPS.md.
+
+---
+
+# Checkpoint anterior — histórico preservado
 
 ## Estado atual — S007, 08/10/2026
 
