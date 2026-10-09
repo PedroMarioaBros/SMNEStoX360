@@ -10,7 +10,7 @@ static void address(uint16_t a) {
  smb360_nrom_write(&m.bus,0x2006,(uint8_t)a);
 }
 int main(void){
- unsigned i; uint64_t before; uint8_t original;
+ unsigned i; uint64_t before; uint8_t original; uint16_t noise_shift_before;
  prg[0x7ffc]=0;prg[0x7ffd]=0x80;
  smb360_machine_init(&m,prg,chr);
  smb360_nrom_ppu_write(&m.bus,0x2000,0x42);
@@ -68,6 +68,7 @@ int main(void){
  assert(m.bus.apu.cpu_cycles==m.cpu.cycles);
  /* Pulse + triangle writes reach separate APU channels without changing
   * $4017 controller 2 read semantics. $4015 reports live lengths. */
+ noise_shift_before=m.bus.apu.noise.shift_register;
  smb360_nrom_write(&m.bus,0x4015u,15u);
  smb360_nrom_write(&m.bus,0x4000u,0xd9u);
  smb360_nrom_write(&m.bus,0x4004u,0xdau);
@@ -85,7 +86,8 @@ int main(void){
  assert(m.bus.apu.pulse1.length==2u && m.bus.apu.pulse2.length==2u);
  assert(m.bus.apu.triangle.length==2u && m.bus.apu.triangle.linear_reload_flag==1u);
  assert(m.bus.apu.noise.length==2u && m.bus.apu.noise.mode==1u);
- assert(m.bus.apu.noise.shift_register==1u);
+ assert(m.bus.apu.noise.shift_register==noise_shift_before);
+ /* Initial CPU RESET cycles already ticked the LFSR; register writes do not reset it. */
  smb360_nrom_set_controller2(&m.bus,1u);
  smb360_nrom_write(&m.bus,0x4016u,1u);
  assert(smb360_nrom_read(&m.bus,0x4017u)==1u);
