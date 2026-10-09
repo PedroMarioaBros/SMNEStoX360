@@ -576,3 +576,14 @@ A identidade do commit que contém uma entrada pode ser consultada no histórico
   https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/37958798128
   continua **failure** conhecido (issue #8), separado do build canônico.
   Compilação não implica boot ou port sem interpretação da CPU.
+
+
+## Organização documental — 09/10/2026 (não é S015)
+
+- Pedido do proprietário: organizar todos os projetos Xbox 360, compilações na nuvem e sua situação real sem apagar histórico ou quebrar o jogo.
+- Criado `docs/STATUS_PARA_PEDRO.md` com entrada simples, distinção canônico/legado e tarefa S015, vinculada ao [painel central](https://github.com/PedroMarioaBros/OpenXeChain-X360-Builder/blob/main/docs/PAINEL_PMCN_XBOX360.md).
+- README principal passa a apontar para o resumo e distinguir XEX2 de diagnóstico de jogo executável/jogável.
+- `.github/workflows/xbox360-cloud-build.yml`: renomeado para **LEGADO SMB Xbox 360 nathsou (manual, NAO OFICIAL)** e limitado ao gatilho `workflow_dispatch`, para não executar automaticamente em cada push/PR. Código legado, scripts e logs preservados.
+- Motivo da falha antiga confirmado por logs da execução [37958798128](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/37958798128): `build-smb-xex.sh` produziu `default.xex`, porém a validação exigiu também `boot-test.xex`, que o script não produz. A rota tem ainda histórico de Fatal Crash em hardware, não deve ser reparada por engano como caminho oficial.
+- **Não foram modificados**: `assets/canonical/`, `src/`, `scripts/`, `canonical-xex.yml` ou qualquer arquivo de jogo. Nenhum novo XEX/boot/hardware testado nesta organização.
+- Próxima tarefa técnica permanece **S015**: segurança de boot/linker, diagnóstico gráfico e controle da linha canônica, conforme `docs/NEXT_STEPS.md`. Verificação após commits: conferir links e HEAD remoto; não interpretar eventuais CI de documentação como teste físico.
