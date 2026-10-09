@@ -567,3 +567,12 @@ A identidade do commit que contém uma entrada pode ser consultada no histórico
   #11630856127; host https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/37958685211
   `completed/success`, quatro jobs normal/ASan-UBSan/reference/frontend.
 - Não declarar boot no Xbox nem jogo jogável. Próxima S015 registrada.
+
+- Pós-merge S014 (commit `b3a0aa56d6b45be588cec0ebfd936f1cb070ce07`):
+  novo XEX canônico https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/37958798039
+  **success**, artifact `smb360-CANONICAL-DIAGNOSTIC-xex`
+  id 11629836328; host https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/37958798074
+  **success** nos quatro jobs. Histórico `Compilar SMB Xbox 360`
+  https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/37958798128
+  continua **failure** conhecido (issue #8), separado do build canônico.
+  Compilação não implica boot ou port sem interpretação da CPU.
