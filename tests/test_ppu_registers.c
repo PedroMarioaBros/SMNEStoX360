@@ -64,12 +64,15 @@ int main(void){
  for(i=0;i<8;i++)assert(smb360_nrom_read(&m.bus,0x4017)==0);
  assert(smb360_nrom_read(&m.bus,0x4017)==1);
  assert(m.bus.apu_io[0x17]==0xff);
+ assert(m.bus.apu.frame_mode5==1 && m.bus.apu.irq_inhibit==1);
+ assert(m.bus.apu.cpu_cycles==m.cpu.cycles);
  for(i=0;i<256;i++)m.bus.ram[0x200+i]=(uint8_t)i;
  prg[0]=0x8d;prg[1]=0x14;prg[2]=0x40;m.cpu.a=2;
  m.bus.oam_addr=0xf0;before=m.cpu.cycles;
  assert(smb360_machine_step(&m));assert(m.cpu.cycles-before==518);
  for(i=0;i<256;i++)assert(m.bus.oam[(0xf0+i)&255]==i);
  assert(m.bus.oam_addr==0xf0);
+ assert(m.bus.apu.cpu_cycles==m.cpu.cycles);
  original=m.bus.oam[0];
  smb360_nrom_write(&m.bus,0x2002,0xff);assert(m.bus.oam[0]==original);
  /* Opposite CPU parity: 4 cycles STA + 513 DMA. */
