@@ -4,6 +4,9 @@ Leia `START_HERE.md`, `AGENTS.md`, o protocolo de continuidade,
 `WORK_CHECKPOINT.md`, `SESSION_LOG.md` e
 `evidence/S015/README.md`. Não usar o build nathsou legado.
 HEAD de entrada S015: `884c5db3defec68fbf58793fccbbc69a225584c2`.
+S015 integrada pela PR #11:
+https://github.com/PedroMarioaBros/SMNEStoX360/pull/11 ,
+squash `bd9775a84d1b9451f61bc5d79bf1df0b2002952d`.
 A ROM versionada `assets/canonical/SMB_v026.nes` é fonte
 exclusiva do jogo; SHA-256 integral
 `57fb4ee14288853bc0c8a5a629a103e51e87a4ebae1cc699b435060d2690b047`.
