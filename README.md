@@ -62,10 +62,12 @@ Isso mantém AddressSanitizer e UndefinedBehaviorSanitizer ativos.
 
 CPU: 151 opcodes oficiais implementados; não é uma certificação cycle-perfect.
 PPU funcional inicial, NMI, DMA e controle disponíveis no host.
-Desde S008–S009, a APU tem contador de quadros e os dois canais pulse
-implementados com testes host, porém ainda **não produz áudio audível**:
-faltam triangle, noise, DMC, mixer e saída PCM. A S009 preservou os quadros
-e a RAM nos cenários de 600+600 frames da referência independente. A arquitetura atual executa o PRG 6502 original
+Desde S008–S010, a APU possui contador de quadros, pulse1, pulse2 e
+triangle com testes host, mas ainda **não produz áudio audível**:
+faltam noise, DMC, mixer e saída PCM. A S010 preservou quadros e RAM
+nos cenários 600+600 frames da referência independente. Testes verificaram
+a temporização e a sequência de 32 níveis do triangle sinteticamente;
+não existe comparação independente de waveform de áudio. A arquitetura atual executa o PRG 6502 original
 em runtime de software, não é ainda tradução nativa PowerPC.
 O checkpoint separa implementação, testes sintéticos, execução da ROM e hardware.
 
