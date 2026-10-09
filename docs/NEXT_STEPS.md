@@ -1,48 +1,51 @@
-# Próxima ação — após S011 (09/10/2026)
+# Próxima ação — após S012, 09/10/2026
 
-Ao iniciar: START_HERE.md → AGENTS.md → docs/CONTINUITY_PROTOCOL.md →
-docs/WORK_CHECKPOINT.md → docs/NEXT_STEPS.md → docs/SESSION_LOG.md.
-Usar **exclusivamente** `assets/canonical/SMB_v026.nes`; confirmar SHA-256
-da ROM/PRG/CHR antes de executar. Não trocar assets ou gameplay.
+Leia `START_HERE.md` e siga `AGENTS.md` e
+`docs/CONTINUITY_PROTOCOL.md`, checkpoint e diário antes de trabalhar.
+A única ROM autorizada para conteúdo de jogo é
+`assets/canonical/SMB_v026.nes`; validar ROM/PRG/CHR SHA-256.
+Não utilizar PRG/CHR de outros jogos nem recriar Super Mario manualmente.
 
-## Estado de partida
+## Ponto de retomada verificado
 
-S011 foi integrada pela PR #6
-https://github.com/PedroMarioaBros/SMNEStoX360/pull/6
-(commit squash `d8a9c0a60a2aa46b92276d1ece0c0558204dc2e3`).
-O canal noise da APU 2A03 foi implementado em `src/canonical/apu.[ch]`,
-com os dois pulses e triangle anteriores. Código de trabalho integrado a
-`tests/run_host_tests.sh` com uma décima primeira suíte:
-`tests/test_apu_noise.c` (5 cenários, 16 períodos NTSC).
-CI do código S011:
-https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/37890367890
-(commit `19b5e2977aef8d98bea0c84c044d13318685b2a5`).
-Conferir conclusão exata no workflow e status do PR antes de reusar.
-Evidência e falha de fixture: docs/evidence/S011/README.md.
-Não recontar regressões anteriores como novo progresso.
+S012 implementou o DMC, a quinta unidade da APU digital NTSC,
+mas DMA tem stall fixo de 4 ciclos **aproximado** e IRQ de APU
+polling por instrução. Não alegar DMC cycle-perfect.
+Último commit de código testado:
+`e1a68b1d7ded75cb968556fe425b5fdcb584e78d`.
+Workflow https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/37890958510
+**completed/success**: host normal, ASan/UBSan, referência e SDL.
+12/12 suítes C99 passaram, inclusive `test_apu_dmc.c`.
+Capturas binjnes = 600/600 pixels e RAM idle, e
+600/600 pixels e RAM input; SDL readback 61.440 pixels PASS.
+Essas métricas **não** verificam o sinal de áudio.
+Detalhes e bloqueios em `docs/evidence/S012/README.md`.
 
-## Tarefa S012 — implementar DMC com segurança
+## Tarefa ativa S013 — gerar PCM audível no frontend SDL
 
-1. Ler `src/canonical/apu.[ch]`, `nrom.[ch]`, `machine.c`,
-   `cpu6502.[ch]`, tests e docs da última sessão.
-2. Definir DMC ($4010–$4013 e $4015 bit4), tabela NTSC de 16
-   períodos, DAC de 7 bits ($4011), registros de endereço e tamanho
-   de amostra, shifter de 8 bits, controle de buffer, loop, IRQ.
-   Acesso de amostra deve ler **somente o PRG canônico** pelo barramento
-   em $C000–$FFFF; nunca importar outra ROM.
-3. Projetar e testar o DMA da DMC (stalls CPU e interação com OAM DMA),
-   IRQ de DMC e frame IRQ e interrupções no 6502. **Não ativar
-   interrupções no core sem testes reais**; parte do timing hoje é por
-   instrução e exige atenção à ordem de leitura/escrita.
-4. Testes sintéticos para ler amostras, wrap $FFFF→$8000, shifts,
-   saturação do DAC 0..127, enable/disable, loop/IRQ, períodos
-   NTSC, comprimento, endereço; ausência de opcodes mascarados.
-5. Validar build C99 `-Wall -Wextra -Werror`, suíte normal e ASan/UBSan,
-   execução canônica pelo wrapper, comparação binjnes 600+600 de
-   quadros/RAM. Ampliar comparação independente para saída e/ou estado
-   de APU antes de alegar **áudio NES fiel**.
+1. Ler `src/canonical/apu.[ch]`, `machine.c`, `src/host/`,
+   `tests/test_host_frontend.py` e verificar se as saídas DAC
+   usam a mesma base temporal; inspecionar quantos ciclos CPU são
+   processados a cada frame e suas limitações.
+2. Implementar mixer não linear do NES para pulse1+2 e
+   triangle/noise/DMC, com saída PCM mono de taxa definida
+   (ex.: 48 kHz) e amostragem determinística baseada em CPU NTSC.
+   Cuidado com DMC 7 bits e offset DC.
+3. Testes sintéticos de componentes e mistura:
+   níveis 0..15 pulse/triangle/noise, DMC 0..127,
+   silêncio, transições, limites, saturação, consistência entre
+   builds normais/sanitizados e contagem previsível de amostras.
+4. Habilitar dispositivo de áudio SDL quando disponível;
+   manter modo headless/dummy em CI sem bloquear gameplay/render.
+   Registrar captura PCM/WAV de cenário real com a ROM canônica,
+   com SHA-256 e critérios de ausência de clipping. Comparar
+   waveform ou estado APU com referência fixada independente;
+   não declarar fidelidade completa antes disso.
+5. Rodar todas as 12 suítes C99 em normal e ASan/UBSan,
+   verificar ROM/PRG/CHR, frontend SDL e comparação visual/RAM
+   binjnes 600+600, registrar evidências, merge e HEAD remoto.
 
-Comandos copiáveis no clone limpo:
+Comandos reproduzíveis num clone limpo:
 
 ```sh
 git clone https://github.com/PedroMarioaBros/SMNEStoX360.git
@@ -51,27 +54,36 @@ git log -1 --oneline
 python3 tools/verify_repository.py
 sh tests/run_host_tests.sh
 ASAN_OPTIONS=detect_leaks=0 SANITIZE=1 sh tests/run_host_tests.sh
-python3 tools/run_canonical.py assets/canonical/SMB_v026.nes \
-  --instructions 5000000 --input tests/canonical_start_right.input \
-  --frame build/s012-baseline.bin
 python3 tools/compare_reference.py --idle-frames 600 --input-frames 600
 python3 tools/build_host.py
 python3 tests/test_host_frontend.py
 ```
 
-Resultado esperado como baseline: 11 suítes sintéticas normais/san
-aprovadas, 600/600 quadros E 600/600 RAM no idle e no roteiro,
-SDL readback 61.440 pixels aprovado. Não é validação da saída sonora.
-Se clone local falhar por DNS, usar workflows específicos de CI
-e atribuir resultados a commits exatos. Registrar falhas e evidências.
+Meta de regressão: 12 suítes PASS e pixels/RAM de
+600/600 para idle/input, sem desligar testes para obter
+um CI verde. Em caso de falha DNS no clone, verificar
+resultados do CI de **commit exato** e registrar bloqueio.
 
-Depois do DMC: implementar mixer não-linear, resampling e PCM no host SDL;
-confrontar saída de áudio com binjnes ou outra referência usando a mesma ROM.
-Xbox: boot mínimo → loop → vídeo seguro → input → core → áudio →
-`default.xex` com PRG/CHR embutidos → validação física pelo proprietário.
-Build #16 antigo deu Fatal Crash. Não usar endereços hardcoded antigos.
+## Dependências e estratégia Xbox
 
-**Ainda não é tradução de código 6502 para PowerPC nativo**:
-o runtime implementa em software a execução do PRG 6502 original.
-Não descrever como port sem emulação nem atribuir percentual global
-sem critério medido. Registrar este limite e próximo comando no GitHub.
+DMC DMA em `machine.c` continua com stall fixo e IRQ
+amostrada após instruções; demanda refinamento de microciclos,
+principalmente colisões com OAM DMA e acesso a controles/PPU.
+Depois do mixer/PCM, expandir comparação diferencial
+para APU e investigar divergências de som/timing.
+
+Não existem XEX canônicos desta arquitetura testados
+em Xbox 360. O build antigo #16 sofreu Fatal Crash,
+e endereços hardcoded de framebuffer daquele backend
+não podem ser reutilizados. Boot mínimo seguro, loop,
+vídeo, controles, runtime com ROM embutida, áudio e
+teste físico no console são tarefas não concluídas.
+
+**Arquitetura atual interpreta o código 6502 original**
+em software; ainda não é a tradução direta para PowerPC
+sem emulador pretendida pelo proprietário. Avaliar
+a conversão estática PPC como um esforço separado; não
+chamar o runtime atual de port nativo sem emulação.
+
+Em toda sessão: atualizar checkpoint/diário/próximos
+comandos, publicar commit na main e confirmar HEAD remoto.
