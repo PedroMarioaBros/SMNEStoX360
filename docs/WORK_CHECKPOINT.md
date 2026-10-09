@@ -3,7 +3,9 @@
 ## S011 — quarto canal APU: noise
 
 HEAD de entrada: `c7e4cc7c7954d6fad528dd5a23a7a5b0c89fbf74`.
-Branch de desenvolvimento: `work/s011-apu-noise-20261009`.
+Branch desenvolvida: `work/s011-apu-noise-20261009`.
+PR #6 integrada à main: https://github.com/PedroMarioaBros/SMNEStoX360/pull/6 .
+Commit squash da integração: `d8a9c0a60a2aa46b92276d1ece0c0558204dc2e3`.
 ROM do proprietário `SMB_v026.nes`, 40976 bytes, hash canônico
 `57fb4ee14288853bc0c8a5a629a103e51e87a4ebae1cc699b435060d2690b047`;
 PRG/CHR preservados, conferidos também por SHA-256
