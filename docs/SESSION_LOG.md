@@ -402,3 +402,13 @@ A identidade do commit que contém uma entrada pode ser consultada no histórico
   de waveform independente; após isso refinar
   DMA/IRQ ciclo a ciclo e backend Xbox.
   Comandos no `docs/NEXT_STEPS.md`.
+
+### Fechamento S012 — integração remota
+
+- PR #7 https://github.com/PedroMarioaBros/SMNEStoX360/pull/7
+  integrada por squash na main: `af8f34487830f02b19170fb9b5fc107eaf360b33`.
+- CI verde do último commit de código `e1a68b1d7ded75cb968556fe425b5fdcb584e78d`
+  (run https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/37890958510 ).
+  Commits documentais seguintes não alteraram runtime.
+  Conferir CI pós-merge separadamente antes de afirmar aprovação dele.
+- Próxima sessão S013: mixer + resampling/PCM/SDL e comparação sonora.
