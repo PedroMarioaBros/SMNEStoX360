@@ -10,6 +10,7 @@ on:
       - 'tests/test_host_frontend.py'
       - 'tests/test_host_audio.py'
       - 'tests/test_apu*'
+      - 'tests/test_audio*'
       - 'tests/test_cpu6502*'
       - 'tests/test_canonical_nrom.c'
       - 'tests/test_ppu*'
