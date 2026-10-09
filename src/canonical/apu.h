@@ -24,10 +24,22 @@ typedef struct {
     uint16_t timer_divider, shift_register;
 } smb360_apu_noise;
 
+/* DMC: CPU-clocked output unit with a one-byte DMA sample buffer.
+ * The CPU/machine must service a pending request using the canonical bus. */
+typedef struct {
+    uint8_t control, rate_index, direct_load;
+    uint8_t sample_address, sample_length;
+    uint8_t shift_register, bits_remaining, silence;
+    uint8_t sample_buffer, buffer_full, irq_flag, dma_pending;
+    uint16_t timer_divider, current_address, bytes_remaining;
+    uint64_t fetched_bytes;
+} smb360_apu_dmc;
+
 typedef struct {
     smb360_apu_pulse pulse1, pulse2;
     smb360_apu_triangle triangle;
     smb360_apu_noise noise;
+    smb360_apu_dmc dmc;
     uint64_t cpu_cycles;
     uint32_t frame_cycles;
     uint8_t enabled, frame_mode5, irq_inhibit, frame_irq;
@@ -46,5 +58,13 @@ uint8_t smb360_apu_pulse2_output(const smb360_apu *apu);
 uint8_t smb360_apu_triangle_output(const smb360_apu *apu);
 /* Noise DAC level 0..15; bit 0 of the LFSR and length gate the output. */
 uint8_t smb360_apu_noise_output(const smb360_apu *apu);
+/* DMC 7-bit DAC level, without mixer or audible PCM output. */
+uint8_t smb360_apu_dmc_output(const smb360_apu *apu);
+/* The machine performs a DMA read at this address and supplies the byte. */
+int smb360_apu_dmc_dma_requested(const smb360_apu *apu);
+uint16_t smb360_apu_dmc_dma_address(const smb360_apu *apu);
+void smb360_apu_dmc_supply_byte(smb360_apu *apu, uint8_t value);
+/* APU interrupt lines, intended for CPU instruction-boundary polling. */
+int smb360_apu_irq_pending(const smb360_apu *apu);
 
 #endif
