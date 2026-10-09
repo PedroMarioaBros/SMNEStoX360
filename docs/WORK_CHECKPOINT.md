@@ -1,4 +1,60 @@
-# Checkpoint operacional — 2026-10-09 (S011)
+# Checkpoint operacional — 2026-10-09 (S012)
+
+## S012 — DMC do NES + primeiro DMA/IRQ em runtime
+
+Entrada main: `9293f007b29060efa2c7349f2ff272eeca04d60f`.
+Branch: `work/s012-apu-dmc-20261009`.
+ROM/PRG/CHR canônicos de `SMB_v026.nes` preservados:
+ROM SHA-256 `57fb4ee14288853bc0c8a5a629a103e51e87a4ebae1cc699b435060d2690b047`,
+PRG `9f5b4f73bde569269645e154a1c8e43308afb2f156baa76e977296d7ca4ed9a4`,
+CHR `5e22a5c60aef64263ac7b17997479dfdad23389d1f0756c224412c8f7a5535d0`.
+Nenhum arquivo `assets/canonical/` foi modificado.
+
+Adicionado em `src/canonical/apu.[ch]` o quinto canal digital:
+DMC com DAC 7 bits, 16 períodos NTSC, $4010-$4013, bit4 de
+$4015, amostragem de bytes do PRG por endereço $C000+$4012*64,
+tamanho $4013*16+1, wrap $FFFF→$8000, buffer/shifter, delta
+saturado, silêncio, loop e DMC IRQ bit7 ($4015).
+`machine.c` conecta DMA do DMC ao barramento NROM original,
+contabiliza stall estimado de quatro ciclos e amostra linha de IRQ
+da APU em limites de instrução. Teste `test_apu_dmc.c`
+verifica endereços, status/IRQ, bytes, loop, taxas, saturação de
+DAC e integração com máquina/6502. O runner inclui 12 suítes.
+
+**Validação real:** último commit de código
+`e1a68b1d7ded75cb968556fe425b5fdcb584e78d`,
+https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/37890958510,
+status **completed/success**, quatro jobs `host (0)`,
+`host (1)` (ASan/UBSan), `reference`, `frontend`.
+12/12 suítes em ambos os modos; `test_apu_dmc: PASS`.
+`verify_repository.py` aprovou assets; binjnes idle **600/600**
+pixels e RAM e roteiro **600/600** pixels e RAM.
+SDL dummy readback 61.440 pixels PASS e captura 599 bate hash
+`fbde38b3940b02a1515202b5ab5ad36f828fc46bd5c5a7296bd1c1aa88f05bfc`.
+Os testes completos ocorreram no GitHub Actions, não em
+checkout local; não confundir baseline gráfico com waveform de áudio.
+Evidência: [S012](evidence/S012/README.md).
+
+**Limite técnico crítico:** DMC implementado, mas DMA ainda *não*
+é cycle-perfect (stall fixo e leitura após instrução; falta
+arbitragem real CPU/OAM). IRQ tratada no boundary e não no
+pino em cada microciclo. Não há teste independente de áudio.
+Faltam mixer não linear, resampling e PCM no SDL,
+Xbox 360 backend canônico com boot/vídeo/input/áudio seguros,
+teste físico e tradução nativa PowerPC. A execução atual
+do PRG 6502 é feita pelo runtime de software, não é
+ainda o port direto desejado sem interpretador.
+O antigo XEX #16 causou Fatal Crash, nunca declarar
+funcional o hardware sem teste real.
+
+Próxima tarefa S013: saída PCM/mixer com testes determinísticos
+e captura de áudio da ROM canônica; após isso tratar os limites
+de DMA/IRQ e Xbox. Comandos no NEXT_STEPS.md.
+
+---
+
+# Checkpoints anteriores — S011 e predecessores
+
 
 ## S011 — quarto canal APU: noise
 
