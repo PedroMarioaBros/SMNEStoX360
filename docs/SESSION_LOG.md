@@ -290,3 +290,12 @@ A identidade do commit que contém uma entrada pode ser consultada no histórico
   CPU 6502 por software, sem tradução PowerPC nativa.
 - Próximo passo documentado: noise com LFSR e envelope/length
   em `docs/NEXT_STEPS.md`; testar e registrar nova sessão.
+
+### Fechamento S010 — publicação do código (09/10/2026)
+
+- PR #5 foi integrada por squash na `main` no commit
+  `dee528eabe2eb0f0c349d265d3ec256ba4ec91cf`.
+- Resultado do CI é do commit de código `73ca0151d153448e8d13cca07bdf395fd93618cd`;
+  commits posteriores até a integração foram somente documentação.
+  Não transferir uma aprovação de CI entre versões distintas de código.
+- Próxima etapa formal S011: canal noise, com comandos em `docs/NEXT_STEPS.md`.
