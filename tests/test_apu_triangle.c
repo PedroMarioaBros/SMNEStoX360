@@ -95,6 +95,9 @@ static void test_gates_hold_last_level(void) {
     smb360_apu_step(&a,7456u);
     assert(a.triangle.linear_counter==0u);
     assert(a.triangle.length==2u); /* $4008 bit 7 halts length */
+    /* Phase continued during the 7456 clocks before linear reached zero.
+     * Only the level at the actual gate boundary must be preserved. */
+    level=smb360_apu_triangle_output(&a);
     smb360_apu_step(&a,250u);
     assert(smb360_apu_triangle_output(&a)==level);
     smb360_apu_write(&a,0x4015u,0u);
