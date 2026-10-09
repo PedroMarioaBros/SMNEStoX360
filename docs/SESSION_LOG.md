@@ -299,3 +299,38 @@ A identidade do commit que contém uma entrada pode ser consultada no histórico
   commits posteriores até a integração foram somente documentação.
   Não transferir uma aprovação de CI entre versões distintas de código.
 - Próxima etapa formal S011: canal noise, com comandos em `docs/NEXT_STEPS.md`.
+
+## S011 — 09/10/2026, noise da APU 2A03
+
+- HEAD de entrada: `c7e4cc7c7954d6fad528dd5a23a7a5b0c89fbf74`.
+  Branch: `work/s011-apu-noise-20261009`. Continua o protocolo
+  AGENTS.md/CONTINUITY_PROTOCOL.md e preserva a ROM do proprietário.
+- ROM local SHA-256 `57fb4ee14288853bc0c8a5a629a103e51e87a4ebae1cc699b435060d2690b047`,
+  PRG `9f5b4f73bde569269645e154a1c8e43308afb2f156baa76e977296d7ca4ed9a4`,
+  CHR `5e22a5c60aef64263ac7b17997479dfdad23389d1f0756c224412c8f7a5535d0`.
+  Git HTTPS local ainda falha por DNS; conexão GitHub autorizada usada.
+- Novo canal noise `smb360_apu_noise`, endereços $400C/$400E/$400F,
+  tabelas NTSC de 16 períodos em CPU/2, LFSR 15 bits (seed1),
+  feedback bits 0/1 ou 0/6 conforme mode, timer, length counter e
+  envelope quarter-frame com loop. $4015 bit3 controla enable e
+  expõe length. DAC digital 0..15 ainda sem reprodução audível.
+- Criado `tests/test_apu_noise.c` com cinco funções de teste (todos
+  os 16 períodos, gating e taps, envelope/length/IRQ flag, looping
+  e independência pulse/triangle). `run_host_tests.sh` inclui 11
+  suites; `test_ppu_registers.c` verifica acesso ao barramento,
+  controlador 2 e separação das escritas APU.
+- Falha observada no workflow
+  https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/37890305871:
+  `test_ppu_registers.c:88` assumiu noise LFSR=1 após inicializar
+  `machine`. O RESET da CPU já consumiu 7 ciclos que avançaram
+  o LFSR. Corrigida a fixture para comparar estado antes/depois de
+  escritas nos registradores, sem alterar o core ou hashes canônicos.
+  Commit da correção `19b5e2977aef8d98bea0c84c044d13318685b2a5`.
+- GitHub Actions do código corrigido:
+  https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/37890367890
+  (conferir status final e log na evidência S011). Não atribuir
+  validação da waveform de áudio à comparação de pixels e RAM.
+- Nenhum XEX canônico produzido/testado nesta etapa, nenhuma
+  tradução nativa PPC ou saída PCM. Próximo passo: DMC, DMA/IRQ e
+  validação de áudio, com instruções em `docs/NEXT_STEPS.md`.
+  Evidência detalhada: `docs/evidence/S011/README.md`.
