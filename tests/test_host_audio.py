@@ -4,6 +4,7 @@ import hashlib
 import os
 from pathlib import Path
 import re
+import shutil
 import struct
 import subprocess
 import tempfile
@@ -48,4 +49,7 @@ with tempfile.TemporaryDirectory() as directory:
         print(f"PCM run={run} frames={n} min={lo} max={hi} nonzero={nonzero} sha256={digest}")
     if digests[0] != digests[1]:
         raise SystemExit("WAV capture not deterministic across identical runs")
+    artifact = ROOT / "build/host/canonical-600frames.wav"
+    shutil.copyfile(Path(directory) / "capture0.wav", artifact)
     print("APU PCM canonical ROM WAV deterministic/no-clipping: PASS")
+    print("Saved reproducible WAV artifact:", artifact.relative_to(ROOT))
