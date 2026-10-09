@@ -8,6 +8,7 @@ on:
       - 'tools/build_host.py'
       - 'tools/frame_to_png.py'
       - 'tests/test_host_frontend.py'
+      - 'tests/test_apu*'
       - 'tests/test_cpu6502*'
       - 'tests/test_canonical_nrom.c'
       - 'tests/test_ppu*'
