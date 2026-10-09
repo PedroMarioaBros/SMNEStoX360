@@ -1,4 +1,51 @@
-# Checkpoint operacional — 2026-10-09 (S008)
+# Checkpoint operacional — 2026-10-09 (S009)
+
+## S009 — segundo canal pulse da APU integrado à main
+
+HEAD de entrada: `248c8758f5421c7ed1c7bbf230b8e509c79f5d83`.
+Pull request #4: https://github.com/PedroMarioaBros/SMNEStoX360/pull/4 .
+Integração por squash: `652f4e2d7f71d26e6a4eb6f65d438aadd6f1c957`.
+A ROM SMB_v026.nes, PRG e CHR continuam idênticos aos hashes
+documentados em SMB_V026_CANONICAL_ROM.md; ROM 40976 bytes, NROM.
+
+Código integrado: `src/canonical/apu.[ch]` trata pulse 1 e pulse 2 com
+estado separado, temporizadores próprios, duty, envelope, length e sweep.
+Pulse 1 mantém a negação por complemento de um; pulse 2 usa complemento
+de dois. Escritas de $4000–$4007 e controle/status de ambos por $4015
+são independentes. Saídas individuais 0–15; **ainda não são áudio PCM**.
+Leitura $4017 continua exclusiva do controle 2; escrita $4017 é APU.
+As novas verificações de barramento abrangem duas durações e controles.
+
+Validação nova S009:
+- Testes unitários isolados C99 com `-Wall -Wextra -Werror`:
+  test_apu_pulse e test_apu_pulse2 passaram normalmente e com ASan/UBSan
+  (detect_leaks=0). Duas fixtures novas falharam inicialmente por índices
+  de length e de fase duty incorretos; foram corrigidas, sem alterar o
+  runtime para mascarar erros.
+- GitHub Actions do commit de código
+  `3f877fd7d3802df35897d303105b7980d56ecd7a`:
+  https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/37889071037
+  status **success**; passaram os quatro jobs (host normal, sanitizado,
+  frontend SDL e referência).
+- Comparação independente do binjnes: idle **600/600** pixels iguais
+  e **600/600** RAM iguais; entrada **600/600** pixels e **600/600** RAM
+  iguais. Cenas restritas aos roteiros existentes; não equivalência de
+  áudio, ciclos ou gameplay completo.
+- Código/provas reproduzíveis em [evidence/S009](evidence/S009/README.md).
+  Clone local via GitHub falhou por DNS neste ambiente; a suíte completa
+  foi executada no GitHub Actions, não no container.
+
+Limites inalterados: triangle, noise, DMC, mixer não-linear, PCM, áudio SDL,
+IRQ da APU ligada à CPU, precisão por microciclos, backend Xbox canônico e
+teste físico estão pendentes. O runtime ainda executa PRG 6502 por CPU de
+software, e não via tradução nativa PowerPC. Um job "Xenon Build" antigo
+não comprova boot nem gameplay. Próxima ação: implementar triangle e seus
+testes/regressões, conforme NEXT_STEPS.md.
+
+---
+
+# Histórico anterior — S008 e sessões precedentes
+
 
 ## S008 — base APU/pulse 1 em branch de trabalho
 
