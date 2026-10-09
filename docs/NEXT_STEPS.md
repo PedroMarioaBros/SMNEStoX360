@@ -10,7 +10,10 @@ Não usar dados de gameplay de outro Mario ou outra ROM.
 
 ## Ponto de partida real
 
-S013 introduziu `src/canonical/audio_pcm.[ch]`: mixer
+S013 integrada pela PR #9:
+https://github.com/PedroMarioaBros/SMNEStoX360/pull/9 ;
+commit squash `64a7edaa76c14b069da283023bab38d1b64e1173`.
+A S013 introduziu `src/canonical/audio_pcm.[ch]`: mixer
 não linear dos cinco canais, phase accumulator determinístico,
 PCM mono 16-bit a 48 kHz, filtros simples;
 `src/host/main.c` tem fila de áudio SDL opcional e `--wav`.
