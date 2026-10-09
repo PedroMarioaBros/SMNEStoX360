@@ -28,6 +28,11 @@ histórico que compila `nathsou/smb`. **Não copia outro gameplay**.
   `75eb79a35b6c60ff8ed4d4e17a88404af89c2325`,
   CI https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/37958120419 :
   `completed/success`, toolchain `ppc32-unknown-xbox360`,
+  confirmado também pós-merge `b3a0aa56d6b45be588cec0ebfd936f1cb070ce07`
+  (XEX canônico: https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/37958798039
+  `success`, artifact id 11629836328; host:
+  https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/37958798074
+  `success`, quatro jobs).
   SynthXEX produzindo XEX2, hashes do XEX+PE verificados,
   manifest `CANONICAL_DIAGNOSTIC_NOT_PLAYABLE`.
   Artifact `smb360-CANONICAL-DIAGNOSTIC-xex`, id 11630285368,
