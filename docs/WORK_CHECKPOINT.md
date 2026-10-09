@@ -3,7 +3,9 @@
 ## S014 — primeiro XEX2 compilado com ROM e runtime canônicos (diagnóstico)
 
 Entrada main `cdcda47f9952afa92b09228a4da100a463ef97c0`.
-Branch `work/s014-canonical-xex-20261009`.
+Branch `work/s014-canonical-xex-20261009` integrada
+pela PR #10: https://github.com/PedroMarioaBros/SMNEStoX360/pull/10 .
+Commit de merge/squash: `b3a0aa56d6b45be588cec0ebfd936f1cb070ce07`.
 A ROM original `SMB_v026.nes` permanece versionada sem alterações,
 SHA-256 `57fb4ee14288853bc0c8a5a629a103e51e87a4ebae1cc699b435060d2690b047`,
 PRG `9f5b4f73bde569269645e154a1c8e43308afb2f156baa76e977296d7ca4ed9a4`,
