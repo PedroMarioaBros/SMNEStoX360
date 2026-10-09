@@ -81,3 +81,4 @@ jobs:
         run: |
           python3 tools/build_host.py
           python3 tests/test_host_frontend.py
+          python3 tests/test_host_audio.py
