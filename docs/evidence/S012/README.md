@@ -87,3 +87,12 @@ framebuffer antigo hardcoded.
 Próxima tarefa: ciclo de mixer/PCM + captura determinística de
 áudio com a ROM original, ou primeiro refinar DMA/IRQ quando
 a comparação mostrar divergência. Ver `docs/NEXT_STEPS.md`.
+
+## Encerramento no GitHub
+
+- PR #7: https://github.com/PedroMarioaBros/SMNEStoX360/pull/7
+  incorporada por squash `af8f34487830f02b19170fb9b5fc107eaf360b33`.
+- O diff revisado contém 11 arquivos e nenhum de `assets/canonical/`.
+- Workflow verde de código na branch: `37890958510`, quatro jobs,
+  12 suítes host PASS (normal/san), 600/600 pixels/RAM em ambos roteiros.
+  O merge não altera os limites de precisão DMC documentados.
