@@ -3,7 +3,9 @@
 ## S012 — DMC do NES + primeiro DMA/IRQ em runtime
 
 Entrada main: `9293f007b29060efa2c7349f2ff272eeca04d60f`.
-Branch: `work/s012-apu-dmc-20261009`.
+Branch `work/s012-apu-dmc-20261009` integrada por PR #7:
+https://github.com/PedroMarioaBros/SMNEStoX360/pull/7 .
+Commit squash na main: `af8f34487830f02b19170fb9b5fc107eaf360b33`.
 ROM/PRG/CHR canônicos de `SMB_v026.nes` preservados:
 ROM SHA-256 `57fb4ee14288853bc0c8a5a629a103e51e87a4ebae1cc699b435060d2690b047`,
 PRG `9f5b4f73bde569269645e154a1c8e43308afb2f156baa76e977296d7ca4ed9a4`,
