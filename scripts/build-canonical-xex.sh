@@ -34,6 +34,7 @@ test -s "$OUT/canonical.exe"
 "$TC/bin/synthxex" -i "$OUT/canonical.exe" -o "$OUT/default.xex" -t title
 test -s "$OUT/default.xex"
 test "$(dd if="$OUT/default.xex" bs=1 count=4 2>/dev/null)" = "XEX2"
+python3 tools/verify_canonical_xex.py --pe "$OUT/canonical.exe" --xex "$OUT/default.xex"
 # Retain machine-readable metadata that explicitly labels this as a diagnostic.
 sha256sum "$OUT/canonical.exe" "$OUT/default.xex" > "$OUT/SHA256SUMS.txt"
 cat > "$OUT/BUILD_MANIFEST.txt" <<EOF
@@ -51,4 +52,4 @@ video_backend=NONE_SAFE_HEADLESS
 audio_backend=NONE
 xbox_hardware_validation=NOT_TESTED
 EOF
-echo "S014 canonical diagnostic XEX build PASS (build only, not hardware boot)"
+echo "S015 canonical observable diagnostic XEX build PASS (build only, not hardware boot)"
