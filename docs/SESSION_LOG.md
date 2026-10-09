@@ -353,3 +353,52 @@ A identidade do commit que contém uma entrada pode ser consultada no histórico
   `d8a9c0a60a2aa46b92276d1ece0c0558204dc2e3` concluiu
   **success** nos quatro jobs: https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/37890597158 .
   Este sucesso é dos testes host, não prova execução funcional no console.
+
+## S012 — 09/10/2026, DMC e primeiro DMA/IRQ da APU
+
+- Entrada main `9293f007b29060efa2c7349f2ff272eeca04d60f`,
+  branch `work/s012-apu-dmc-20261009`. ROM canônica 40976 bytes,
+  SHA-256 `57fb4ee14288853bc0c8a5a629a103e51e87a4ebae1cc699b435060d2690b047`,
+  PRG `9f5b4f73bde569269645e154a1c8e43308afb2f156baa76e977296d7ca4ed9a4`,
+  CHR `5e22a5c60aef64263ac7b17997479dfdad23389d1f0756c224412c8f7a5535d0`.
+  Nenhum asset modificado.
+- `apu.[ch]`: DMC de 7 bits, $4010-$4013, $4015 bit4
+  (active), bit7 (IRQ); sample buffer independente do
+  shifter, 16 períodos CPU NTSC, bits LSB-first, output
+  DAC com ±2 e saturação 0..127, endereço $C000+n*64,
+  tamanho 16*n+1, $FFFF→$8000, sample loop e IRQ no
+  último byte lido. Frame IRQ já existia e agora pode
+  ser encaminhada ao 6502 juntamente com DMC IRQ.
+- `machine.c` passou a servir solicitações de DMA
+  DMC do barramento NROM original, com leitura apenas
+  do PRG autorizado e stall CPU fixo estimado de 4
+  ciclos, atualizando clocks PPU/APU/CPU; IRQ
+  atendida em limite de instrução usando o
+  `smb360_cpu6502_irq` existente. **Microciclos,
+  custo 1–4, colisão OAM e stalls de leitura
+  não estão precisos** e devem ser refinados.
+- Novo `tests/test_apu_dmc.c` com cinco cenários
+  de status, interrupção, reg/IRQ, 16 velocidades,
+  loop/wrap, buffers, saturação e prova sintética
+  de leitura do PRG no barramento/serviço de IRQ
+  e alinhamento CPU/APU após stall. Runner agora
+  executa 12 suítes C99 em normal e san.
+- CI último código `e1a68b1d7ded75cb968556fe425b5fdcb584e78d`:
+  https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/37890958510
+  **success**, quatro jobs. 12/12 suites normal e
+  ASan/UBSan PASS, incluindo `test_apu_dmc`,
+  `test_ppu_registers`. Verificador dos assets PASS.
+  Binjnes: idle 600/600 pixels + 600/600 RAM,
+  input 600/600 pixels + 600/600 RAM;
+  SDL dummy 61.440 pixels PASS, captura 599
+  `fbde38b3940b02a1515202b5ab5ad36f828fc46bd5c5a7296bd1c1aa88f05bfc`.
+  Não há comparador de áudio; os cinco canais
+  possuem apenas níveis digitais, não reprodução PCM.
+- Documentação: `docs/evidence/S012/README.md`.
+  Sem nova validação no Xbox 360, sem XEX canônico
+  funcional, sem tradução estática PPC do PRG.
+- Próxima tarefa S013: mixer não linear, amostragem
+  determinística PCM, saída SDL host e teste
+  de waveform independente; após isso refinar
+  DMA/IRQ ciclo a ciclo e backend Xbox.
+  Comandos no `docs/NEXT_STEPS.md`.
