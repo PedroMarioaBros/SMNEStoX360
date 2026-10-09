@@ -348,3 +348,8 @@ A identidade do commit que contém uma entrada pode ser consultada no histórico
   Todos os quatro jobs concluíram success. Commits documentais seguintes
   não modificaram o core. Não extrapolar para hardware/áudio real.
 - Próxima tarefa S012 é DMC com DMA/IRQ e testes; comandos em NEXT_STEPS.md.
+
+- Confirmação pós-merge: `canonical-host.yml` da main no commit
+  `d8a9c0a60a2aa46b92276d1ece0c0558204dc2e3` concluiu
+  **success** nos quatro jobs: https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/37890597158 .
+  Este sucesso é dos testes host, não prova execução funcional no console.
