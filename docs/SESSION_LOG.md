@@ -328,8 +328,12 @@ A identidade do commit que contém uma entrada pode ser consultada no histórico
   Commit da correção `19b5e2977aef8d98bea0c84c044d13318685b2a5`.
 - GitHub Actions do código corrigido:
   https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/37890367890
-  (conferir status final e log na evidência S011). Não atribuir
-  validação da waveform de áudio à comparação de pixels e RAM.
+  **success**, quatro jobs verdes (host normal, ASan/UBSan,
+  frontend SDL e referência binjnes). Os logs confirmam
+  `test_apu_noise: PASS`, `test_ppu_registers: PASS`,
+  verificação dos arquivos canônicos e 600/600 pixels e RAM
+  nos dois roteiros. SDL readback 61.440 pixels PASS.
+  Isso não prova fidelidade do sinal de áudio.
 - Nenhum XEX canônico produzido/testado nesta etapa, nenhuma
   tradução nativa PPC ou saída PCM. Próximo passo: DMC, DMA/IRQ e
   validação de áudio, com instruções em `docs/NEXT_STEPS.md`.
