@@ -485,3 +485,12 @@ A identidade do commit que contém uma entrada pode ser consultada no histórico
   https://github.com/PedroMarioaBros/SMNEStoX360/issues/8 .
   Instruções: `docs/NEXT_STEPS.md`;
   evidências: `docs/evidence/S013/README.md`.
+
+### Encerramento e merge S013
+
+- PR #9 https://github.com/PedroMarioaBros/SMNEStoX360/pull/9
+  integrada à main por squash: `64a7edaa76c14b069da283023bab38d1b64e1173`.
+- Último código/CI testado na branch `5666e3437e7073e781862991fa9d0b5fb4bd61ed`, run
+  https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/37892058096
+  (quatro jobs verdes). Após esse commit houve somente documentação.
+- Próxima S014: XEX próprio de `src/canonical`, não build legado nathsou.
