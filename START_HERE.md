@@ -38,9 +38,11 @@ Runtime canônico executa no host e já produziu quadros; fidelidade gráfica
 continua pendente. S005 corrigiu o timing NTSC de frames ímpares e demonstrou
 que o HUD já estava presente. S006 comparou pixels/RAM com referência, corrigiu
 o controle 2. S007 entregou frontend host SDL2 com assets embutidos e smoke
-automatizado; teste manual pendente. S008 iniciou a APU 2A03, com primeiro
-canal pulse. S009 implementou pulse 2, com CI e comparação 600+600 pixels/RAM
-aprovados contra a referência. Ainda sem áudio audível ou PCM; próxima etapa
-técnica é triangle, depois noise, DMC e mixer. Nenhum novo XEX da arquitetura
-canônica foi validado no Xbox.
+automatizado; teste manual pendente. S008/S009 implementaram pulse1 e
+pulse2 da APU. S010 implementou triangle e validou o novo canal com
+10 suítes host e comparação de 600+600 pixels/RAM contra a referência
+independente. **Três canais DAC sem áudio PCM ou som audível**. A próxima
+tarefa é noise, depois DMC, mixer e saída de áudio. Nenhum novo XEX
+canônico foi validado no Xbox 360; a CPU 6502 segue em runtime de software,
+sem tradução nativa para PowerPC.
 Consulte sempre o checkpoint e NEXT_STEPS.md: este resumo não substitui os dois.
