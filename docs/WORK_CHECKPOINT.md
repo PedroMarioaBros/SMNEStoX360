@@ -31,6 +31,9 @@ status **completed/success**, quatro jobs `host (0)`,
 12/12 suítes em ambos os modos; `test_apu_dmc: PASS`.
 `verify_repository.py` aprovou assets; binjnes idle **600/600**
 pixels e RAM e roteiro **600/600** pixels e RAM.
+O workflow host na **main** após merge também passou:
+https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/37891237452
+(commit `af8f34487830f02b19170fb9b5fc107eaf360b33`).
 SDL dummy readback 61.440 pixels PASS e captura 599 bate hash
 `fbde38b3940b02a1515202b5ab5ad36f828fc46bd5c5a7296bd1c1aa88f05bfc`.
 Os testes completos ocorreram no GitHub Actions, não em
