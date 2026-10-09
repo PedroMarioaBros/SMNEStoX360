@@ -587,3 +587,56 @@ A identidade do commit que contém uma entrada pode ser consultada no histórico
 - Motivo da falha antiga confirmado por logs da execução [37958798128](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/37958798128): `build-smb-xex.sh` produziu `default.xex`, porém a validação exigiu também `boot-test.xex`, que o script não produz. A rota tem ainda histórico de Fatal Crash em hardware, não deve ser reparada por engano como caminho oficial.
 - **Não foram modificados**: `assets/canonical/`, `src/`, `scripts/`, `canonical-xex.yml` ou qualquer arquivo de jogo. Nenhum novo XEX/boot/hardware testado nesta organização.
 - Próxima tarefa técnica permanece **S015**: segurança de boot/linker, diagnóstico gráfico e controle da linha canônica, conforme `docs/NEXT_STEPS.md`. Verificação após commits: conferir links e HEAD remoto; não interpretar eventuais CI de documentação como teste físico.
+
+## S015 — 09/10/2026, notificações XAM, controles e auditoria do XEX
+
+- Entrada main `884c5db3defec68fbf58793fccbbc69a225584c2`
+  (reorganização documental anterior sem modificar jogo).
+  Branch `work/s015-observable-boot-20261009`.
+  ROM `SMB_v026.nes` 40976 bytes e PRG/CHR preservados:
+  hashes ROM `57fb4ee14288853bc0c8a5a629a103e51e87a4ebae1cc699b435060d2690b047`,
+  PRG `9f5b4f73bde569269645e154a1c8e43308afb2f156baa76e977296d7ca4ed9a4`,
+  CHR `5e22a5c60aef64263ac7b17997479dfdad23389d1f0756c224412c8f7a5535d0`.
+- `src/canonical/controller_map.[ch]` mapeia Xbox XInput
+  para 8 botões NES e cancela direções opostas. Novo
+  `tests/test_controller_map.c` cobre 8 botões,
+  combinações e leitura serial real de duas portas
+  $4016/$4017. Runner C99 passa a 14 suítes normal/san.
+- `src/platform/canonical_xex/main.c` usa
+  `XamInputGetState` para ambos gamepads e
+  `XNotifyQueueUI` para START/PASS/erro do diagnóstico,
+  UTF-16 estático e encerramento após 120 quadros;
+  evita vídeo MMIO antigo. O SDK xecorelib
+  lista XamInputGetState @401 e XNotifyQueueUI @656.
+  Compile/link não prova toast visível em hardware.
+- `tools/verify_canonical_xex.py` valida saída
+  PE PowerPC machine 0x01f2, 4 seções e presença
+  da ROM canônica completa byte por byte, offset PE
+  0x16c00 no build testado; também XEX2 e
+  hashes SHA-256. Run de código
+  https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/37965972564
+  success. Não há ROM de terceiros no executável.
+- A primeira atualização de `build-canonical-xex.sh`
+  alterou manifesto para
+  `video_backend=XAM_NOTIFICATIONS_ONLY` mas o workflow
+  ainda verificava `NONE_SAFE_HEADLESS`, causando
+  falha posterior na checagem (run 37966195621).
+  Compilação e verificação PE tinham passado;
+  corrigida a verificação do CI.
+- `docs/TESTE_FISICO_S015.md` oferece instruções
+  objetivas para o proprietário testar somente uma
+  cópia isolada no console e relatar START/PASS,
+  Fatal Crash, travamento ou retorno. Esse documento
+  acompanha artifact `smb360-CANONICAL-DIAGNOSTIC-xex`.
+- `lld-link` ainda avisa que `/align` sem `/driver`
+  pode impedir execução; não há teste físico que
+  relacione o aviso a crash. Não alterar flags às cegas.
+- Limites: sem gameplay exibido no Xbox, sem áudio
+  hardware, sem teste físico e sem tradução 6502→PPC
+  estática. XEX é **diagnóstico não jogável**;
+  port nativo sem interpretador não atingido.
+- Próxima ação: após merge e CI verde da main,
+  notificar o proprietário de que o teste S015 está
+  pronto, com link Actions e guia; em paralelo S016
+  gráfico Xbox seguro e proposta de tradução PPC.
+  Evidência em `docs/evidence/S015/README.md`.
