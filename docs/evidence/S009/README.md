@@ -77,3 +77,24 @@ Referências sem substituir gameplay:
 Próxima etapa: verificar jobs GitHub Actions do último commit de código,
 comparar pixels/RAM dos roteiros existentes e, após aprovação, integrar e
 seguir com o canal triangle.
+
+## Fechamento confirmado — CI e merge
+
+- Código efetivamente testado: `3f877fd7d3802df35897d303105b7980d56ecd7a`.
+- Workflow: https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/37889071037,
+  status `completed / success`. Jobs `host (0)`, `host (1)`,
+  `frontend`, `reference`: quatro resultados success.
+- Trechos do job reference: `idle pixels: 600 / 600 RAM: 600 / 600`
+  e `input pixels: 600 / 600 RAM: 600 / 600`.
+- Job host: `test_apu_pulse: PASS`,
+  `test_apu_pulse2: PASS`,
+  `PPU registers/memory/controller/OAM DMA: PASS`.
+- PR: https://github.com/PedroMarioaBros/SMNEStoX360/pull/4 .
+  Squash integrado à main no commit
+  `652f4e2d7f71d26e6a4eb6f65d438aadd6f1c957`.
+- Os hashes dos blobs publicados correspondem às cópias compiladas
+  localmente para `apu.c` (`a01f42f99d56a8ed796cb1e4dbf2979ee0913d7c`),
+  `apu.h` (`4215793f1a6b22f109165dd4dafd8041ddc224ed`) e
+  `test_apu_pulse2.c` (`5de0189a43ff7f3b1592db60dbd49f4f50a4efff`).
+
+Próximo comando/sucessor em `docs/NEXT_STEPS.md`; tarefa triangle.
