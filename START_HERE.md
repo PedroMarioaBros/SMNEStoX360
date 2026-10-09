@@ -38,6 +38,8 @@ Runtime canônico executa no host e já produziu quadros; fidelidade gráfica
 continua pendente. S005 corrigiu o timing NTSC de frames ímpares e demonstrou
 que o HUD já estava presente. S006 comparou pixels/RAM com referência, corrigiu
 o controle 2. S007 entregou frontend host SDL2 com assets embutidos e smoke
-automatizado; teste manual pendente. Próxima etapa técnica: APU/áudio.
+automatizado; teste manual pendente. S008 iniciou APU 2A03, com temporização,
+primeiro canal pulse e testes de regressão aprovados no CI; ainda sem áudio
+audível. Próxima etapa: segundo canal pulse, depois demais canais e mixer.
 Nenhum novo XEX desta arquitetura foi validado no Xbox.
 Consulte sempre o checkpoint e NEXT_STEPS.md: este resumo não substitui os dois.
