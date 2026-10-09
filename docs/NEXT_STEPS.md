@@ -8,7 +8,10 @@ Não utilizar PRG/CHR de outros jogos nem recriar Super Mario manualmente.
 
 ## Ponto de retomada verificado
 
-S012 implementou o DMC, a quinta unidade da APU digital NTSC,
+S012, PR #7, integrada à main:
+https://github.com/PedroMarioaBros/SMNEStoX360/pull/7 ;
+merge `af8f34487830f02b19170fb9b5fc107eaf360b33`.
+A S012 implementou o DMC, a quinta unidade da APU digital NTSC,
 mas DMA tem stall fixo de 4 ciclos **aproximado** e IRQ de APU
 polling por instrução. Não alegar DMC cycle-perfect.
 Último commit de código testado:
