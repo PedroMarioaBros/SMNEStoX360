@@ -1,4 +1,68 @@
-# Checkpoint operacional — 2026-10-09 (S013)
+# Checkpoint operacional — 2026-10-09 (S014)
+
+## S014 — primeiro XEX2 compilado com ROM e runtime canônicos (diagnóstico)
+
+Entrada main `cdcda47f9952afa92b09228a4da100a463ef97c0`.
+Branch `work/s014-canonical-xex-20261009`.
+A ROM original `SMB_v026.nes` permanece versionada sem alterações,
+SHA-256 `57fb4ee14288853bc0c8a5a629a103e51e87a4ebae1cc699b435060d2690b047`,
+PRG `9f5b4f73bde569269645e154a1c8e43308afb2f156baa76e977296d7ca4ed9a4`,
+CHR `5e22a5c60aef64263ac7b17997479dfdad23389d1f0756c224412c8f7a5535d0`.
+Nenhum arquivo ROM, PRG ou CHR foi modificado.
+
+**Avanço implementado:** target `src/platform/canonical_xex/main.c`
+que incorpora o **mesmo** `src/canonical/*.c` usado no host e
+a ROM de 40976 bytes via `embedded_rom.S`. Executa
+`smb360_machine_init` e prepara diagnóstico headless de 120
+quadros, timeout e relatório de PC/ciclos/hash FNV dos pixels.
+`scripts/build-canonical-xex.sh` verifica três SHA-256 e compila
+C99 `-Wall -Wextra -Werror` com OpenXeChain PowerPC, gerando
+`canonical.exe` e `default.xex`. Workflow novo
+`.github/workflows/canonical-xex.yml` é independente do workflow
+histórico que compila `nathsou/smb`. **Não copia outro gameplay**.
+
+**Validação observada:**
+- Compilação cruzada PowerPC do código exato
+  `75eb79a35b6c60ff8ed4d4e17a88404af89c2325`,
+  CI https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/37958120419 :
+  `completed/success`, toolchain `ppc32-unknown-xbox360`,
+  SynthXEX produzindo XEX2, hashes do XEX+PE verificados,
+  manifest `CANONICAL_DIAGNOSTIC_NOT_PLAYABLE`.
+  Artifact `smb360-CANONICAL-DIAGNOSTIC-xex`, id 11630285368,
+  disponível no GitHub Actions por 30 dias.
+- Primeiro run `37958041952` falhou por um comentário contendo
+  `src/canonical/*.c` (interpretação `/*` por Clang Werror).
+  Corrigido comentário no código sem alterar runtime/ROM.
+- Regressão host no commit
+  `0217fc98606e491c4458855e7f413b581474d36e`,
+  CI https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/37958266320 :
+  `completed/success`, jobs normal, ASan/UBSan, referência e
+  frontend SDL. 13 suítes host PASS nos dois modos.
+  Binjnes pixels/RAM idle 600/600 e controles 600/600,
+  SDL readback 61.440 pixels e WAV determinístico
+  479146 amostras, SHA-256
+  `3aa163954a75eaa13b9969c11f59fefd2da41ed8fc2d524c9edb6019b2b4d56c`.
+
+**Limite decisivo:** o `default.xex` novo foi compilado e
+verificado como XEX2, **mas não iniciado fisicamente no Xbox**.
+O linker avisa `/align specified without /driver; image may not run`.
+O entrypoint desta etapa NÃO apresenta vídeo, recebe comandos ou
+toca som; é um diagnóstico headless de execução do PRG original.
+Não reutiliza `video_fb.c` com endereços hardcoded antigos
+(build histórico #16 deu Fatal Crash). Não é jogo jogável.
+A CPU 6502 segue interpretada em C no PowerPC; não existe
+a tradução estática 6502→PPC sem interpretador desejada pelo proprietário.
+CI legado `nathsou` segue issue #8 separada.
+
+Próxima S015: investigar boot real, aviso linker, vídeo Xbox por API
+segura, controles, saída PCM, e planejamento da tradução direta PPC.
+Evidência: [S014](evidence/S014/README.md). Comandos e critérios
+em [NEXT_STEPS.md](NEXT_STEPS.md). **Sem percentual global inventado**.
+
+---
+
+# Checkpoints anteriores — S013 e predecessores
+
 
 ## S013 — mixer NES, PCM 48 kHz, WAV canônico e SDL áudio
 
