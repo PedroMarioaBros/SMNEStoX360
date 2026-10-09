@@ -32,6 +32,33 @@ uint8_t smb360_apu_pulse2_output(const smb360_apu *apu) {
     return pulse_output(&apu->pulse2,1u);
 }
 
+/* This is the level on the triangle DAC, not a PCM mixer output.
+ * The NES holds this level even while length or linear counter is zero. */
+uint8_t smb360_apu_triangle_output(const smb360_apu *apu) {
+    unsigned step=apu->triangle.sequence_step;
+    return (uint8_t)(step<16u ? 15u-step : step-16u);
+}
+
+static void quarter_triangle(smb360_apu_triangle *t) {
+    if (t->linear_reload_flag) t->linear_counter=t->linear_reload_value;
+    else if (t->linear_counter) --t->linear_counter;
+    if (!(t->control&0x80u)) t->linear_reload_flag=0;
+}
+
+static void half_triangle(smb360_apu_triangle *t) {
+    if (t->length && !(t->control&0x80u)) --t->length;
+}
+
+static void timer_triangle(smb360_apu_triangle *t) {
+    if (t->timer_divider) --t->timer_divider;
+    else {
+        t->timer_divider=t->period;
+        /* At the full CPU clock, neither gating counter resets the phase. */
+        if (t->linear_counter && t->length)
+            t->sequence_step=(uint8_t)((t->sequence_step+1u)&31u);
+    }
+}
+
 static void quarter_pulse(smb360_apu_pulse *p) {
     if (p->envelope_start) {
         p->envelope_start=0;
@@ -48,6 +75,7 @@ static void quarter_frame(smb360_apu *apu) {
     ++apu->quarter_clocks;
     quarter_pulse(&apu->pulse1);
     quarter_pulse(&apu->pulse2);
+    quarter_triangle(&apu->triangle);
 }
 
 static void half_pulse(smb360_apu_pulse *p, unsigned channel) {
@@ -66,6 +94,7 @@ static void half_frame(smb360_apu *apu) {
     ++apu->half_clocks;
     half_pulse(&apu->pulse1,0u);
     half_pulse(&apu->pulse2,1u);
+    half_triangle(&apu->triangle);
 }
 
 void smb360_apu_write(smb360_apu *apu, uint16_t address, uint8_t value) {
@@ -88,10 +117,24 @@ void smb360_apu_write(smb360_apu *apu, uint16_t address, uint8_t value) {
         return;
     }
     switch(address) {
+    case 0x4008u:
+        apu->triangle.control=value&0x80u;
+        apu->triangle.linear_reload_value=value&0x7fu;
+        break;
+    case 0x400au:
+        apu->triangle.period=(uint16_t)((apu->triangle.period&0x700u)|value);
+        break;
+    case 0x400bu:
+        apu->triangle.period=(uint16_t)((apu->triangle.period&0xffu)|((uint16_t)(value&7u)<<8));
+        if (apu->enabled&4u) apu->triangle.length=length_table[value>>3];
+        apu->triangle.linear_reload_flag=1u;
+        /* Unlike pulse $4003/$4007, $400B does NOT reset phase. */
+        break;
     case 0x4015u:
         apu->enabled=value&0x1fu;
         if (!(value&1u)) apu->pulse1.length=0;
         if (!(value&2u)) apu->pulse2.length=0;
+        if (!(value&4u)) apu->triangle.length=0;
         break;
     case 0x4017u:
         apu->frame_mode5=(value>>7)&1u;
@@ -107,6 +150,7 @@ void smb360_apu_write(smb360_apu *apu, uint16_t address, uint8_t value) {
 uint8_t smb360_apu_read_status(smb360_apu *apu) {
     uint8_t result=(uint8_t)((apu->pulse1.length?1u:0u) |
                               (apu->pulse2.length?2u:0u) |
+                              (apu->triangle.length?4u:0u) |
                               (apu->frame_irq?0x40u:0u));
     apu->frame_irq=0;
     return result;
@@ -123,6 +167,7 @@ static void timer_pulse(smb360_apu_pulse *p) {
 void smb360_apu_step(smb360_apu *apu, uint32_t cycles) {
     while(cycles--) {
         ++apu->cpu_cycles;
+        timer_triangle(&apu->triangle);
         if (!(apu->cpu_cycles&1u)) {
             timer_pulse(&apu->pulse1);
             timer_pulse(&apu->pulse2);

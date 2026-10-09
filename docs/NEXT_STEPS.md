@@ -1,43 +1,44 @@
-# Próxima ação — após S009, 09/10/2026
+# Próxima ação — após S010 (09/10/2026)
 
-Leia START_HERE.md, AGENTS.md e CONTINUITY_PROTOCOL.md. A fonte exclusiva
-de gameplay continua sendo assets/canonical/SMB_v026.nes. Não substituir
-PRG/CHR por dados de outra ROM ou por recriação de terceiros.
+Ao iniciar uma sessão: `START_HERE.md` → `AGENTS.md` →
+`CONTINUITY_PROTOCOL.md` → `WORK_CHECKPOINT.md` → este documento →
+`SESSION_LOG.md`. A ROM `assets/canonical/SMB_v026.nes` é a única
+fonte do PRG/CHR e do comportamento do jogo. Proibido trocá-la.
 
-## Ponto de partida confirmado
+## S010 concluída no host — não é XEX Xbox
 
-S009 pulse 2 integrado à main via PR #4:
-https://github.com/PedroMarioaBros/SMNEStoX360/pull/4 .
-Commit merge: `652f4e2d7f71d26e6a4eb6f65d438aadd6f1c957`.
-Último commit de código medido em CI:
-`3f877fd7d3802df35897d303105b7980d56ecd7a`.
-Workflow verde (quatro jobs):
-https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/37889071037
-Pixels/RAM binjnes: 600/600 idle e 600/600 com entrada, ambos por tipo.
-A S009 é concluída; repetir este baseline apenas como regressão.
+Triangle implementado em `src/canonical/apu.[ch]`, junto a pulse1/pulse2.
+Códigos e testes da branch `work/s010-apu-triangle-20261009`:
+PR https://github.com/PedroMarioaBros/SMNEStoX360/pull/5 .
+Commit exato do código validado:
+`73ca0151d153448e8d13cca07bdf395fd93618cd`.
+GitHub Actions:
+https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/37889762682
+(`success`: normal, sanitizers, SDL e binjnes 600+600).
+Os resultados são dos cenários medidos, não certificação de áudio ou console.
+Atenção à falha de fixture histórica e resolução descritas em evidence/S010.
 
-## Tarefa ativa S010 — canal triangle APU 2A03
+## Tarefa técnica ativa: S011 — noise da APU 2A03
 
-1. Inspecionar `src/canonical/apu.[ch]`, `nrom.[ch]`,
-   `tests/test_apu_pulse2.c` e o clock de `machine.c` sem alterar
-   os dois canais pulse concluídos.
-2. Implementar registradores $4008, $400A, $400B: linear counter,
-   timer/period 11-bit e length counter; os relógios do triangle e
-   dos pulse são distintos (triangle avança no CPU clock, pulse no
-   clock APU / 2). Sequência triangle de 32 níveis, volume 0–15,
-   gate por length/linear e period, bit 2 de $4015.
-3. Testes unitários focados em sequência, timer, linear reload,
-   control flag, comprimento/halt, enable/disable e isolamento
-   de $4015 dos dois pulse. Verificar semântica NESdev, inclusive
-   casos em que a unidade retém a saída, não é necessariamente zero.
-4. Rodar os testes de regressão host normais e sanitizados e comparar
-   a ROM canônica com binjnes (600+600 frames e RAM). Investigar
-   cada divergência sem alterar a ROM ou hashes esperados.
-5. Publicar evidências e documentação; depois priorizar noise, DMC,
-   IRQ de frame conectada à CPU e áudio PCM/mixer no SDL, com
-   comparação de áudio independente antes de prometer reprodução.
+1. Inspecionar `src/canonical/apu.[ch]`, `nrom.[ch]`, `machine.c`
+   e os testes; conferir HEAD e hashes canônicos no checkout.
+2. Implementar o canal noise nos registradores $400C/$400E/$400F:
+   envelope, length, período via tabela NTSC de 16 entradas, controle
+   de modo/taps do registrador de deslocamento (LFSR de 15 bits) e
+   nível 0–15; temporização CPU/2. $400D é ignorado.
+   Sem modificar pulse1/pulse2/triangle nem mudar a ROM.
+3. Incluir bit3 de enable/status $4015. Testar recarga de envelope,
+   length halt/decay, períodos de noise, avanço do LFSR em ambos modos,
+   saída silenciada pelo bit0 do LFSR, $4015, reset e independência
+   dos demais canais.
+4. Comprovar normal `-std=c99 -Wall -Wextra -Werror` e ASan/UBSan.
+   Repetir `python3 tools/compare_reference.py --idle-frames 600
+   --input-frames 600`: pixels/RAM 600/600 nos dois roteiros,
+   investigar cada desvio sem editar hash esperado.
+5. Registrar evidência com parâmetros, commits exatos, sucessos/falhas
+   e limitações; publicar código e docs, verificar HEAD remoto.
 
-Comandos copiáveis a partir de um clone limpo:
+Comandos copiáveis (clone limpo, Linux com C99/Python3/SDL2 dev):
 
 ```sh
 git clone https://github.com/PedroMarioaBros/SMNEStoX360.git
@@ -51,22 +52,23 @@ python3 tools/build_host.py
 python3 tests/test_host_frontend.py
 ```
 
-Resultados esperados dos testes que já existem: novos testes/anteriores
-passam; referência 600/600 pixels e RAM em ambos os cenários e SDL smoke
-passa. Esses cenários não demonstram fidelidade de áudio. Dependências:
-C99, Python 3, SDL2 dev; se clone DNS falhar, usar CI do GitHub e
-registrar a distinção entre validação local e remota.
+Esperado: todas as suítes incluindo triangle passam, pixels/RAM idênticos
+em 600/600 idle e 600/600 scripted; SDL readback 61.440 pixels PASS.
+Se clone local bloquear por DNS, usar CI e declarar explicitamente que
+o teste foi remoto. Não reapresentar baseline como novo avanço.
 
-## Meta final Xbox 360
+Depois do noise: implementar DMC, IRQ de APU conectada à CPU, mixer NES
+não-linear, resampling PCM e saída sonora real no SDL, com referência
+independente de áudio. O objetivo Xbox requer ainda boot mínimo/loop,
+vídeo seguro, controle, integração da APU e XEX com assets embutidos,
+seguido de teste físico. Build antigo #16 deu Fatal Crash; não reutilizar
+framebuffer hardcoded. Nenhum `default.xex` canônico validado até S010.
 
-Nenhum novo `default.xex` canônico validado no console; o build antigo
-#16 resultou em Fatal Crash. Para Xbox: boot mínimo → loop → vídeo seguro
-→ controle → runtime canônico → áudio → XEX com dados embutidos → teste
-físico. Não usar endereços de framebuffer hardcoded do backend histórico.
-O runtime ainda interpreta 6502 por software e **não é tradução direta
-nativa PowerPC**; avaliar essa meta separadamente, sem chamá-lo de port
-sem emulador.
+**A arquitetura atual interpreta CPU 6502 em software**, embora execute
+o PRG original sem seletor de ROM. Não é a tradução direta nativa
+PowerPC sem interpretador desejada pelo proprietário. Preservar essa
+distinção em cada checkpoint.
 
-Em cada sessão: registrar tentativas e resultados, atualizar
-WORK_CHECKPOINT.md, SESSION_LOG.md, NEXT_STEPS.md, fazer commits no
-GitHub e confirmar HEAD remoto.
+Antes de responder no final: atualizar `WORK_CHECKPOINT.md`,
+`SESSION_LOG.md`, este arquivo, publicar commits e conferir HEAD
+remoto. Não inventar percentuais de progresso.
