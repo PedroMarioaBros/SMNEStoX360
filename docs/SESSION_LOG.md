@@ -412,3 +412,17 @@ A identidade do commit que contém uma entrada pode ser consultada no histórico
   Commits documentais seguintes não alteraram runtime.
   Conferir CI pós-merge separadamente antes de afirmar aprovação dele.
 - Próxima sessão S013: mixer + resampling/PCM/SDL e comparação sonora.
+
+- Confirmação adicional: host CI da main no squash
+  `af8f34487830f02b19170fb9b5fc107eaf360b33`
+  concluiu `success`, quatro jobs
+  https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/37891237452 .
+- Diagnóstico de falha preexistente do workflow Xbox legado:
+  https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/37891237477 .
+  SynthXEX chegou a criar `default.xex`, mas a próxima etapa
+  exige `boot-test.xex` não produzido por `scripts/build-smb-xex.sh`.
+  Também usa `nathsou/smb` antigo, não runtime canônico da ROM.
+  Issue https://github.com/PedroMarioaBros/SMNEStoX360/issues/8
+  aberta para correção preservando distinção entre código histórico
+  e port da ROM. O mesmo defeito existia em S011
+  (run 37890597151); não associar a uma regressão DMC.
