@@ -133,3 +133,26 @@ com API testada — **não** endereços hardcoded do legado.
     ROM de 40976 bytes no offset PE `0x16c00`.
 - Pós-merge: workflows `37966878615` e `37966878630`
   checar antes de declarar pacote da main pronto para teste.
+
+## Regressão após merge na main
+
+- Código em main gerado por squash PR #11:
+  `bd9775a84d1b9451f61bc5d79bf1df0b2002952d`.
+- GitHub Actions **host** no merge:
+  https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/37966878630 ,
+  **completed / success**, quatro jobs:
+  normal `host (0)`, ASan/UBSan `host (1)`,
+  referência binjnes, frontend SDL.
+- `test_controller_map: PASS` nos dois modos,
+  14 suítes host; idle pixels/RAM 600/600,
+  input pixels/RAM 600/600, SDL readback 61440,
+  PCM WAV 479146 samples sem clipping e hash
+  `3aa163954a75eaa13b9969c11f59fefd2da41ed8fc2d524c9edb6019b2b4d56c`.
+- O XEX no merge corresponde ao workflow
+  https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/37966878615 ;
+  sua conclusão deve ser registrada separadamente.
+- A versão completa da branch `94a01f0af3798984d5ff88d16800690db10a64fc`
+  já passou no workflow de XEX
+  https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/37966684272 ,
+  artifact `smb360-CANONICAL-DIAGNOSTIC-xex`
+  #11633472546 contendo guia ao proprietário.
