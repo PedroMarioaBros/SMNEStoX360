@@ -1,5 +1,8 @@
 # Próxima ação — após S014 (09/10/2026)
 
+**Atenção à organização de 09/10/2026:** [STATUS_PARA_PEDRO.md](STATUS_PARA_PEDRO.md) resume a situação; [painel central](https://github.com/PedroMarioaBros/OpenXeChain-X360-Builder/blob/main/docs/PAINEL_PMCN_XBOX360.md) relaciona os projetos. `xbox360-cloud-build.yml` foi reclassificado como **legado, manual, não oficial**, sem alteração do código. **S015 não foi executada** nesta reorganização. Use apenas `canonical-xex.yml` para a rota atual.
+
+
 **Continuidade obrigatória:** `START_HERE.md`, `AGENTS.md`,
 `docs/CONTINUITY_PROTOCOL.md`, `docs/WORK_CHECKPOINT.md`,
 `docs/SESSION_LOG.md`, esta tarefa. Confirmar `main` HEAD remoto.
