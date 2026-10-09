@@ -107,3 +107,12 @@ patch de gameplay ou mudança na ROM foi usado para passar.
 
 A próxima etapa DMC/IRQ/DMA está registrada com comandos e bloqueios
 em `docs/NEXT_STEPS.md`.
+
+## Fechamento: publicação na branch principal
+
+- PR #6: https://github.com/PedroMarioaBros/SMNEStoX360/pull/6 ,
+  integrada por squash no commit `d8a9c0a60a2aa46b92276d1ece0c0558204dc2e3`.
+- O diff revisado contém 11 arquivos e **nenhum** arquivo em
+  `assets/canonical/`. O código que passou CI é o mesmo da branch de
+  implementação; os commits posteriores até o merge foram documentais.
+- Próxima tarefa DMC/IRQ/DMA: `docs/NEXT_STEPS.md`.
