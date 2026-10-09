@@ -96,3 +96,27 @@ a comparação mostrar divergência. Ver `docs/NEXT_STEPS.md`.
 - Workflow verde de código na branch: `37890958510`, quatro jobs,
   12 suítes host PASS (normal/san), 600/600 pixels/RAM em ambos roteiros.
   O merge não altera os limites de precisão DMC documentados.
+
+## Pós-merge: CI independente e bloqueio do XEX legado
+
+- Commit merge da S012 `af8f34487830f02b19170fb9b5fc107eaf360b33`.
+- O workflow host da **main** concluiu `success` também nesse commit:
+  https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/37891237452 .
+  É a validação separada do CI verde na branch, quatro jobs
+  host normal/san, referência e frontend SDL.
+- O workflow histórico separado "Compilar SMB Xbox 360" falhou
+  nesse mesmo commit:
+  https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/37891237477 .
+  A mesma falha ocorreu na S011 no run 37890597151; não é
+  regressão introduzida pelo DMC.
+- Diagnóstico pelos logs: fallback OpenXeChain funciona, SynthXEX
+  gera `default.xex` e o script reporta `SMB360 XEX build PASS`.
+  A etapa de verificação cobra **`boot-test.xex` que o script não gera**,
+  então encerra com exit code 1.
+- O alvo histórico usa a árvore de `nathsou/smb` fixada em
+  `2143a91...`, **não** o `src/canonical` desta arquitetura;
+  XEX histórico não prova port da ROM canônica.
+- Para não perder o diagnóstico, issue:
+  https://github.com/PedroMarioaBros/SMNEStoX360/issues/8 .
+  Não corrigir o CI tornando a geração de XEX histórica
+  equivalente a validação no hardware; criar alvo canônico separado.
