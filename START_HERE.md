@@ -45,8 +45,11 @@ mixer não linear, saída SDL opcional, WAV 48 kHz/16 bits
 de 479.146 samples, 13 suítes host aprovadas,
 600+600 pixels/RAM idênticos à referência. Ainda não há
 teste com dispositivo físico nem waveform NES independente.
-**Próxima ação S014 é integrar src/canonical num alvo XEX
-próprio**, sem depender do port histórico de terceiros.
-Nenhum XEX canônico validado no Xbox; CPU 6502 ainda é
-interpretada por software, sem tradução nativa PowerPC.
+**S014 compilou pela primeira vez o runtime canônico e a ROM
+SMB_v026.nes para XEX2 PowerPC próprio**, sem nathsou:
+novo artifact de diagnóstico headless, ver evidence/S014.
+A compilação passou no CI; o XEX ainda NÃO teve boot
+físico, vídeo, controles nem áudio no Xbox. Próxima S015:
+teste/diagnóstico de boot e backend de vídeo seguro.
+CPU 6502 continua interpretada, sem tradução nativa PPC.
 Consulte sempre o checkpoint e NEXT_STEPS.md: este resumo não substitui os dois.

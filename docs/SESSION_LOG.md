@@ -502,3 +502,57 @@ A identidade do commit que contém uma entrada pode ser consultada no histórico
   em `canonical-s013-audio-wav`, id 11599295620.
 - O workflow Xbox legado `37892331507` reportou `failure`
   preexistente, issue #8, não confundir com CI do runtime canônico.
+
+## S014 — 09/10/2026, primeiro XEX do core canônico
+
+- HEAD `main` de entrada:
+  `cdcda47f9952afa92b09228a4da100a463ef97c0`.
+  Branch `work/s014-canonical-xex-20261009`.
+  ROM/PRG/CHR originais mantidos, hashes:
+  ROM `57fb4ee14288853bc0c8a5a629a103e51e87a4ebae1cc699b435060d2690b047`,
+  PRG `9f5b4f73bde569269645e154a1c8e43308afb2f156baa76e977296d7ca4ed9a4`,
+  CHR `5e22a5c60aef64263ac7b17997479dfdad23389d1f0756c224412c8f7a5535d0`.
+- Criado `src/platform/canonical_xex/main.c` com
+  instância real `smb360_machine`, inicialização com
+  PRG/CHR embutidos, loop de 120 quadros/timeout,
+  diagnóstico de PC/ciclos/FNV de pixels por stdout,
+  sem framebuffer MMIO, áudio ou input legado.
+  `embedded_rom.S` incbin incorpora os 40.976
+  bytes exatos da ROM canônica.
+- `scripts/build-canonical-xex.sh` roda hashes obrigatórios
+  e compila todos os `src/canonical/*.c` com
+  OpenXeChain PowerPC para `canonical.exe` e XEX2
+  `default.xex`, manifest e sums. Workflow isolado
+  `.github/workflows/canonical-xex.yml` usa cache
+  do compilador pinado, sem dependência
+  `nathsou/smb`, e publica artifact por 30 dias.
+- Primeira tentativa CI `37958041952` falhou com
+  `main.c:2:60: '/*' within block comment [-Werror,-Wcomment]`.
+  Corrigido comentário; nenhuma mudança em gameplay
+  ou testes; commit `75eb79a35b6c60ff8ed4d4e17a88404af89c2325`.
+- CI XEX nesse commit: run
+  https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/37958120419
+  **completed/success**, LLVM target `ppc32-unknown-xbox360`,
+  `SynthXEX> XEX built`, magic XEX2, checksums e
+  manifest de DIAGNÓSTICO aprovados.
+  Artifact confirmado `smb360-CANONICAL-DIAGNOSTIC-xex`
+  id 11630285368. Aviso real de linker:
+  `/align specified without /driver; image may not run`.
+  Não afirmar boot no console.
+- Host CI depois do acréscimo de triggers:
+  https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/37958266320,
+  commit `0217fc98606e491c4458855e7f413b581474d36e`:
+  **success**, quatro jobs, 13 suítes normal/san,
+  pixels/RAM binjnes idle 600/600 e input 600/600;
+  SDL 61.440 pixels PASS e mesmo WAV SHA256 da S013.
+- XEX NOVO É HEADLESS: programa tem código para
+  avançar o Mario original 120 quadros, mas o código
+  ainda não foi EXECUTADO em console real, e sem
+  vídeo/áudio/controles não é jogável.
+  O PRG 6502 continua interpretado em software
+  C compilado para PPC; não atende o objetivo de
+  port sem interpretador/tradução direta PPC.
+- Documentação `docs/evidence/S014/README.md`,
+  checkpoint atualizado, próxima S015 registrada
+  em `docs/NEXT_STEPS.md`: validar boot físico,
+  vídeo seguro, input e arquitetura nativa.

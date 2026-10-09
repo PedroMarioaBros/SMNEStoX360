@@ -5,6 +5,8 @@ on:
     paths:
       - 'src/canonical/**'
       - 'src/host/**'
+      - 'src/platform/canonical_xex/**'
+      - 'scripts/build-canonical-xex.sh'
       - 'tools/build_host.py'
       - 'tools/frame_to_png.py'
       - 'tests/test_host_frontend.py'
@@ -27,6 +29,8 @@ on:
     paths:
       - 'src/canonical/**'
       - 'src/host/**'
+      - 'src/platform/canonical_xex/**'
+      - 'scripts/build-canonical-xex.sh'
       - 'tools/build_host.py'
       - 'tools/frame_to_png.py'
       - 'tests/test_host_frontend.py'
