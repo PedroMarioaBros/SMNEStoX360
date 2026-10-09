@@ -9,6 +9,9 @@ NÃO importar outros PRG/CHR ou gameplay.
 
 ## Resultado comprovado da S014
 
+A S014 entrou na main pela PR #10:
+https://github.com/PedroMarioaBros/SMNEStoX360/pull/10 ;
+commit squash `b3a0aa56d6b45be588cec0ebfd936f1cb070ce07`.
 O primeiro target **Xbox canônico** está integrado em:
 `src/platform/canonical_xex/main.c`,
 `src/platform/canonical_xex/embedded_rom.S`,
