@@ -426,3 +426,62 @@ A identidade do commit que contém uma entrada pode ser consultada no histórico
   aberta para correção preservando distinção entre código histórico
   e port da ROM. O mesmo defeito existia em S011
   (run 37890597151); não associar a uma regressão DMC.
+
+## S013 — 09/10/2026, áudio PCM 48 kHz e arquivo WAV com ROM canônica
+
+- Entrada main `6e158f17572e17bfa85a8543710a47fdd73497d1`;
+  branch `work/s013-audio-pcm-20261009`. ROM original
+  SMB_v026.nes, 40976 bytes, SHA-256
+  `57fb4ee14288853bc0c8a5a629a103e51e87a4ebae1cc699b435060d2690b047`,
+  PRG `9f5b4f73bde569269645e154a1c8e43308afb2f156baa76e977296d7ca4ed9a4`,
+  CHR `5e22a5c60aef64263ac7b17997479dfdad23389d1f0756c224412c8f7a5535d0`.
+  Assets não alterados.
+- Adicionado `src/canonical/audio_pcm.[ch]`: mistura
+  NES não linear de pulses e triangle/noise/DMC;
+  phase accumulator CPU NTSC 1.789.773/48.000,
+  samples mono signed 16 bits, filtros aproximados
+  90 Hz, 440 Hz e 14 kHz, saturação protegida.
+  Saídas são capturadas **por instrução**, não
+  nos microciclos da CPU, limite de fidelidade registrado.
+- `src/host/main.c`: dispositivo áudio SDL opcional
+  com `SDL_QueueAudio` e buffer com limite de latência,
+  não bloqueando render se indisponível; opção `--wav`
+  gera RIFF/WAVE de 16 bits little-endian.
+- `tests/test_audio_pcm.c` cobre mixer não linear,
+  exata contagem 48.000/1.789.773, determinismo por
+  divisão dos ciclos, filtros e saturação;
+  13 suítes C99 normal e ASan/UBSan no runner.
+  `tests/test_host_audio.py` captura a ROM original
+  600 frames duas vezes, verifica WAV/sha/valores,
+  entrega `build/host/canonical-600frames.wav` ao
+  artifact GitHub `canonical-s013-audio-wav`.
+- CI `5666e3437e7073e781862991fa9d0b5fb4bd61ed`,
+  https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/37892058096 :
+  **completed/success**, quatro jobs: host normal,
+  ASan/UBSan, reference binjnes, frontend SDL.
+  13 suítes host passaram normal/san;
+  gráficos/RAM idle 600/600 e input 600/600;
+  SDL dummy readback 61.440 pixels PASS.
+  WAV ROM: 479.146 samples, min −5.889,
+  max +6.328, 159.921 não-zero e SHA-256
+  `3aa163954a75eaa13b9969c11f59fefd2da41ed8fc2d524c9edb6019b2b4d56c`,
+  dois arquivos byte-identicos.
+  Artefato #11598404861 confirmado na execução CI.
+- Falha intermediária nos workflows 37891903477,
+  37891908427, 37891911591: nova fixture PCM
+  assumia silêncio total no reset, porém triangle
+  DAC mantém nível inicial 15. Corrigido o teste,
+  sem manipular runtime ou ROM. Workflow ganhou
+  gatilho `tests/test_audio*`.
+- Não foi verificada fidelidade com áudio binjnes
+  ou ouvido com dispositivo real: SDL CI é dummy.
+  Sem novo XEX canônico validado, IRQ/DMC DMA ainda
+  aproximado, runtime 6502 ainda interpretado.
+- Próxima tarefa S014: boot e build do core canônico
+  no Xbox via OpenXeChain e PRG/CHR originais,
+  sem reutilizar gameplay `nathsou` histórico;
+  depois validar waveform com referência.
+  Issue Xbox #8 permanece:
+  https://github.com/PedroMarioaBros/SMNEStoX360/issues/8 .
+  Instruções: `docs/NEXT_STEPS.md`;
+  evidências: `docs/evidence/S013/README.md`.
