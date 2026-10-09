@@ -1,54 +1,76 @@
-# Próxima ação — após S012, 09/10/2026
+# Próxima ação — após S013, 09/10/2026
 
-Leia `START_HERE.md` e siga `AGENTS.md` e
-`docs/CONTINUITY_PROTOCOL.md`, checkpoint e diário antes de trabalhar.
-A única ROM autorizada para conteúdo de jogo é
-`assets/canonical/SMB_v026.nes`; validar ROM/PRG/CHR SHA-256.
-Não utilizar PRG/CHR de outros jogos nem recriar Super Mario manualmente.
+Leia `START_HERE.md`, `AGENTS.md`,
+`docs/CONTINUITY_PROTOCOL.md`, `docs/WORK_CHECKPOINT.md`
+e `docs/SESSION_LOG.md` antes de trabalhar.
+O PRG/CHR original do proprietário está em
+`assets/canonical/SMB_v026.nes` (ROM SHA-256
+`57fb4ee14288853bc0c8a5a629a103e51e87a4ebae1cc699b435060d2690b047`).
+Não usar dados de gameplay de outro Mario ou outra ROM.
 
-## Ponto de retomada verificado
+## Ponto de partida real
 
-S012, PR #7, integrada à main:
-https://github.com/PedroMarioaBros/SMNEStoX360/pull/7 ;
-merge `af8f34487830f02b19170fb9b5fc107eaf360b33`.
-A S012 implementou o DMC, a quinta unidade da APU digital NTSC,
-mas DMA tem stall fixo de 4 ciclos **aproximado** e IRQ de APU
-polling por instrução. Não alegar DMC cycle-perfect.
-Último commit de código testado:
-`e1a68b1d7ded75cb968556fe425b5fdcb584e78d`.
-Workflow https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/37890958510
-**completed/success**: host normal, ASan/UBSan, referência e SDL.
-12/12 suítes C99 passaram, inclusive `test_apu_dmc.c`.
-Capturas binjnes = 600/600 pixels e RAM idle, e
-600/600 pixels e RAM input; SDL readback 61.440 pixels PASS.
-Essas métricas **não** verificam o sinal de áudio.
-Detalhes e bloqueios em `docs/evidence/S012/README.md`.
+S013 introduziu `src/canonical/audio_pcm.[ch]`: mixer
+não linear dos cinco canais, phase accumulator determinístico,
+PCM mono 16-bit a 48 kHz, filtros simples;
+`src/host/main.c` tem fila de áudio SDL opcional e `--wav`.
+Validação do último código:
+`5666e3437e7073e781862991fa9d0b5fb4bd61ed`,
+https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/37892058096 .
+Quatro jobs verdes, 13 suítes C99 normal/san, 600/600
+pixels e RAM sem comandos e 600/600 com comandos.
+Teste de audio de 600 frames, duas capturas byte-idênticas:
+479.146 samples, min -5889/max +6328, WAV SHA-256
+`3aa163954a75eaa13b9969c11f59fefd2da41ed8fc2d524c9edb6019b2b4d56c`.
+Artefato disponível como `canonical-s013-audio-wav`
+no workflow (retenção de 30 dias). Não é comparação com
+sinal de áudio de referência.
 
-## Tarefa ativa S013 — gerar PCM audível no frontend SDL
+## S014 — iniciar XEX **canônico**, sem depender de nathsou
 
-1. Ler `src/canonical/apu.[ch]`, `machine.c`, `src/host/`,
-   `tests/test_host_frontend.py` e verificar se as saídas DAC
-   usam a mesma base temporal; inspecionar quantos ciclos CPU são
-   processados a cada frame e suas limitações.
-2. Implementar mixer não linear do NES para pulse1+2 e
-   triangle/noise/DMC, com saída PCM mono de taxa definida
-   (ex.: 48 kHz) e amostragem determinística baseada em CPU NTSC.
-   Cuidado com DMC 7 bits e offset DC.
-3. Testes sintéticos de componentes e mistura:
-   níveis 0..15 pulse/triangle/noise, DMC 0..127,
-   silêncio, transições, limites, saturação, consistência entre
-   builds normais/sanitizados e contagem previsível de amostras.
-4. Habilitar dispositivo de áudio SDL quando disponível;
-   manter modo headless/dummy em CI sem bloquear gameplay/render.
-   Registrar captura PCM/WAV de cenário real com a ROM canônica,
-   com SHA-256 e critérios de ausência de clipping. Comparar
-   waveform ou estado APU com referência fixada independente;
-   não declarar fidelidade completa antes disso.
-5. Rodar todas as 12 suítes C99 em normal e ASan/UBSan,
-   verificar ROM/PRG/CHR, frontend SDL e comparação visual/RAM
-   binjnes 600+600, registrar evidências, merge e HEAD remoto.
+Objetivo principal: aproximar o projeto da execução real no Xbox 360,
+sem reaproveitar a implementação de gameplay de terceiros.
+Tratar como estágio de boot/compilação, não declarar jogo
+funcional antes do teste físico.
 
-Comandos reproduzíveis num clone limpo:
+1. Inspecionar ferramentas, arquivos `src/platform/xex/`,
+   `src/canonical/`, `scripts/build-smb-xex.sh`, workflows
+   e issue https://github.com/PedroMarioaBros/SMNEStoX360/issues/8 .
+   O build histórico usa `nathsou/smb`, gera `default.xex`
+   histórico e falha ao checar `boot-test.xex` inexistente.
+   **Não misturar esse código com gameplay da ROM canônica.**
+2. Criar target de compilação PPC via OpenXeChain para
+   o core C99 `src/canonical/` e PRG/CHR autorizados
+   embutidos; verificar hashes, símbolos, dependências
+   e layout. Criar entrypoint mínimo e backend seguros
+   sem endereços de framebuffer hardcoded, com logs,
+   timer, controle e interrupções tratados cautelosamente.
+3. Construir `default.xex` desse target separado,
+   conferir magic XEX2, hash, mapa, assets e
+   link no CI. Um XEX2 compilado **não** prova boot;
+   documentar diferença entre build e teste físico.
+4. Testar em hardware desbloqueado quando houver
+   acesso físico do proprietário; preservar resultados
+   de boot/crash e evitar afirmar avanço no console
+   sem evidência.
+5. Não violar o desejo de port direto:
+   o runtime atual interpreta CPU 6502.
+   Depois do boot, abrir subprojeto de tradução
+   **estática** para instruções PPC, reaproveitando
+   dados da ROM canônica e separando clearly da
+   interpretação atual. Avaliar tamanho/semântica de
+   cada instrução antes de afirmar que o interpretador
+   foi removido.
+
+Tarefa secundária S014 / S015: validar áudio independentemente:
+produzir traço das alterações da APU e amostras do
+mesmo roteiro em binjnes, com clocks e controles
+iguais, comparar hash/ondas e investigar desvios.
+Refinar DMC DMA/IRQ por microciclos e filtros
+(90/440/14 kHz estão apenas aproximados),
+sem patch específico da ROM.
+
+Comandos baseline (Linux, compilador C99/Python3/SDL2):
 
 ```sh
 git clone https://github.com/PedroMarioaBros/SMNEStoX360.git
@@ -60,38 +82,17 @@ ASAN_OPTIONS=detect_leaks=0 SANITIZE=1 sh tests/run_host_tests.sh
 python3 tools/compare_reference.py --idle-frames 600 --input-frames 600
 python3 tools/build_host.py
 python3 tests/test_host_frontend.py
+python3 tests/test_host_audio.py
+SDL_VIDEODRIVER=dummy SDL_AUDIODRIVER=dummy \
+  build/host/smb-v026-host --smoke --wav build/host/audio.wav
 ```
 
-Meta de regressão: 12 suítes PASS e pixels/RAM de
-600/600 para idle/input, sem desligar testes para obter
-um CI verde. Em caso de falha DNS no clone, verificar
-resultados do CI de **commit exato** e registrar bloqueio.
-
-## Dependências e estratégia Xbox
-
-DMC DMA em `machine.c` continua com stall fixo e IRQ
-amostrada após instruções; demanda refinamento de microciclos,
-principalmente colisões com OAM DMA e acesso a controles/PPU.
-Depois do mixer/PCM, expandir comparação diferencial
-para APU e investigar divergências de som/timing.
-
-Não existem XEX canônicos desta arquitetura testados
-em Xbox 360. O build antigo #16 sofreu Fatal Crash,
-e endereços hardcoded de framebuffer daquele backend
-não podem ser reutilizados.
-O workflow de build Xbox legado falha porque exige `boot-test.xex`
-que seu script não produz, apesar de compilar `default.xex`
-de `nathsou/smb` antigo. Isto não representa o core canônico.
-Diagnóstico e critérios de reparo:
-https://github.com/PedroMarioaBros/SMNEStoX360/issues/8 . Boot mínimo seguro, loop,
-vídeo, controles, runtime com ROM embutida, áudio e
-teste físico no console são tarefas não concluídas.
-
-**Arquitetura atual interpreta o código 6502 original**
-em software; ainda não é a tradução direta para PowerPC
-sem emulador pretendida pelo proprietário. Avaliar
-a conversão estática PPC como um esforço separado; não
-chamar o runtime atual de port nativo sem emulação.
-
-Em toda sessão: atualizar checkpoint/diário/próximos
-comandos, publicar commit na main e confirmar HEAD remoto.
+Atenção: a gravação WAV é possível sem dispositivo físico de
+áudio. A reprodução por SDL com alto-falantes requer um
+dispositivo real que não foi testado nesta sessão.
+Não existe novo XEX canônico validado no Xbox;
+build histórico #16 teve Fatal Crash.
+Não inferir progresso percentual total do port a partir
+de funções isoladas. Documentar e preservar
+`WORK_CHECKPOINT.md`, `SESSION_LOG.md`, esta
+tarefa, evidências e HEAD remoto após cada sessão.

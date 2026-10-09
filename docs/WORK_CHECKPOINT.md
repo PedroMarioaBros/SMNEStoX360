@@ -1,4 +1,75 @@
-# Checkpoint operacional — 2026-10-09 (S012)
+# Checkpoint operacional — 2026-10-09 (S013)
+
+## S013 — mixer NES, PCM 48 kHz, WAV canônico e SDL áudio
+
+Entrada main: `6e158f17572e17bfa85a8543710a47fdd73497d1`.
+Branch `work/s013-audio-pcm-20261009`.
+ROM exclusiva `assets/canonical/SMB_v026.nes`, 40.976 B,
+SHA-256 `57fb4ee14288853bc0c8a5a629a103e51e87a4ebae1cc699b435060d2690b047`;
+PRG `9f5b4f73bde569269645e154a1c8e43308afb2f156baa76e977296d7ca4ed9a4`,
+CHR `5e22a5c60aef64263ac7b17997479dfdad23389d1f0756c224412c8f7a5535d0`.
+ROM/PRG/CHR **não foram alterados**.
+
+Implementados `src/canonical/audio_pcm.[ch]`: mixer não linear
+NES (pulse1+pulse2 e triangle+noise+DMC), relógio integer de amostras
+à frequência CPU NTSC 1.789.773 Hz para PCM mono signed 16-bit
+48.000 Hz, filtros aproximados passa-altas 90/440 Hz e passa-baixas
+14 kHz, ganho de headroom. `src/host/main.c` transmite samples
+por `SDL_QueueAudio` quando dispositivo disponível e suporta
+`--wav` para gravação RIFF PCM little-endian determinística.
+Sem áudio disponível, o frontend continua funcionando.
+AUDIO capturado no limite de cada instrução, **não** interpolado
+por microciclos: fidelidade NES de áudio ainda não comprovada.
+
+Novos testes: `tests/test_audio_pcm.c`, adicionados aos C99
+normal + ASan/UBSan (13 suítes); `tests/test_host_audio.py`
+faz duas capturas de 600 quadros e confere SHA, duração, contagem,
+níveis não nulos e ausência de clipping. O workflow também arquiva
+`canonical-s013-audio-wav` como artefato por 30 dias.
+
+Validação nova S013: commit de código/CI
+`5666e3437e7073e781862991fa9d0b5fb4bd61ed`,
+https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/37892058096 ,
+**completed/success**, quatro jobs: host normal,
+host sanitizado, reference binjnes e frontend SDL.
+13/13 suites normal/san PASS; binjnes idle 600/600 pixels e RAM
+e roteiro 600/600 pixels e RAM; readback SDL 61.440 pixels PASS.
+A captura determinística `canonical-600frames.wav` tem
+**479.146 samples**, min −5.889 / max +6.328, 159.921 não nulos,
+sem saturação de 16 bits. SHA-256 de ambos os WAV:
+`3aa163954a75eaa13b9969c11f59fefd2da41ed8fc2d524c9edb6019b2b4d56c`.
+Artefato GitHub Actions identificado como
+`canonical-s013-audio-wav` (artifact id 11598404861, 30 dias,
+arquivo WAV descompactado 958.336 bytes).
+Evidência integral: [S013](evidence/S013/README.md).
+
+Tentativas falhas (workflows 37891903477, 37891908427,
+37891911591): fixture inicial esperava silêncio com APU inicial,
+mas o triangle DAC começa em 15 e mantém nível; correção
+foi no teste, não no runtime. Workflow agora observa arquivos
+`tests/test_audio*` para não perder regressões.
+
+**Limitações:** houve síntese e gravação WAV reproduzível,
+mas execução SDL auditiva só foi exercitada em ambiente
+dummy; sem teste real com caixa de som.
+Não há áudio de referência independente para comprovar
+fidelidade ao NES. DMC DMA/IRQ ainda aproximados por instrução,
+PPU não cycle-perfect. Xbox: nenhum XEX do core canônico
+iniciado em hardware; compilador histórico `nathsou/smb` é
+separado e possui falha registrada na issue #8.
+Runtime atual ainda interpreta 6502 em software, não realiza
+port nativo 6502→PowerPC sem emulador. Não inventar percentual
+total com base em cinco canais APU.
+
+Próxima S014: build canônico Xbox do `src/canonical`
+com PRG/CHR incorporados e tela/loop seguros,
+sem confundir com o XEX histórico; iniciar comparação
+sonora independente no host. Procedimento NEXT_STEPS.md.
+
+---
+
+# Checkpoints anteriores — S012 e anteriores
+
 
 ## S012 — DMC do NES + primeiro DMA/IRQ em runtime
 
