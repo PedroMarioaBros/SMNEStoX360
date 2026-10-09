@@ -136,3 +136,18 @@ Instruções operacionais atualizadas em `docs/NEXT_STEPS.md`.
     **success**, 4 jobs normal, ASan/UBSan, reference e frontend.
 - Isto valida código e empacotamento do commit final da branch,
   **não** execução Xbox. CI pós-merge deve ser conferido separadamente.
+
+## Verificação pós-merge do código na main (concluída)
+
+- Commit de código integrado na main `b3a0aa56d6b45be588cec0ebfd936f1cb070ce07`.
+- CI XEX canônico https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/37958798039
+  **completed/success**; artifact `smb360-CANONICAL-DIAGNOSTIC-xex`
+  id 11629836328, ZIP 153454 bytes, expirando em 08/11/2026.
+- CI host https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/37958798074
+  **completed/success**, quatro jobs `host (0)`, `host (1)`,
+  `reference`, `frontend` todos aprovados.
+- CI legado `Compilar SMB Xbox 360` no mesmo merge: `37958798128`
+  **failure** preexistente no workflow de terceiros, issue #8.
+  **Não** significa falha do novo `canonical-xex.yml`.
+- Somente compilação/headers/integridade verificados no CI;
+  Xbox físico **não** executado. Nenhuma prova de boot ou jogo jogável.
