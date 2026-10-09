@@ -5,6 +5,7 @@ void smb360_nrom_init(smb360_nrom *m, const uint8_t *prg, const uint8_t *chr) {
     memset(m, 0, sizeof(*m));
     m->prg = prg;
     m->chr = chr;
+    smb360_apu_init(&m->apu);
 }
 
 void smb360_nrom_set_controller1(smb360_nrom *m, uint8_t buttons) {
@@ -77,6 +78,7 @@ uint8_t smb360_nrom_read(smb360_nrom *m, uint16_t a) {
             *shift=(uint8_t)((*shift>>1)|0x80u);
         return v;
     }
+    if(a==0x4015u) return smb360_apu_read_status(&m->apu);
     if(a>=0x4000u && a<=0x4017u) return m->apu_io[a-0x4000u];
     if(a>=0x8000u) return m->prg[a-0x8000u];
     return 0; /* CPU open bus and expansion hardware are not yet modeled. */
@@ -116,5 +118,8 @@ void smb360_nrom_write(smb360_nrom *m,uint16_t a,uint8_t v) {
         }
         m->controller_strobe=strobe;return;
     }
-    if(a>=0x4000u && a<=0x4017u)m->apu_io[a-0x4000u]=v;
+    if(a>=0x4000u && a<=0x4017u){
+        m->apu_io[a-0x4000u]=v;
+        smb360_apu_write(&m->apu,a,v);
+    }
 }
