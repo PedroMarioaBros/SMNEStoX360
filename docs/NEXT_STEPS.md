@@ -8,8 +8,8 @@ fonte do PRG/CHR e do comportamento do jogo. Proibido trocá-la.
 ## S010 concluída no host — não é XEX Xbox
 
 Triangle implementado em `src/canonical/apu.[ch]`, junto a pulse1/pulse2.
-Códigos e testes da branch `work/s010-apu-triangle-20261009`:
-PR https://github.com/PedroMarioaBros/SMNEStoX360/pull/5 .
+PR #5 integrado à main: https://github.com/PedroMarioaBros/SMNEStoX360/pull/5 .
+Commit merge/squash: `dee528eabe2eb0f0c349d265d3ec256ba4ec91cf`.
 Commit exato do código validado:
 `73ca0151d153448e8d13cca07bdf395fd93618cd`.
 GitHub Actions:
