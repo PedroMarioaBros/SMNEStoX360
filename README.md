@@ -75,9 +75,15 @@ em pulse/triangle/noise e 0–127 no DMC. A arquitetura atual executa o PRG 6502
 em runtime de software, não é ainda tradução nativa PowerPC.
 O checkpoint separa implementação, testes sintéticos, execução da ROM e hardware.
 
-Os backends `src/platform/`, integrações `nathsou` e scripts Xbox antigos
-são históricos e **não estão ligados ao runtime canônico**. Não construir um
-jogo novo por esses caminhos sem a migração deliberada.
+Os backends antigos `src/platform/xex/`, integrações `nathsou`
+e `scripts/build-smb-xex.sh` são históricos e **não fazem parte do
+runtime canônico**. S014 acrescentou `src/platform/canonical_xex/`,
+`scripts/build-canonical-xex.sh` e um workflow separado
+`canonical-xex.yml` que compila o core C99 canônico inteiro para PPC,
+incorpora a ROM `SMB_v026.nes` completa e produz XEX2 verificado.
+É somente um executável **headless de diagnóstico**, sem imagem/áudio/input
+no console e ainda NÃO testado fisicamente em hardware. Ver
+[prova técnica S014](docs/evidence/S014/README.md).
 O build antigo #16 sofreu Fatal Crash imediato no Xbox 360 e não é funcional.
 
 A retomada Xbox deve seguir: boot mínimo → loop → vídeo seguro → controle →
