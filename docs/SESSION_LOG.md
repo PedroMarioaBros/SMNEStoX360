@@ -556,3 +556,14 @@ A identidade do commit que contém uma entrada pode ser consultada no histórico
   checkpoint atualizado, próxima S015 registrada
   em `docs/NEXT_STEPS.md`: validar boot físico,
   vídeo seguro, input e arquitetura nativa.
+
+### Fechamento S014 — publicação na main
+
+- PR #10 https://github.com/PedroMarioaBros/SMNEStoX360/pull/10
+  integrada por squash em `b3a0aa56d6b45be588cec0ebfd936f1cb070ce07`.
+- CI do HEAD final do PR `577e14041ab7de586b62cedf4f864d132d610043`:
+  Xbox canônico https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/37958685203
+  `completed/success`, artifact `smb360-CANONICAL-DIAGNOSTIC-xex`
+  #11630856127; host https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/37958685211
+  `completed/success`, quatro jobs normal/ASan-UBSan/reference/frontend.
+- Não declarar boot no Xbox nem jogo jogável. Próxima S015 registrada.
