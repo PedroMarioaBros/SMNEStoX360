@@ -34,8 +34,10 @@ test -s "$OUT/canonical.exe"
 "$TC/bin/synthxex" -i "$OUT/canonical.exe" -o "$OUT/default.xex" -t title
 test -s "$OUT/default.xex"
 test "$(dd if="$OUT/default.xex" bs=1 count=4 2>/dev/null)" = "XEX2"
+python3 tools/verify_canonical_xex.py --pe "$OUT/canonical.exe" --xex "$OUT/default.xex"
 # Retain machine-readable metadata that explicitly labels this as a diagnostic.
 sha256sum "$OUT/canonical.exe" "$OUT/default.xex" > "$OUT/SHA256SUMS.txt"
+cp docs/TESTE_FISICO_S015.md "$OUT/TESTE_XBOX_S015.md"
 cat > "$OUT/BUILD_MANIFEST.txt" <<EOF
 build_kind=CANONICAL_DIAGNOSTIC_NOT_PLAYABLE
 project_commit=$(git rev-parse HEAD)
@@ -47,8 +49,8 @@ source_tree=src/canonical/*.c
 entry=src/platform/canonical_xex/main.c
 embedded_rom=src/platform/canonical_xex/embedded_rom.S
 cpu_backend=6502_instruction_interpreter_on_PowerPC
-video_backend=NONE_SAFE_HEADLESS
-audio_backend=NONE
+video_backend=XAM_NOTIFICATIONS_ONLY
+input_backend=XAM_INPUT_TWO_PADS\nprobe_mode=120_FRAMES_WITH_XAM_START_PASS_NOTICES\naudio_backend=NONE
 xbox_hardware_validation=NOT_TESTED
 EOF
-echo "S014 canonical diagnostic XEX build PASS (build only, not hardware boot)"
+echo "S015 canonical observable diagnostic XEX build PASS (build only, not hardware boot)"

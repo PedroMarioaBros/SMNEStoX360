@@ -8,6 +8,8 @@ on:
       - 'src/platform/canonical_xex/**'
       - 'scripts/build-canonical-xex.sh'
       - 'tools/verify_repository.py'
+      - 'tools/verify_canonical_xex.py'
+      - 'docs/TESTE_FISICO_S015.md'
       - 'assets/canonical/**'
       - '.github/workflows/canonical-xex.yml'
   pull_request:
@@ -16,6 +18,8 @@ on:
       - 'src/platform/canonical_xex/**'
       - 'scripts/build-canonical-xex.sh'
       - 'tools/verify_repository.py'
+      - 'tools/verify_canonical_xex.py'
+      - 'docs/TESTE_FISICO_S015.md'
       - 'assets/canonical/**'
       - '.github/workflows/canonical-xex.yml'
 permissions:
@@ -113,9 +117,9 @@ jobs:
           test "$(dd if="$SMB360_CANONICAL_XEX_WORK/default.xex" bs=1 count=4 2>/dev/null)" = "XEX2"
           grep -q '^build_kind=CANONICAL_DIAGNOSTIC_NOT_PLAYABLE$' "$SMB360_CANONICAL_XEX_WORK/BUILD_MANIFEST.txt"
           grep -q '^source_tree=src/canonical/\*.c$' "$SMB360_CANONICAL_XEX_WORK/BUILD_MANIFEST.txt"
-          grep -q '^video_backend=NONE_SAFE_HEADLESS$' "$SMB360_CANONICAL_XEX_WORK/BUILD_MANIFEST.txt"
+          grep -q '^video_backend=XAM_NOTIFICATIONS_ONLY$' "$SMB360_CANONICAL_XEX_WORK/BUILD_MANIFEST.txt"
           (cd "$SMB360_CANONICAL_XEX_WORK" && sha256sum -c SHA256SUMS.txt)
-          echo "S014 XEX2 header/manifest/sha: PASS (no Xbox hardware test)"
+          echo "S015 XEX2 header/manifest/sha: PASS (no Xbox hardware test)"
 
       - name: Archive isolated canonical diagnostic, not a playable game
         uses: actions/upload-artifact@v4
@@ -126,6 +130,7 @@ jobs:
             build-canonical-xex/canonical.exe
             build-canonical-xex/SHA256SUMS.txt
             build-canonical-xex/BUILD_MANIFEST.txt
+            build-canonical-xex/TESTE_XBOX_S015.md
           if-no-files-found: error
           retention-days: 30
 

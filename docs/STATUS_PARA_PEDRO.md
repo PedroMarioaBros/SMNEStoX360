@@ -1,6 +1,14 @@
 # Super Mario Bros. NES → Xbox 360 — situação para o proprietário
 
-**Fotografia de 09/10/2026.** Para iniciar qualquer trabalho técnico, siga obrigatoriamente [START_HERE.md](../START_HERE.md), [AGENTS.md](../AGENTS.md), [docs/WORK_CHECKPOINT.md](WORK_CHECKPOINT.md) e [docs/NEXT_STEPS.md](NEXT_STEPS.md). Este resumo não substitui o histórico técnico.
+**Fotografia de 09/10/2026 — atualização S015.**
+Agora o pacote de diagnóstico canônico tem um modo de **teste físico de boot**:
+solicita notificações START/PASS pelo dashboard Xbox, lê até dois controles,
+confere a ROM integral embutida no PE PowerPC e processa 120 quadros.
+**Ainda não é Mario jogável**, não existe vídeo/áudio do jogo no Xbox e
+**o boot ainda não foi testado fisicamente**.
+Para testar quando o artifact verde for confirmado na main,
+siga [TESTE_FISICO_S015.md](TESTE_FISICO_S015.md).
+ Para iniciar qualquer trabalho técnico, siga obrigatoriamente [START_HERE.md](../START_HERE.md), [AGENTS.md](../AGENTS.md), [docs/WORK_CHECKPOINT.md](WORK_CHECKPOINT.md) e [docs/NEXT_STEPS.md](NEXT_STEPS.md). Este resumo não substitui o histórico técnico.
 
 [⬅ Painel central Xbox 360](https://github.com/PedroMarioaBros/OpenXeChain-X360-Builder/blob/main/docs/PAINEL_PMCN_XBOX360.md) · [Código](https://github.com/PedroMarioaBros/SMNEStoX360) · [GitHub Actions](https://github.com/PedroMarioaBros/SMNEStoX360/actions)
 

@@ -1,4 +1,41 @@
-# Checkpoint operacional — 2026-10-09 (S014)
+# Checkpoint operacional — 2026-10-09 (S015)
+
+## S015 — diagnóstico XAM e dois controles Xbox
+
+HEAD de entrada `884c5db3defec68fbf58793fccbbc69a225584c2`.
+Branch `work/s015-observable-boot-20261009`. ROM original
+`SMB_v026.nes` preservada byte a byte e verificada por SHA-256.
+O core canônico continua sendo compilado sem nathsou.
+
+`controller_map.[ch]` converte os botões Xbox para os oito botões NES,
+com teste sintético dos dois ports $4016 e $4017; agora são 14 suítes.
+O alvo Xbox passa a consultar ambos os controles com
+`XamInputGetState` e tenta exibir notificações XAM no início
+e após 120 quadros. Continua SEM framebuffer direto, sem vídeo
+do Mario e sem saída de áudio para console.
+
+`tools/verify_canonical_xex.py` conferiu PE PowerPC 0x01f2,
+quatro seções e a ROM completa de 40976 bytes no offset PE
+0x16c00, além do XEX2; CI:
+https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/37965972564
+A falha intermediária 37966195621 foi uma comparação obsoleta
+do campo `video_backend` no workflow; compilação já passava.
+A checagem foi atualizada. O aviso LLD sobre /align permanece
+sem teste físico para determinar seu impacto.
+
+Guia ao proprietário: [TESTE_FISICO_S015.md](TESTE_FISICO_S015.md).
+Evidência: [S015](evidence/S015/README.md).
+O proprietário deve receber um aviso explícito com o artefato
+e instruções quando os testes do build final estiverem verdes.
+Nenhum boot Xbox foi comprovado; o runtime ainda interpreta
+CPU 6502 em C compilado para PowerPC.
+Próxima fase após teste físico: vídeo seguro sem MMIO antigo,
+áudio Xbox, input em jogabilidade e tradução estática PPC.
+
+---
+
+# Checkpoints anteriores — S014 e predecessores
+
 
 > **Organização documental de 09/10/2026 (sem nova versão do jogo):** consulte [STATUS_PARA_PEDRO.md](STATUS_PARA_PEDRO.md) e [painel central PMCN](https://github.com/PedroMarioaBros/OpenXeChain-X360-Builder/blob/main/docs/PAINEL_PMCN_XBOX360.md). O build nathsou antigo foi identificado como **LEGADO, execução manual apenas** no workflow `xbox360-cloud-build.yml`; não faz parte da rota canônica. O workflow `canonical-xex.yml`, a ROM e os testes seguem inalterados; **S015 continua pendente**, sem novo boot físico.
 
