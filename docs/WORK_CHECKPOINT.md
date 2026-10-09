@@ -34,6 +34,11 @@ Validação nova S013: commit de código/CI
 https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/37892058096 ,
 **completed/success**, quatro jobs: host normal,
 host sanitizado, reference binjnes e frontend SDL.
+O merge S013 também passou na main: commit
+`64a7edaa76c14b069da283023bab38d1b64e1173`,
+run https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/37892331535
+(quatro jobs `success`, artifact WAV `canonical-s013-audio-wav`,
+id `11599295620`).
 13/13 suites normal/san PASS; binjnes idle 600/600 pixels e RAM
 e roteiro 600/600 pixels e RAM; readback SDL 61.440 pixels PASS.
 A captura determinística `canonical-600frames.wav` tem
