@@ -72,10 +72,17 @@
   A existência de XEX2/compilação **NÃO garante boot**.
   Sem acesso físico ao console, nenhum teste de boot ou
   quadro mostrado no Xbox foi realizado nesta sessão.
-- A validação host da S013 continua sendo o baseline,
-  com 13 suítes normais/san, comparação binjnes
-  pixels/RAM 600+600 e captura PCM. Testar novamente
-  se qualquer novo código no core for alterado.
+- Regressão host disparada pelo novo gatilho
+  no commit `0217fc98606e491c4458855e7f413b581474d36e`:
+  https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/37958266320
+  **completed/success**, quatro jobs normal, ASan/UBSan,
+  binjnes e SDL. 13 suítes host PASS normal e san.
+  Idle pixels/RAM 600/600; input pixels/RAM 600/600.
+  SDL readback 61.440 pixels PASS; WAV 600 quadros
+  479146 samples, min -5889/max 6328,
+  159921 não-zero, SHA256
+  `3aa163954a75eaa13b9969c11f59fefd2da41ed8fc2d524c9edb6019b2b4d56c`.
+  São regressões host reproduzidas, não execução no Xbox.
 
 ## Escolha de segurança
 
