@@ -7,7 +7,10 @@ da ROM/PRG/CHR antes de executar. Não trocar assets ou gameplay.
 
 ## Estado de partida
 
-S011 implementa o canal noise da APU 2A03 em `src/canonical/apu.[ch]`,
+S011 foi integrada pela PR #6
+https://github.com/PedroMarioaBros/SMNEStoX360/pull/6
+(commit squash `d8a9c0a60a2aa46b92276d1ece0c0558204dc2e3`).
+O canal noise da APU 2A03 foi implementado em `src/canonical/apu.[ch]`,
 com os dois pulses e triangle anteriores. Código de trabalho integrado a
 `tests/run_host_tests.sh` com uma décima primeira suíte:
 `tests/test_apu_noise.c` (5 cenários, 16 períodos NTSC).
