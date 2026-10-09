@@ -27,7 +27,11 @@ preservados. Mais uma suíte de teste, `test_apu_noise.c`, agora
 https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/37890367890
 (commit `19b5e2977aef8d98bea0c84c044d13318685b2a5`).
 Status **completed/success**, quatro jobs verdes: host normal,
-host sanitizado (ASan/UBSan), reference e frontend SDL. Todas
+host sanitizado (ASan/UBSan), reference e frontend SDL.
+O merge S011 também passou em CI na main: commit
+`d8a9c0a60a2aa46b92276d1ece0c0558204dc2e3`, workflow
+https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/37890597158
+(quatro jobs concluídos com sucesso). Todas
 as 11 suítes host passaram nos dois modos. O comparador binjnes
 obteve 600/600 pixels e RAM no cenário idle e 600/600 pixels e RAM
 com entrada. SDL readback conferiu 61.440 pixels; captura 599
