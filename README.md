@@ -1,12 +1,21 @@
 # SMB360 — SMB_v026 no Xbox 360
 
+## 🧭 Situação atual sem linguagem técnica
+
+**[LEIA AQUI — STATUS PARA PEDRO](docs/STATUS_PARA_PEDRO.md)** · [Painel central dos projetos Xbox 360](https://github.com/PedroMarioaBros/OpenXeChain-X360-Builder/blob/main/docs/PAINEL_PMCN_XBOX360.md)
+
+**Caminho oficial:** `canonical-xex.yml` + `src/canonical/` + ROM `SMB_v026.nes`. A CI gera um XEX2 de **diagnóstico sem vídeo/áudio/controles**, ainda **não testado no Xbox físico**. A antiga compilação `xbox360-cloud-build.yml` usa `nathsou`, não é a entrega canônica e suas falhas não anulam a CI canônica. Consulte [S014](docs/evidence/S014/README.md) e [próxima etapa S015](docs/NEXT_STEPS.md).
+
+---
+
+
 **Novo chat ou Work: leia [START_HERE.md](START_HERE.md) antes de trabalhar.**
 O registro de cada avanço, da próxima ação e do próximo comando no GitHub é
 obrigatório para toda sessão e todo sucessor.
 
 O produto final pretendido é um `default.xex` que inicia diretamente a ROM
 SMB_v026 integrada ao executável, sem seletor de ROM ou interface de emulador.
-**Ainda não existe um XEX validado dessa arquitetura canônica.**
+**Ainda não existe um XEX dessa arquitetura validado no Xbox físico como jogo jogável.**
 
 ## Fonte de verdade
 
