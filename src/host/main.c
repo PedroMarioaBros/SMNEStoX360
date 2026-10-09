@@ -5,9 +5,68 @@
 #include <string.h>
 #include <inttypes.h>
 #include "../canonical/machine.h"
+#include "../canonical/audio_pcm.h"
 #include "canonical_assets.h"
 
 static smb360_machine machine;
+
+/* SDL queued playback and WAV capture consume the same PCM stream. */
+typedef struct {
+ SDL_AudioDeviceID device;
+ FILE *wav;
+ int16_t buffer[2048];
+ unsigned buffered;
+ uint64_t written;
+ int failed;
+} host_audio;
+static void audio_flush(host_audio *a){
+ if(!a->buffered || a->failed)return;
+ if(a->wav){
+  uint8_t bytes[4096];
+  for(unsigned i=0;i<a->buffered;i++){
+   uint16_t v=(uint16_t)a->buffer[i];
+   bytes[i*2]=(uint8_t)v;
+   bytes[i*2+1]=(uint8_t)(v>>8);
+  }
+  if(fwrite(bytes,2,a->buffered,a->wav)!=a->buffered)a->failed=1;
+ }
+ if(a->device && !a->failed){
+  if(SDL_GetQueuedAudioSize(a->device)>SMB360_PCM_RATE*2u/3u)
+   SDL_ClearQueuedAudio(a->device);
+  if(SDL_QueueAudio(a->device,a->buffer,a->buffered*sizeof(a->buffer[0])))
+   a->failed=1;
+ }
+ a->written+=a->buffered;
+ a->buffered=0;
+}
+static void audio_sink(int16_t sample,void *opaque){
+ host_audio *a=(host_audio*)opaque;
+ a->buffer[a->buffered++]=sample;
+ if(a->buffered==2048u)audio_flush(a);
+}
+static void wav_u16(FILE*f,uint16_t v){
+ fputc((int)(v&255u),f);fputc((int)(v>>8),f);
+}
+static void wav_u32(FILE*f,uint32_t v){
+ wav_u16(f,(uint16_t)v);wav_u16(f,(uint16_t)(v>>16));
+}
+static int wav_finish(host_audio *a){
+ uint32_t data;
+ if(!a->wav)return 0;
+ if(a->written>0x7fffff00u)return -1;
+ data=(uint32_t)(a->written*2u);
+ if(fseek(a->wav,0,SEEK_SET))return -1;
+ if(fwrite("RIFF",1,4,a->wav)!=4)return -1;
+ wav_u32(a->wav,data+36u);
+ if(fwrite("WAVEfmt ",1,8,a->wav)!=8)return -1;
+ wav_u32(a->wav,16u);wav_u16(a->wav,1u);wav_u16(a->wav,1u);
+ wav_u32(a->wav,SMB360_PCM_RATE);wav_u32(a->wav,SMB360_PCM_RATE*2u);
+ wav_u16(a->wav,2u);wav_u16(a->wav,16u);
+ if(fwrite("data",1,4,a->wav)!=4)return -1;
+ wav_u32(a->wav,data);
+ return ferror(a->wav)?-1:0;
+}
+
 static uint8_t held[SDL_NUM_SCANCODES];
 static SDL_GameController *pads[2];
 static const SDL_Scancode keys[2][8]={
@@ -53,11 +112,13 @@ int main(int argc,char **argv){
  SDL_Window *window=NULL;SDL_Renderer *renderer=NULL;SDL_Texture *texture=NULL;
  uint32_t rgba[256*240];unsigned frames=0,limit=0,i,unique=0;
  int smoke=0,running=1,focused=1,paused=0,result=1;
- const char *dump=NULL;double next,frequency;uint64_t keyboard_transitions=0;
+ smb360_pcm pcm;host_audio audio={0};
+ const char *dump=NULL,*wav_path=NULL;double next,frequency;uint64_t keyboard_transitions=0;
  for(int a=1;a<argc;a++){
   if(!strcmp(argv[a],"--smoke")){smoke=1;limit=600;}
   else if(!strcmp(argv[a],"--dump") && a+1<argc)dump=argv[++a];
-  else {fprintf(stderr,"usage: %s [--smoke] [--dump frame.bin]\n"
+  else if(!strcmp(argv[a],"--wav") && a+1<argc)wav_path=argv[++a];
+  else {fprintf(stderr,"usage: %s [--smoke] [--dump frame.bin] [--wav audio.wav]\n"
    "P1: arrows, Z jump, X run/fire, Enter Start, right Shift Select\n"
    "P2: WASD, G jump, F run/fire, Space Start, Tab Select\n"
    "Gamepad: d-pad, A jump, X run/fire, Start/Back. P pause; Escape quit.\n",argv[0]);
@@ -75,6 +136,20 @@ int main(int argc,char **argv){
  if(!texture)goto done;
  for(int j=0;j<SDL_NumJoysticks();j++)connect_pad(j);
  smb360_machine_init(&machine,canonical_prg,canonical_chr);
+ smb360_pcm_init(&pcm);
+ if(wav_path){
+  const uint8_t header[44]={0};
+  audio.wav=fopen(wav_path,"wb");
+  if(!audio.wav){perror(wav_path);goto done;}
+  if(fwrite(header,1,sizeof(header),audio.wav)!=sizeof(header))goto done;
+ }
+ if(!smoke && SDL_InitSubSystem(SDL_INIT_AUDIO)==0){
+  SDL_AudioSpec desired;SDL_zero(desired);
+  desired.freq=SMB360_PCM_RATE;desired.format=AUDIO_S16SYS;
+  desired.channels=1;desired.samples=2048;
+  audio.device=SDL_OpenAudioDevice(NULL,0,&desired,NULL,0);
+  if(audio.device)SDL_PauseAudioDevice(audio.device,0);
+ }
  frequency=(double)SDL_GetPerformanceFrequency();next=(double)SDL_GetPerformanceCounter();
  while(running && (!limit || frames<limit)){
   SDL_Event e;
@@ -103,11 +178,18 @@ int main(int argc,char **argv){
   smb360_nrom_set_controller1(&machine.bus,input(0,focused));
   smb360_nrom_set_controller2(&machine.bus,input(1,focused));
   do {
+   uint64_t previous=machine.bus.apu.cpu_cycles;
    if(!smb360_machine_step(&machine)){
     fprintf(stderr,"unsupported opcode at $%04X: $%02X\n",machine.cpu.opcode_pc,machine.cpu.stopped&255);goto done;
    }
+   if(audio.wav || audio.device){
+    uint64_t elapsed=machine.bus.apu.cpu_cycles-previous;
+    smb360_pcm_advance(&pcm,&machine.bus.apu,(uint32_t)elapsed,audio_sink,&audio);
+    if(audio.failed)goto done;
+   }
   }while(machine.ppu.frame<frames || machine.ppu.scanline<241 ||
          (machine.ppu.scanline==241 && machine.ppu.dot<1));
+  audio_flush(&audio);if(audio.failed)goto done;
   for(i=0;i<256*240;i++)rgba[i]=host_palette[machine.bus.completed_pixels[i]&63];
   if(SDL_UpdateTexture(texture,NULL,rgba,256*(int)sizeof(uint32_t)) ||
      SDL_RenderClear(renderer) || SDL_RenderCopy(renderer,texture,NULL,NULL))goto done;
@@ -146,9 +228,18 @@ int main(int argc,char **argv){
  for(i=0;i<256;i++)if(machine.cpu.opcode_hits[i])printf(" %02X:%" PRIu64,i,machine.cpu.opcode_hits[i]);
  printf("\npc=$%04X ppu_frame=%" PRIu64 " scanline=%u dot=%u first_nmi_pc=$%04X first_nmi_cycle=%" PRIu64 "\n",
    machine.cpu.pc,machine.ppu.frame,machine.ppu.scanline,machine.ppu.dot,machine.first_nmi_pc,machine.first_nmi_cycle);
+ if(wav_finish(&audio))goto done;
+ if(audio.wav){
+  if(fclose(audio.wav)){audio.wav=NULL;goto done;}
+  audio.wav=NULL;
+  printf("audio_samples=%" PRIu64 " rate=%u bits=16 channels=1\n",
+         pcm.samples,SMB360_PCM_RATE);
+ }
  result=(smoke && (frames!=600 || keyboard_transitions!=6))?1:0;
  done:
  if(result)fprintf(stderr,"host failed: %s\n",SDL_GetError());
+ if(audio.wav)fclose(audio.wav);
+ if(audio.device)SDL_CloseAudioDevice(audio.device);
  for(i=0;i<2;i++)if(pads[i])SDL_GameControllerClose(pads[i]);
  if(texture)SDL_DestroyTexture(texture);
  if(renderer)SDL_DestroyRenderer(renderer);
