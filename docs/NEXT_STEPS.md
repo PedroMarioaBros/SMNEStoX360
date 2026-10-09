@@ -78,7 +78,12 @@ para APU e investigar divergências de som/timing.
 Não existem XEX canônicos desta arquitetura testados
 em Xbox 360. O build antigo #16 sofreu Fatal Crash,
 e endereços hardcoded de framebuffer daquele backend
-não podem ser reutilizados. Boot mínimo seguro, loop,
+não podem ser reutilizados.
+O workflow de build Xbox legado falha porque exige `boot-test.xex`
+que seu script não produz, apesar de compilar `default.xex`
+de `nathsou/smb` antigo. Isto não representa o core canônico.
+Diagnóstico e critérios de reparo:
+https://github.com/PedroMarioaBros/SMNEStoX360/issues/8 . Boot mínimo seguro, loop,
 vídeo, controles, runtime com ROM embutida, áudio e
 teste físico no console são tarefas não concluídas.
 
