@@ -1,5 +1,8 @@
 # Checkpoint operacional — 2026-10-09 (S014)
 
+> **Organização documental de 09/10/2026 (sem nova versão do jogo):** consulte [STATUS_PARA_PEDRO.md](STATUS_PARA_PEDRO.md) e [painel central PMCN](https://github.com/PedroMarioaBros/OpenXeChain-X360-Builder/blob/main/docs/PAINEL_PMCN_XBOX360.md). O build nathsou antigo foi identificado como **LEGADO, execução manual apenas** no workflow `xbox360-cloud-build.yml`; não faz parte da rota canônica. O workflow `canonical-xex.yml`, a ROM e os testes seguem inalterados; **S015 continua pendente**, sem novo boot físico.
+
+
 ## S014 — primeiro XEX2 compilado com ROM e runtime canônicos (diagnóstico)
 
 Entrada main `cdcda47f9952afa92b09228a4da100a463ef97c0`.
