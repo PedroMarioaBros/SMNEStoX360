@@ -1,4 +1,57 @@
-# Checkpoint operacional — 2026-10-09 (S010)
+# Checkpoint operacional — 2026-10-09 (S011)
+
+## S011 — quarto canal APU: noise
+
+HEAD de entrada: `c7e4cc7c7954d6fad528dd5a23a7a5b0c89fbf74`.
+Branch de desenvolvimento: `work/s011-apu-noise-20261009`.
+ROM do proprietário `SMB_v026.nes`, 40976 bytes, hash canônico
+`57fb4ee14288853bc0c8a5a629a103e51e87a4ebae1cc699b435060d2690b047`;
+PRG/CHR preservados, conferidos também por SHA-256
+(documentados em [identidade](SMB_V026_CANONICAL_ROM.md)).
+Clone local remoto indisponível por DNS; publicação e CI via conexão
+GitHub, sem copiar arquivos de ROM externa.
+
+Implementado `src/canonical/apu.[ch]`: canal noise NTSC, $400C
+envelope/volume/length halt, $400E modo e seleção dos 16 períodos,
+$400F length + envelope start, $4015 bit3 de habilitação/status.
+Registrador LFSR de 15 bits com seed 1, taps bit0/bit1 (longo) e
+bit0/bit6 (curto), timer CPU/2, envelope quarter-frame,
+length half-frame e saída DAC 0..15 silenciada por bit0/length.
+$400D ignorado. Pulse1, pulse2, triangle e leitura $4017 (controle2)
+preservados. Mais uma suíte de teste, `test_apu_noise.c`, agora
+11 suítes host. Teste de barramento ampliado em `test_ppu_registers.c`.
+
+**Validação de código no GitHub Actions**:
+https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/37890367890
+(commit `19b5e2977aef8d98bea0c84c044d13318685b2a5`).
+Status **completed/success**, quatro jobs verdes: host normal,
+host sanitizado (ASan/UBSan), reference e frontend SDL. Todas
+as 11 suítes host passaram nos dois modos. O comparador binjnes
+obteve 600/600 pixels e RAM no cenário idle e 600/600 pixels e RAM
+com entrada. SDL readback conferiu 61.440 pixels; captura 599
+idêntica à referência. Esses resultados dizem respeito ao
+commit de código acima, não a commits documentais posteriores
+e não verificam waveform de áudio.
+Uma tentativa CI anterior, workflow `37890305871`, falhou porque
+o novo teste de integração presumia LFSR=1 depois do RESET da CPU;
+os sete ciclos de RESET já haviam avançado o registrador.
+A correção captura o estado após RESET e confere que as escritas
+$400C/$400E/$400F não o reinicializam. **Foi a fixture, não o
+jogo, que precisou de correção.** Histórico: [S011](evidence/S011/README.md).
+
+Limites: quatro unidades APU com nível digital implementado, sem DMC,
+mixer não-linear, saída PCM/SDL ou som audível; IRQ APU ainda não ligada
+à CPU, sem temporização por microciclos/validação de waveform.
+Nenhum XEX da arquitetura atual foi validado em hardware;
+build histórico #16 teve Fatal Crash. A CPU 6502 é executada
+em software, não é um port nativo PowerPC livre de interpretação.
+Próxima tarefa S012: DMC, bus DMA/IRQ, tests e PCM mais adiante;
+comandos em NEXT_STEPS.md.
+
+---
+
+# Checkpoints anteriores (S010 e predecessores)
+
 
 ## S010 — terceiro canal APU, triangle, validado no host
 

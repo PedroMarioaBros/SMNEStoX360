@@ -10,7 +10,7 @@ static void address(uint16_t a) {
  smb360_nrom_write(&m.bus,0x2006,(uint8_t)a);
 }
 int main(void){
- unsigned i; uint64_t before; uint8_t original;
+ unsigned i; uint64_t before; uint8_t original; uint16_t noise_shift_before;
  prg[0x7ffc]=0;prg[0x7ffd]=0x80;
  smb360_machine_init(&m,prg,chr);
  smb360_nrom_ppu_write(&m.bus,0x2000,0x42);
@@ -68,7 +68,8 @@ int main(void){
  assert(m.bus.apu.cpu_cycles==m.cpu.cycles);
  /* Pulse + triangle writes reach separate APU channels without changing
   * $4017 controller 2 read semantics. $4015 reports live lengths. */
- smb360_nrom_write(&m.bus,0x4015u,7u);
+ noise_shift_before=m.bus.apu.noise.shift_register;
+ smb360_nrom_write(&m.bus,0x4015u,15u);
  smb360_nrom_write(&m.bus,0x4000u,0xd9u);
  smb360_nrom_write(&m.bus,0x4004u,0xdau);
  smb360_nrom_write(&m.bus,0x4002u,8u);
@@ -78,18 +79,25 @@ int main(void){
  smb360_nrom_write(&m.bus,0x4008u,0x82u);
  smb360_nrom_write(&m.bus,0x400au,0x08u);
  smb360_nrom_write(&m.bus,0x400bu,0x18u);
- assert((smb360_nrom_read(&m.bus,0x4015u)&7u)==7u);
+ smb360_nrom_write(&m.bus,0x400cu,0x1bu);
+ smb360_nrom_write(&m.bus,0x400eu,0x80u);
+ smb360_nrom_write(&m.bus,0x400fu,0x18u);
+ assert((smb360_nrom_read(&m.bus,0x4015u)&15u)==15u);
  assert(m.bus.apu.pulse1.length==2u && m.bus.apu.pulse2.length==2u);
  assert(m.bus.apu.triangle.length==2u && m.bus.apu.triangle.linear_reload_flag==1u);
+ assert(m.bus.apu.noise.length==2u && m.bus.apu.noise.mode==1u);
+ assert(m.bus.apu.noise.shift_register==noise_shift_before);
+ /* Initial CPU RESET cycles already ticked the LFSR; register writes do not reset it. */
  smb360_nrom_set_controller2(&m.bus,1u);
  smb360_nrom_write(&m.bus,0x4016u,1u);
  assert(smb360_nrom_read(&m.bus,0x4017u)==1u);
  smb360_nrom_write(&m.bus,0x4016u,0u);
  assert(smb360_nrom_read(&m.bus,0x4017u)==1u);
  smb360_nrom_write(&m.bus,0x4015u,1u);
- assert((smb360_nrom_read(&m.bus,0x4015u)&7u)==1u);
+ assert((smb360_nrom_read(&m.bus,0x4015u)&15u)==1u);
  assert(m.bus.apu.pulse1.length==2u && m.bus.apu.pulse2.length==0u);
- assert(m.bus.apu.triangle.length==0u);
+ assert(m.bus.apu.triangle.length==0u && m.bus.apu.noise.length==0u);
+ assert(smb360_apu_noise_output(&m.bus.apu)==0u);
  assert(smb360_apu_triangle_output(&m.bus.apu)==15u);
  assert(m.bus.apu.cpu_cycles==m.cpu.cycles);
  for(i=0;i<256;i++)m.bus.ram[0x200+i]=(uint8_t)i;

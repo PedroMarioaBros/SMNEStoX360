@@ -1,44 +1,45 @@
-# Próxima ação — após S010 (09/10/2026)
+# Próxima ação — após S011 (09/10/2026)
 
-Ao iniciar uma sessão: `START_HERE.md` → `AGENTS.md` →
-`CONTINUITY_PROTOCOL.md` → `WORK_CHECKPOINT.md` → este documento →
-`SESSION_LOG.md`. A ROM `assets/canonical/SMB_v026.nes` é a única
-fonte do PRG/CHR e do comportamento do jogo. Proibido trocá-la.
+Ao iniciar: START_HERE.md → AGENTS.md → docs/CONTINUITY_PROTOCOL.md →
+docs/WORK_CHECKPOINT.md → docs/NEXT_STEPS.md → docs/SESSION_LOG.md.
+Usar **exclusivamente** `assets/canonical/SMB_v026.nes`; confirmar SHA-256
+da ROM/PRG/CHR antes de executar. Não trocar assets ou gameplay.
 
-## S010 concluída no host — não é XEX Xbox
+## Estado de partida
 
-Triangle implementado em `src/canonical/apu.[ch]`, junto a pulse1/pulse2.
-PR #5 integrado à main: https://github.com/PedroMarioaBros/SMNEStoX360/pull/5 .
-Commit merge/squash: `dee528eabe2eb0f0c349d265d3ec256ba4ec91cf`.
-Commit exato do código validado:
-`73ca0151d153448e8d13cca07bdf395fd93618cd`.
-GitHub Actions:
-https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/37889762682
-(`success`: normal, sanitizers, SDL e binjnes 600+600).
-Os resultados são dos cenários medidos, não certificação de áudio ou console.
-Atenção à falha de fixture histórica e resolução descritas em evidence/S010.
+S011 implementa o canal noise da APU 2A03 em `src/canonical/apu.[ch]`,
+com os dois pulses e triangle anteriores. Código de trabalho integrado a
+`tests/run_host_tests.sh` com uma décima primeira suíte:
+`tests/test_apu_noise.c` (5 cenários, 16 períodos NTSC).
+CI do código S011:
+https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/37890367890
+(commit `19b5e2977aef8d98bea0c84c044d13318685b2a5`).
+Conferir conclusão exata no workflow e status do PR antes de reusar.
+Evidência e falha de fixture: docs/evidence/S011/README.md.
+Não recontar regressões anteriores como novo progresso.
 
-## Tarefa técnica ativa: S011 — noise da APU 2A03
+## Tarefa S012 — implementar DMC com segurança
 
-1. Inspecionar `src/canonical/apu.[ch]`, `nrom.[ch]`, `machine.c`
-   e os testes; conferir HEAD e hashes canônicos no checkout.
-2. Implementar o canal noise nos registradores $400C/$400E/$400F:
-   envelope, length, período via tabela NTSC de 16 entradas, controle
-   de modo/taps do registrador de deslocamento (LFSR de 15 bits) e
-   nível 0–15; temporização CPU/2. $400D é ignorado.
-   Sem modificar pulse1/pulse2/triangle nem mudar a ROM.
-3. Incluir bit3 de enable/status $4015. Testar recarga de envelope,
-   length halt/decay, períodos de noise, avanço do LFSR em ambos modos,
-   saída silenciada pelo bit0 do LFSR, $4015, reset e independência
-   dos demais canais.
-4. Comprovar normal `-std=c99 -Wall -Wextra -Werror` e ASan/UBSan.
-   Repetir `python3 tools/compare_reference.py --idle-frames 600
-   --input-frames 600`: pixels/RAM 600/600 nos dois roteiros,
-   investigar cada desvio sem editar hash esperado.
-5. Registrar evidência com parâmetros, commits exatos, sucessos/falhas
-   e limitações; publicar código e docs, verificar HEAD remoto.
+1. Ler `src/canonical/apu.[ch]`, `nrom.[ch]`, `machine.c`,
+   `cpu6502.[ch]`, tests e docs da última sessão.
+2. Definir DMC ($4010–$4013 e $4015 bit4), tabela NTSC de 16
+   períodos, DAC de 7 bits ($4011), registros de endereço e tamanho
+   de amostra, shifter de 8 bits, controle de buffer, loop, IRQ.
+   Acesso de amostra deve ler **somente o PRG canônico** pelo barramento
+   em $C000–$FFFF; nunca importar outra ROM.
+3. Projetar e testar o DMA da DMC (stalls CPU e interação com OAM DMA),
+   IRQ de DMC e frame IRQ e interrupções no 6502. **Não ativar
+   interrupções no core sem testes reais**; parte do timing hoje é por
+   instrução e exige atenção à ordem de leitura/escrita.
+4. Testes sintéticos para ler amostras, wrap $FFFF→$8000, shifts,
+   saturação do DAC 0..127, enable/disable, loop/IRQ, períodos
+   NTSC, comprimento, endereço; ausência de opcodes mascarados.
+5. Validar build C99 `-Wall -Wextra -Werror`, suíte normal e ASan/UBSan,
+   execução canônica pelo wrapper, comparação binjnes 600+600 de
+   quadros/RAM. Ampliar comparação independente para saída e/ou estado
+   de APU antes de alegar **áudio NES fiel**.
 
-Comandos copiáveis (clone limpo, Linux com C99/Python3/SDL2 dev):
+Comandos copiáveis no clone limpo:
 
 ```sh
 git clone https://github.com/PedroMarioaBros/SMNEStoX360.git
@@ -47,28 +48,27 @@ git log -1 --oneline
 python3 tools/verify_repository.py
 sh tests/run_host_tests.sh
 ASAN_OPTIONS=detect_leaks=0 SANITIZE=1 sh tests/run_host_tests.sh
+python3 tools/run_canonical.py assets/canonical/SMB_v026.nes \
+  --instructions 5000000 --input tests/canonical_start_right.input \
+  --frame build/s012-baseline.bin
 python3 tools/compare_reference.py --idle-frames 600 --input-frames 600
 python3 tools/build_host.py
 python3 tests/test_host_frontend.py
 ```
 
-Esperado: todas as suítes incluindo triangle passam, pixels/RAM idênticos
-em 600/600 idle e 600/600 scripted; SDL readback 61.440 pixels PASS.
-Se clone local bloquear por DNS, usar CI e declarar explicitamente que
-o teste foi remoto. Não reapresentar baseline como novo avanço.
+Resultado esperado como baseline: 11 suítes sintéticas normais/san
+aprovadas, 600/600 quadros E 600/600 RAM no idle e no roteiro,
+SDL readback 61.440 pixels aprovado. Não é validação da saída sonora.
+Se clone local falhar por DNS, usar workflows específicos de CI
+e atribuir resultados a commits exatos. Registrar falhas e evidências.
 
-Depois do noise: implementar DMC, IRQ de APU conectada à CPU, mixer NES
-não-linear, resampling PCM e saída sonora real no SDL, com referência
-independente de áudio. O objetivo Xbox requer ainda boot mínimo/loop,
-vídeo seguro, controle, integração da APU e XEX com assets embutidos,
-seguido de teste físico. Build antigo #16 deu Fatal Crash; não reutilizar
-framebuffer hardcoded. Nenhum `default.xex` canônico validado até S010.
+Depois do DMC: implementar mixer não-linear, resampling e PCM no host SDL;
+confrontar saída de áudio com binjnes ou outra referência usando a mesma ROM.
+Xbox: boot mínimo → loop → vídeo seguro → input → core → áudio →
+`default.xex` com PRG/CHR embutidos → validação física pelo proprietário.
+Build #16 antigo deu Fatal Crash. Não usar endereços hardcoded antigos.
 
-**A arquitetura atual interpreta CPU 6502 em software**, embora execute
-o PRG original sem seletor de ROM. Não é a tradução direta nativa
-PowerPC sem interpretador desejada pelo proprietário. Preservar essa
-distinção em cada checkpoint.
-
-Antes de responder no final: atualizar `WORK_CHECKPOINT.md`,
-`SESSION_LOG.md`, este arquivo, publicar commits e conferir HEAD
-remoto. Não inventar percentuais de progresso.
+**Ainda não é tradução de código 6502 para PowerPC nativo**:
+o runtime implementa em software a execução do PRG 6502 original.
+Não descrever como port sem emulação nem atribuir percentual global
+sem critério medido. Registrar este limite e próximo comando no GitHub.
