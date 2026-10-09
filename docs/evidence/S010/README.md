@@ -93,3 +93,15 @@ Referências técnicas (sem extrair/recriar gameplay):
 - https://www.nesdev.org/wiki/APU_Triangle
 - https://www.nesdev.org/wiki/NES_APU
 - https://www.nesdev.org/wiki/APU_registers
+
+## Fechamento confirmado no GitHub
+
+- Pull Request #5: https://github.com/PedroMarioaBros/SMNEStoX360/pull/5
+  (merge/squash concluído).
+- Commit de integração confirmado na branch main:
+  `dee528eabe2eb0f0c349d265d3ec256ba4ec91cf`.
+- A árvore da PR foi inspecionada: 12 arquivos alterados, nenhum arquivo em
+  `assets/canonical/` modificado. Códigos finais de APU e fixtures foram
+  submetidos aos testes do CI do commit `73ca0151d153448e8d13cca07bdf395fd93618cd`.
+- O fechamento documental posterior ao merge não altera runtime e não
+  deve ser confundido com um novo teste de gameplay ou hardware.
