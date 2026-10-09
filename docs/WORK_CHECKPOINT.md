@@ -24,9 +24,14 @@ preservados. Mais uma suíte de teste, `test_apu_noise.c`, agora
 **Validação de código no GitHub Actions**:
 https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/37890367890
 (commit `19b5e2977aef8d98bea0c84c044d13318685b2a5`).
-Conferir jobs/exata conclusão desse commit na evidência S011, sem
-transferir aprovações para mudanças posteriores de código.
-O comparador verifica pixels e RAM, não waveform de áudio.
+Status **completed/success**, quatro jobs verdes: host normal,
+host sanitizado (ASan/UBSan), reference e frontend SDL. Todas
+as 11 suítes host passaram nos dois modos. O comparador binjnes
+obteve 600/600 pixels e RAM no cenário idle e 600/600 pixels e RAM
+com entrada. SDL readback conferiu 61.440 pixels; captura 599
+idêntica à referência. Esses resultados dizem respeito ao
+commit de código acima, não a commits documentais posteriores
+e não verificam waveform de áudio.
 Uma tentativa CI anterior, workflow `37890305871`, falhou porque
 o novo teste de integração presumia LFSR=1 depois do RESET da CPU;
 os sete ciclos de RESET já haviam avançado o registrador.
