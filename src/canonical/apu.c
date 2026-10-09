@@ -14,10 +14,15 @@ static const uint8_t duty_table[4][8] = {
 static const uint16_t noise_period_apu[16] = {
     2,4,8,16,32,48,64,80,101,127,190,254,381,508,1017,2034
 };
+static const uint16_t dmc_period_cpu[16] = {
+    428,380,340,320,286,254,226,214,190,160,142,128,106,84,72,54
+};
 
 void smb360_apu_init(smb360_apu *apu) {
     memset(apu, 0, sizeof(*apu));
     apu->noise.shift_register=1u; /* NES noise LFSR power-up seed. */
+    apu->dmc.bits_remaining=8u;
+    apu->dmc.silence=1u;
 }
 
 /* Pulse 1 has a ones'-complement negative sweep; pulse 2 uses two's complement. */
@@ -51,6 +56,77 @@ uint8_t smb360_apu_noise_output(const smb360_apu *apu) {
     const smb360_apu_noise *n=&apu->noise;
     if (!n->length || (n->shift_register&1u)) return 0;
     return (n->control&0x10u) ? (n->control&15u) : n->envelope_decay;
+}
+
+uint8_t smb360_apu_dmc_output(const smb360_apu *apu) {
+    return apu->dmc.direct_load;
+}
+
+int smb360_apu_dmc_dma_requested(const smb360_apu *apu) {
+    return apu->dmc.dma_pending!=0u;
+}
+
+uint16_t smb360_apu_dmc_dma_address(const smb360_apu *apu) {
+    return apu->dmc.current_address;
+}
+
+int smb360_apu_irq_pending(const smb360_apu *apu) {
+    return apu->frame_irq!=0u || apu->dmc.irq_flag!=0u;
+}
+
+static void dmc_request_if_needed(smb360_apu_dmc *d) {
+    if (!d->buffer_full && d->bytes_remaining) d->dma_pending=1u;
+}
+
+static void dmc_restart(smb360_apu_dmc *d) {
+    d->current_address=(uint16_t)(0xc000u | ((uint16_t)d->sample_address<<6));
+    d->bytes_remaining=(uint16_t)(((uint16_t)d->sample_length<<4)|1u);
+    dmc_request_if_needed(d);
+}
+
+/* This is called only by the machine's canonical CPU bus DMA path, never by
+ * the APU timer. A DMA read is a separate operation from a timer tick. */
+void smb360_apu_dmc_supply_byte(smb360_apu *apu, uint8_t value) {
+    smb360_apu_dmc *d=&apu->dmc;
+    if (!d->dma_pending || !d->bytes_remaining) return;
+    d->sample_buffer=value;
+    d->buffer_full=1u;
+    d->dma_pending=0u;
+    ++d->fetched_bytes;
+    d->current_address=(d->current_address==0xffffu)
+                       ?0x8000u:(uint16_t)(d->current_address+1u);
+    --d->bytes_remaining;
+    if (!d->bytes_remaining) {
+        if (d->control&0x40u) dmc_restart(d);
+        else if (d->control&0x80u) d->irq_flag=1u;
+    }
+}
+
+/* 8 output clocks per byte; sample reader runs independently. */
+static void clock_dmc_output(smb360_apu_dmc *d) {
+    if (!d->silence) {
+        if (d->shift_register&1u) {
+            if (d->direct_load<=125u) d->direct_load=(uint8_t)(d->direct_load+2u);
+        } else if (d->direct_load>=2u) d->direct_load=(uint8_t)(d->direct_load-2u);
+    }
+    d->shift_register=(uint8_t)(d->shift_register>>1);
+    if (!--d->bits_remaining) {
+        d->bits_remaining=8u;
+        if (d->buffer_full) {
+            d->shift_register=d->sample_buffer;
+            d->buffer_full=0u;
+            d->silence=0u;
+            dmc_request_if_needed(d);
+        } else d->silence=1u;
+    }
+}
+
+static void timer_dmc(smb360_apu_dmc *d) {
+    if (d->timer_divider) --d->timer_divider;
+    else {
+        d->timer_divider=(uint16_t)(dmc_period_cpu[d->rate_index]-1u);
+        clock_dmc_output(d);
+    }
 }
 
 static void quarter_noise(smb360_apu_noise *n) {
@@ -173,12 +249,31 @@ void smb360_apu_write(smb360_apu *apu, uint16_t address, uint8_t value) {
         if (apu->enabled&8u) apu->noise.length=length_table[value>>3];
         apu->noise.envelope_start=1u;
         break;
+    case 0x4010u:
+        apu->dmc.control=value&0xc0u;
+        apu->dmc.rate_index=value&15u;
+        if (!(value&0x80u)) apu->dmc.irq_flag=0u;
+        break;
+    case 0x4011u:
+        apu->dmc.direct_load=value&0x7fu;
+        break;
+    case 0x4012u:
+        apu->dmc.sample_address=value;
+        break;
+    case 0x4013u:
+        apu->dmc.sample_length=value;
+        break;
     case 0x4015u:
         apu->enabled=value&0x1fu;
         if (!(value&1u)) apu->pulse1.length=0;
         if (!(value&2u)) apu->pulse2.length=0;
         if (!(value&4u)) apu->triangle.length=0;
         if (!(value&8u)) apu->noise.length=0;
+        apu->dmc.irq_flag=0u; /* $4015 writes clear DMC IRQ; reads do not. */
+        if (!(value&0x10u)) {
+            apu->dmc.bytes_remaining=0u;
+            apu->dmc.dma_pending=0u;
+        } else if (!apu->dmc.bytes_remaining) dmc_restart(&apu->dmc);
         break;
     case 0x4017u:
         apu->frame_mode5=(value>>7)&1u;
@@ -196,7 +291,9 @@ uint8_t smb360_apu_read_status(smb360_apu *apu) {
                               (apu->pulse2.length?2u:0u) |
                               (apu->triangle.length?4u:0u) |
                               (apu->noise.length?8u:0u) |
-                              (apu->frame_irq?0x40u:0u));
+                              (apu->dmc.bytes_remaining?0x10u:0u) |
+                              (apu->frame_irq?0x40u:0u) |
+                              (apu->dmc.irq_flag?0x80u:0u));
     apu->frame_irq=0;
     return result;
 }
@@ -225,6 +322,7 @@ void smb360_apu_step(smb360_apu *apu, uint32_t cycles) {
     while(cycles--) {
         ++apu->cpu_cycles;
         timer_triangle(&apu->triangle);
+        timer_dmc(&apu->dmc);
         if (!(apu->cpu_cycles&1u)) {
             timer_pulse(&apu->pulse1);
             timer_pulse(&apu->pulse2);

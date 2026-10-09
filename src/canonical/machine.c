@@ -1,6 +1,21 @@
 #include "machine.h"
 #include <string.h>
 
+/* Instruction-granular approximation: DMC sample DMA stalls for four
+ * CPU cycles after an instruction boundary. Real 2A03 may use 1-4 cycles,
+ * steal individual CPU reads, and collide with OAM DMA; those microcycle
+ * interactions are deliberately not claimed as implemented here. */
+static void service_dmc(smb360_machine *m) {
+ unsigned guard=0;
+ while(smb360_apu_dmc_dma_requested(&m->bus.apu) && guard++<2u){
+  uint16_t address=smb360_apu_dmc_dma_address(&m->bus.apu);
+  uint8_t value=smb360_nrom_read(&m->bus,address);
+  smb360_apu_dmc_supply_byte(&m->bus.apu,value);
+  m->cpu.cycles+=4u;
+  smb360_ppu_timing_step(&m->ppu,12u);
+  smb360_apu_step(&m->bus.apu,4u);
+ }
+}
 void smb360_machine_init(smb360_machine*m,const uint8_t*prg,const uint8_t*chr){
  memset(m,0,sizeof(*m));
  smb360_nrom_init(&m->bus,prg,chr);
@@ -9,6 +24,7 @@ void smb360_machine_init(smb360_machine*m,const uint8_t*prg,const uint8_t*chr){
  smb360_cpu6502_reset(&m->cpu);
  smb360_ppu_timing_step(&m->ppu,m->cpu.last_cycles*3u);
  smb360_apu_step(&m->bus.apu,m->cpu.last_cycles);
+ service_dmc(m);
 }
 int smb360_machine_step(smb360_machine*m){
  if(m->cpu.stopped)return 0;
@@ -22,10 +38,18 @@ int smb360_machine_step(smb360_machine*m){
   }
   smb360_ppu_timing_step(&m->ppu,m->cpu.last_cycles*3u);
   smb360_apu_step(&m->bus.apu,m->cpu.last_cycles);
+  service_dmc(m);
+ }
+ /* APU IRQ pins are sampled only at instruction boundaries here. */
+ if(smb360_apu_irq_pending(&m->bus.apu) && smb360_cpu6502_irq(&m->cpu)){
+  smb360_ppu_timing_step(&m->ppu,m->cpu.last_cycles*3u);
+  smb360_apu_step(&m->bus.apu,m->cpu.last_cycles);
+  service_dmc(m);
  }
  if(!smb360_cpu6502_step(&m->cpu))return 0;
  smb360_ppu_timing_step(&m->ppu,m->cpu.last_cycles*3u);
  smb360_apu_step(&m->bus.apu,m->cpu.last_cycles);
+ service_dmc(m);
  if(m->bus.dma_pending){
   unsigned i;uint32_t stall=513u+(uint32_t)(m->cpu.cycles&1u);
   m->bus.dma_pending=0;
@@ -34,6 +58,7 @@ int smb360_machine_step(smb360_machine*m){
   m->cpu.cycles+=stall;
   smb360_ppu_timing_step(&m->ppu,stall*3u);
   smb360_apu_step(&m->bus.apu,stall);
+  service_dmc(m); /* OAM/DMC overlap still needs cycle-exact arbitration. */
  }
  ++m->instructions;
  return 1;
