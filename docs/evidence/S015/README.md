@@ -113,3 +113,23 @@ retorno ao dashboard, tempo e dashboard/desbloqueio usado.
 Só promover boot a `VALIDADO_HARDWARE` com resultado real.
 Em paralelo avançar proposta de backend gráfico Xbox seguro,
 com API testada — **não** endereços hardcoded do legado.
+
+## Integração PR #11
+
+- Diff revisto: **15 arquivos**; nenhum `assets/canonical/`
+  alterado.
+- PR #11 https://github.com/PedroMarioaBros/SMNEStoX360/pull/11
+  incorporada por squash na main
+  `bd9775a84d1b9451f61bc5d79bf1df0b2002952d`.
+- Commit do código validado:
+  `94a01f0af3798984d5ff88d16800690db10a64fc`.
+  - XEX: https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/37966684272
+    `success`, artifact `smb360-CANONICAL-DIAGNOSTIC-xex`
+    id `11633472546`, inclui `TESTE_XBOX_S015.md`.
+  - Host: https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/37966684264
+    `success`, quatro jobs (normal, san, referência, SDL).
+  - O mesmo XEX passou por `tools/verify_canonical_xex.py`:
+    PE PowerPC `0x01f2`, quatro seções,
+    ROM de 40976 bytes no offset PE `0x16c00`.
+- Pós-merge: workflows `37966878615` e `37966878630`
+  checar antes de declarar pacote da main pronto para teste.
