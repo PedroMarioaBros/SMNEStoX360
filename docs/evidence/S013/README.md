@@ -105,3 +105,12 @@ via compilação estática PowerPC sem emulador.
 Próximo passo: S014 validação independente de APU e reprodução,
 melhorias de áudio/timing, e avançar o backend Xbox canônico
 seguro sem confundir ferramentas históricas com o port.
+
+## Integração publicada
+
+- PR #9: https://github.com/PedroMarioaBros/SMNEStoX360/pull/9
+  incorporada em `main`, squash `64a7edaa76c14b069da283023bab38d1b64e1173`.
+- Diferenças revisadas: 13 arquivos alterados, **zero** alterações em
+  `assets/canonical/`. Teste da branch aprovado em `37892058096`.
+- WAV disponível no workflow em Artifacts como
+  `canonical-s013-audio-wav` (id 11598404861).
