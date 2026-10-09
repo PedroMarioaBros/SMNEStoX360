@@ -494,3 +494,11 @@ A identidade do commit que contém uma entrada pode ser consultada no histórico
   https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/37892058096
   (quatro jobs verdes). Após esse commit houve somente documentação.
 - Próxima S014: XEX próprio de `src/canonical`, não build legado nathsou.
+
+- Validação pós-merge: run
+  https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/37892331535
+  (`main`, commit `64a7edaa76c14b069da283023bab38d1b64e1173`)
+  **completed/success** nos quatro jobs. Captura WAV arquivada
+  em `canonical-s013-audio-wav`, id 11599295620.
+- O workflow Xbox legado `37892331507` reportou `failure`
+  preexistente, issue #8, não confundir com CI do runtime canônico.
