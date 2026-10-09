@@ -3,7 +3,9 @@
 ## S013 — mixer NES, PCM 48 kHz, WAV canônico e SDL áudio
 
 Entrada main: `6e158f17572e17bfa85a8543710a47fdd73497d1`.
-Branch `work/s013-audio-pcm-20261009`.
+Branch `work/s013-audio-pcm-20261009` integrada à main
+pela PR #9: https://github.com/PedroMarioaBros/SMNEStoX360/pull/9 .
+Commit squash: `64a7edaa76c14b069da283023bab38d1b64e1173`.
 ROM exclusiva `assets/canonical/SMB_v026.nes`, 40.976 B,
 SHA-256 `57fb4ee14288853bc0c8a5a629a103e51e87a4ebae1cc699b435060d2690b047`;
 PRG `9f5b4f73bde569269645e154a1c8e43308afb2f156baa76e977296d7ca4ed9a4`,
