@@ -42,7 +42,10 @@ static void test_exact_sample_clock_and_determinism(void){
     smb360_pcm_init(&p);smb360_pcm_init(&q);
     smb360_pcm_advance(&p,&apu,SMB360_NTSC_CPU_HZ,sample_sink,&a);
     assert(a.count==SMB360_PCM_RATE && p.samples==SMB360_PCM_RATE);
-    assert(p.phase==0u && a.nonzero==0u);
+    /* Triangle DAC retains its initial level 15. That is DC, not zero.
+     * The analog high passes remove it over time, but the first samples
+     * need not be silent. Check timing and partition invariance instead. */
+    assert(p.phase==0u && a.nonzero>0u);
     for(unsigned i=0;i<SMB360_NTSC_CPU_HZ/79u;i++)
         smb360_pcm_advance(&q,&apu,79u,sample_sink,&b);
     smb360_pcm_advance(&q,&apu,SMB360_NTSC_CPU_HZ%79u,sample_sink,&b);
