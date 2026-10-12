@@ -1,3 +1,14 @@
+> **PROGRESSO S017 — 12/10/2026:** após o Fatal Crash do S015, criamos
+> dois novos executáveis Xbox PowerPC reais, com entrada nativa
+> **sem Newlib CRT**, usando só três funções importadas do Xbox OS.
+> O segundo inclui a ROM `SMB_v026.nes` integral e o core NES,
+> ainda sem vídeo, áudio ou tradução 6502→PPC estática.
+> [PR #14](https://github.com/PedroMarioaBros/SMNEStoX360/pull/14),
+> [CI S017 main verde](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/38206754775).
+> Dois arquivos S017 entregues ao proprietário no chat;
+> **ambos ainda não testados em Xbox físico**. Etapa 01 primeiro,
+> Etapa 02 só se 01 inicializar normalmente. Não usar S015.
+
 > **ATUALIZAÇÃO CRÍTICA — 12/10/2026:** o usuário testou
 > `default.xex` da S015 e recebeu **Fatal Crash imediato**, necessitando
 > reiniciar o Xbox 360. O XEX S015 NÃO FUNCIONOU em hardware;
