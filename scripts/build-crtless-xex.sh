@@ -75,4 +75,4 @@ runtime_test=NOT_TESTED_ON_XBOX_HARDWARE
 run_only_after=01_MINIMAL_CRTLESS_PASS_ON_HARDWARE
 EOF
 cp docs/TESTE_FISICO_S017.md "$OUT/README_S017.txt"
-echo "S017: native PowerPC, XEX2, NO Newlib CRT, no ROM; build PASS, hardware NOT TESTED"
+echo "S017: two native Xbox PowerPC XEX2 images: 01 minimal NO ROM; 02 ORIGINAL ROM + canonical C99; both WITHOUT Newlib CRT. Build PASS; Xbox hardware NOT TESTED."
