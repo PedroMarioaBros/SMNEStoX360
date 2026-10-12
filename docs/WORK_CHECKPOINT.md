@@ -1,5 +1,10 @@
 # Checkpoint operacional — 12/10/2026 (S016)
 
+## Atualização de compatibilidade — 12/10/2026 (relato do proprietário)
+
+O proprietário esclareceu que o Xbox 360 usa **desbloqueio exclusivamente por software**, descrito como a versão mais recente disponível, **não RGH/JTAG por hardware**. Ainda **não confirmou o nome do desbloqueio**; os candidatos BadUpdate/ABadAvatar com FreeMyXe ou XeUnshackle são hipóteses, não identificação definitiva. A diferença de compatibilidade retail/devkit de XEX depende do patcher e da versão exata. Orientações antigas do FreeMyXe indicavam restrição a XEX devkit-criptografado, mas o README atual já lista suporte; portanto não concluir incompatibilidade sem confirmar a versão. Fonte técnica e detalhes registrados na [issue #12](https://github.com/PedroMarioaBros/SMNEStoX360/issues/12). Até obter o nome do payload/patcher/launcher, **não recomendar novo teste físico S016**. S015 permanece Fatal Crash confirmado e os XEX S016 continuam não testados fisicamente.
+
+
 ## BLOQUEIO REAL: S015 causou Fatal Crash no Xbox 360
 
 O proprietário baixou o artifact S015, executou
