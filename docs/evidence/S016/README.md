@@ -136,3 +136,19 @@ normal voltou a executar. Erros e correções preservados.
   separadamente antes de um novo pacote físico.
 - Novos XEXs **ainda não foram testados no Xbox**.
   A falha física S015 permanece confirmada.
+
+## CI pós-merge da main: validação completa (12/10/2026)
+
+- Commit de implementação `cf10bc38eb1dbf564a83438d60f07dace96766a7`:
+  - isolamento S016: https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/38204726453
+    **completed/success**, artifact
+    `smb360-S016-BOOT-ISOLATION-NOT-PLAYABLE`
+    #11726453526 (ZIP 177016 bytes, expira em 11/11/2026);
+  - regressões host: https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/38204726543
+    **completed/success**;
+  - XEX canônico legado S015 recompilado para regressão:
+    https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/38204726479
+    **completed/success**, **NÃO usar S015 em hardware**.
+- Essas três aprovações validam compilação e software host,
+  NÃO mudam o status físico: S015 deu **Fatal Crash**;
+  ambos os XEX novos S016 **ainda não foram iniciados no Xbox**.
