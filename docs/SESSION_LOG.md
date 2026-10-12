@@ -654,3 +654,67 @@ A identidade do commit que contém uma entrada pode ser consultada no histórico
 - CI pós-merge está em runs `37966878615` (XEX)
   e `37966878630` (host); conferir resultado
   dos dois antes de solicitar teste físico.
+
+## S016 — 12/10/2026: S015 Fatal Crash real, isolamento de boot
+
+- HEAD de entrada `main`:
+  `2a7a2f6af127adbbb8a025b801d2612fdba55561`.
+  Branch `work/s016-isolate-fatal-crash-20261012`.
+- **Hardware:** o proprietário executou `default.xex`
+  extraído de S015 e relatou **Fatal Crash imediatamente**,
+  com necessidade de reiniciar o Xbox 360. Arquivos no ZIP:
+  `BUILD_MANIFEST.txt`, `canonical.exe`,
+  `default.xex`, `SHA256SUMS.txt` e
+  `TESTE_XBOX_S015.md`. Nenhuma mensagem/PC do crash
+  disponibilizado. Estado correto S015:
+  `HARDWARE_TESTED=FAIL_FATAL_CRASH`, não "não testado".
+  A observação foi publicada na
+  https://github.com/PedroMarioaBros/SMNEStoX360/issues/12 .
+  S015 não deve ser reexecutado.
+- XEX identificado: commit S015
+  `bd9775a84d1b9451f61bc5d79bf1df0b2002952d`,
+  CI compilação https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/37966878615 ,
+  artifact #11634357018, SHA256 do `default.xex`
+  `48a9071765d3b9db8cfe9cfb91423b5f437ce990d262e380cd7bdd01dea7d077`
+  (528384 B). Build verde não significa boot.
+- Criados `boot_kernel_only.c` e `boot_canonical_no_xam.c`:
+  diagnósticos separados (sem ROM/gameplay e com ROM
+  `SMB_v026.nes` original/120 quadros respectivamente),
+  sem funções XAM diretas do S015, sem printf e sem
+  framebuffer MMIO. Ambiguidades de boot reduzidas
+  com duas etapas de teste físico *condicional*.
+- Novo `scripts/build-xex-boot-isolation.sh` e workflow
+  `xex-boot-isolation.yml` produzem e verificam
+  dois PE PowerPC/XEX2 com manifestos e SHA,
+  ROM íntegra na variante 02 e ausente na 01.
+- PRIMEIRO CI `38204175107` falhou por assertiva
+  incorreta que exigia zero `xam.xex`. Artefatos PE
+  foram inspecionados: **até o kernel-only importa
+  `xam.xex` e `XamLoaderLaunchTitle` pelo CRT**.
+  Não é possível afirmar ausência de XAM; somente
+  ausência de `XNotifyQueueUI`/`XamInputGetState`
+  explicitamente chamados. Evidência e hipótese
+  atualizadas, sem mascarar o CRT.
+- CI `38204354807`: ambos compilaram, PE e ROM
+  PASS, mas a etapa de manifesto teve `grep`
+  malformado. Edições subsequentes produziram
+  YAML duplicado acidentalmente; refeito com
+  verificação de igualdade byte-a-byte e reproduzido.
+- CI **verde** (workflow isolado):
+  https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/38204528510 ,
+  commit `c0e430469bd45ac567d78d8279bda37d42258e8d`,
+  `completed/success`. Novo artifact S016 distinto do
+  default S015; ainda sem teste físico no Xbox.
+- Instruções e avisos preservados em
+  `docs/TESTE_FISICO_S016.md`,
+  `docs/evidence/S016/README.md`,
+  `START_HERE.md`, checkpoint e NEXT_STEPS.
+  Documento S015 marcado historicamente como
+  **NÃO EXECUTAR**. Não altera ROM/PRG/CHR.
+- Próximo: testar a hipótese de startup/CRT/ABI
+  e importação/synthxex; somente solicitar a
+  etapa 01 do **novo** S016 após CI main verde
+  e aceitação do proprietário, etapa 02 apenas
+  se primeira funcionar. Sem garantia de que
+  novo XEX não crashe; parar no primeiro Fatal Crash.
+  A CPU 6502 segue interpretada, sem PPC estático.
