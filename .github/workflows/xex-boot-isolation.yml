@@ -118,34 +118,7 @@ jobs:
           for stage in 01_KERNEL_ONLY 02_CANONICAL_NO_XAM; do
             test -s "$SMB360_BOOT_ISOLATION_WORK/$stage/default.xex"
             test "$(dd if="$SMB360_BOOT_ISOLATION_WORK/$stage/default.xex" bs=1 count=4 2>/dev/null)" = "XEX2"
-            grep -q '^direct_xam_input_notifications=NONE$SMB360_BOOT_ISOLATION_WORK/$stage/BUILD_MANIFEST.txt"
-            grep -q '^xbox_boot_status=UNTESTED_NEW_IMAGE_AFTER_S015_FATAL_CRASH$' "$SMB360_BOOT_ISOLATION_WORK/$stage/BUILD_MANIFEST.txt"
-            (cd "$SMB360_BOOT_ISOLATION_WORK/$stage" && sha256sum -c SHA256SUMS.txt)
-          done
-          echo "S016 isolation: XEX2/PowerPC/ROM layout/manifest PASS; hardware boot UNTESTED"
-
-      - name: Publish diagnostic ZIP containing two distinct stages
-        uses: actions/upload-artifact@v4
-        with:
-          name: smb360-S016-BOOT-ISOLATION-NOT-PLAYABLE
-          path: |
-            build-boot-isolation/01_KERNEL_ONLY/
-            build-boot-isolation/02_CANONICAL_NO_XAM/
-            build-boot-isolation/README_TESTE_S016.md
-          if-no-files-found: error
-          retention-days: 30
-
-      - name: Save artifacts on CI failure for investigation only
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: smb360-S016-build-failure-NOT-FOR-HARDWARE
-          path: |
-            build-boot-isolation/
-            .openxechain-src/build.log
-          if-no-files-found: ignore
-          retention-days: 7
- "$SMB360_BOOT_ISOLATION_WORK/$stage/BUILD_MANIFEST.txt"
+            grep -Fqx "direct_xam_input_notifications=NONE" "$SMB360_BOOT_ISOLATION_WORK/$stage/BUILD_MANIFEST.txt"
             grep -q '^xbox_boot_status=UNTESTED_NEW_IMAGE_AFTER_S015_FATAL_CRASH$' "$SMB360_BOOT_ISOLATION_WORK/$stage/BUILD_MANIFEST.txt"
             (cd "$SMB360_BOOT_ISOLATION_WORK/$stage" && sha256sum -c SHA256SUMS.txt)
           done
