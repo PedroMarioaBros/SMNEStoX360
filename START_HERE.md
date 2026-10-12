@@ -34,6 +34,23 @@ para o próximo.
 
 ## Estado resumido
 
+**ATUALIZAÇÃO 12/10/2026 — S017:** o S015 testado pelo proprietário
+causou Fatal Crash real. Pela PR #14, integrada na main como
+`40825ff3530d426b05d3e23b4ab02b8d82f12ebe`, foram gerados
+**dois executáveis XEX2 PowerPC Xbox OS sem startup Newlib CRT**:
+01 entrada nativa mínima e 02 com ROM `SMB_v026.nes` e core
+canônico de CPU/PPU. O CI S017 main
+https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/38206754775
+PASSOU, mas S017 **não foi testado no hardware** e não é
+Mario jogável. O usuário já recebeu os dois executáveis.
+A Etapa 02 só deve ser executada após boot real bem-sucedido
+da Etapa 01, e qualquer Fatal Crash exige interromper testes.
+Ver [guia S017](docs/TESTE_FISICO_S017.md) e
+[checkpoint S017](docs/WORK_CHECKPOINT.md). Não insistir na
+identificação do patcher; o proprietário pediu que a engenharia
+avance independente desse dado.
+
+
 Runtime canônico executa no host e já produziu quadros; fidelidade gráfica
 continua pendente. S005 corrigiu o timing NTSC de frames ímpares e demonstrou
 que o HUD já estava presente. S006 comparou pixels/RAM com referência, corrigiu
