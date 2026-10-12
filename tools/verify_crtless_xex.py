@@ -21,7 +21,7 @@ def cstr(data, start):
     end = data.index(b"\x00", start)
     return data[start:end].decode("ascii")
 
-def check(pe, xex):
+def check(pe, xex, rom=None):
     if pe[:2] != b"MZ":
         raise ValueError("not a PE image")
     nt = u32(pe, 0x3c)
@@ -50,6 +50,12 @@ def check(pe, xex):
         raise ValueError("XEX entry disagrees with PE entry")
     if len(pe) > 0x100000 or len(xex) > 0x100000:
         raise ValueError("unexpectedly big CRT-less title")
+    if rom is None:
+        if b"NES\\x1a" in pe:
+            raise ValueError("minimal XEX unexpectedly embeds NES ROM header")
+    else:
+        if pe.count(rom) != 1:
+            raise ValueError("canonical PRG/CHR ROM must be embedded exactly once")
     secbase = opt+optsize
     sections = []
     for i in range(nsec):
@@ -103,7 +109,11 @@ def main():
     p=argparse.ArgumentParser()
     p.add_argument("--pe",required=True)
     p.add_argument("--xex",required=True)
+    p.add_argument("--embedded-rom")
     a=p.parse_args()
-    check(Path(a.pe).read_bytes(),Path(a.xex).read_bytes())
+    rom=Path(a.embedded_rom).read_bytes() if a.embedded_rom else None
+    if rom is not None and hashlib.sha256(rom).hexdigest() != "57fb4ee14288853bc0c8a5a629a103e51e87a4ebae1cc699b435060d2690b047":
+        raise ValueError("canonical ROM SHA-256 mismatch")
+    check(Path(a.pe).read_bytes(),Path(a.xex).read_bytes(),rom)
 if __name__ == "__main__":
     main()
