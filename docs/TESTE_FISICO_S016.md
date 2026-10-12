@@ -92,7 +92,9 @@ funcionam. Não pedir dados privados, credenciais ou flash de NAND.
 ## Validação automática e limites
 
 - Ambos os XEX devem ter cabeçalho `XEX2`, PE PowerPC
-  `machine=0x01f2`, **nenhuma** importação `xam.xex`.
+  `machine=0x01f2`. Ambos **ainda importam `xam.xex` no CRT**,
+  mas não contêm símbolos diretos `XNotifyQueueUI` e
+  `XamInputGetState`. A ausência de importação XAM não foi atingida.
 - Apenas a etapa 02 deve incluir ROM completa
   `SMB_v026.nes` idêntica byte a byte ao arquivo versionado:
   SHA-256 `57fb4ee14288853bc0c8a5a629a103e51e87a4ebae1cc699b435060d2690b047`.
