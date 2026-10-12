@@ -1,5 +1,34 @@
 # Próxima ação — após resultado físico S015, 12/10/2026
 
+### Resultado fechado S017, 12/10/2026
+
+- PR [#14](https://github.com/PedroMarioaBros/SMNEStoX360/pull/14)
+  merged `40825ff3530d426b05d3e23b4ab02b8d82f12ebe`.
+- CI S017 do commit merge
+  https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/38206754775
+  **success**, duas imagens nativas PowerPC geradas sem Newlib CRT,
+  importando três funções Xbox OS (kernel/XAM).
+- Artifact da branch exata com os dois XEX:
+  https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/38206678772
+  #11728050710; versão para o proprietário já entregue no chat,
+  com SHA256 e verificações. Não entregar novamente S015.
+- O proprietário solicitou independência do desbloqueio como
+  objetivo de engenharia; **não voltar a bloquear código
+  perguntando FreeMyXe/XeUnshackle**. A implementação é
+  Xbox OS, não atrelada a API de exploit específico;
+  isso não garante aceitação por qualquer ambiente de boot.
+- O próximo dado útil é somente o retorno **físico da Etapa 01 S017**:
+  voltou ao gerenciador após ~5s ou Fatal Crash.
+  **Etapa 02 só depois** de 01 ter retornado normalmente.
+  Nenhuma atualização de flash/NAND/boot.
+- Depois de boot comprovado, implementar vídeo Xbox por
+  API segura, áudio, controles e futuramente tradução
+  direta PPC sem emulação. O novo binário canonical ainda
+  é somente CPU/PPU sem saída gráfica e com intérprete.
+- **Hardware atual**: S015 Fatal Crash real; S017
+  etapas 01 e 02 NÃO TESTADAS. Não declarar Mario jogável.
+
+
 ## S017 ativa — XEX nativo PowerPC sem runtime C, boot físico pendente
 
 **PROSSIGA INDEPENDENTEMENTE DO NOME DO PATCHER.** O proprietário pediu um executável Xbox 360 real, sem bloqueio por desconhecimento de FreeMyXe/XeUnshackle. Não prometer compatibilidade universal sem evidência física.
