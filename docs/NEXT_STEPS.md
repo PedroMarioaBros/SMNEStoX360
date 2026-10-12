@@ -1,5 +1,21 @@
 # Próxima ação — após resultado físico S015, 12/10/2026
 
+## S017 ativa — XEX nativo PowerPC sem runtime C, boot físico pendente
+
+**PROSSIGA INDEPENDENTEMENTE DO NOME DO PATCHER.** O proprietário pediu um executável Xbox 360 real, sem bloqueio por desconhecimento de FreeMyXe/XeUnshackle. Não prometer compatibilidade universal sem evidência física.
+
+- Workflow S017 `.github/workflows/xex-crtless.yml`, script `scripts/build-crtless-xex.sh`, ponto de entrada `src/platform/canonical_xex/native_crtless_probe.c`; código canonical em `native_crtless_canonical.c` e `native_crtless_memory.c`.
+- **01_MINIMAL:** `build-crtless-xex/default.xex`, código mínimo PowerPC, sem Newlib CRT, só 3 imports e retorno após ~5 segundos.
+- **02_CANONICAL:** `build-crtless-xex/02_CANONICAL_CRTLESS/default.xex`, ROM canônica embutida e core CPU/PPU 120 quadros, também sem CRT nem backend de vídeo/áudio. Não jogável.
+- Antes de novo reteste físico, confirmar artifact **da main** e checksums; verificar explicitamente que nenhum binário é o antigo S015 que deu Fatal Crash. Executar 01 separado; 02 só após 01 retornar ao gerenciador. O risco de crash permanece e o usuário decide testar.
+- Validação: `python3 tools/verify_repository.py`, `bash scripts/build-crtless-xex.sh`, `python3 tools/verify_crtless_xex.py --pe build-crtless-xex/crtless.exe --xex build-crtless-xex/default.xex`, verificar `--embedded-rom assets/canonical/SMB_v026.nes` em 02. Rodar host tests e confirmar CI do commit exato.
+- A sonda 01 **ainda não representa Mario**, mas removeu o Newlib CRT que contaminava todos os XEX anteriores. O core canônico está compilado no XEX 02. Próximo progresso real: vídeo Xbox por API comprovada, áudio/input e mais adiante geração nativa estática PPC do gameplay.
+- Erro SynthXEX `realloc(ptr,0)` em seção `.data` BSS-only diagnosticado e contornado no código C, sem mudar a ROM. Ver `docs/evidence/S017/README.md`.
+- Nenhum novo S017 foi testado no Xbox; não confundir CI com boot real, e não declarar garantia de uso em todos os métodos de desbloqueio.
+
+---
+
+
 ## Confirmação importante (12/10/2026): ABadAvatar em entrada automática
 
 O proprietário confirmou **ABadAvatar** na versão mais recente que usa, ativado automaticamente. Não continuar perguntando qual é o **entrypoint**: essa dúvida está resolvida. **Ainda não se sabe qual payload pós-exploit** (`FreeMyXe`, `XeUnshackle` ou outro) roda em `BadUpdatePayload`; o README oficial ABadAvatar https://github.com/shutterbug2000/ABadAvatar informa que ABadAvatar **não inclui XEX**, logo não determina sozinho como é autorizada/lançada uma aplicação XEX. Perguntar apenas se o pós-boot mostra FreeMyXe, XeUnshackle ou segue direto ao Aurora; se oculto, leitura passiva de nomes de arquivos pode ajudar. Não exigir atualização, substituição ou alteração de `launch.ini`, NAND, payload nem reinício de exploit por causa da investigação. Não declarar causa do Fatal Crash. A S015 continua vetada e a S016 permanece sem validação física; examinar primeiro a compatibilidade do patcher específico e os cabeçalhos/assinaturas XEX.
