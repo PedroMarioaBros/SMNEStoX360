@@ -117,3 +117,29 @@ a compatibilidade garantida/boot testado.
   saída visual Xbox via API estável, áudio,
   gamepad e tradução estática 6502→PPC,
   sem usar backend legado MMIO.
+
+## Publicação e validação pós-merge
+
+A PR [#14](https://github.com/PedroMarioaBros/SMNEStoX360/pull/14)
+foi integrada por squash em
+`40825ff3530d426b05d3e23b4ab02b8d82f12ebe`.
+CI da branch final:
+https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/38206678772
+`success`, artifact `smb360-S017-NATIVE-CRTLESS-DIAGNOSTIC`
+#11728050710. Ambos os arquivos foram extraídos,
+re-verificados localmente como `XEX2`, com SHA-256
+correspondente aos respectivos `SHA256SUMS.txt`,
+e a ROM do proprietário apareceu byte-idêntica
+exatamente uma vez no PE da Etapa 02.
+- S017 ETAPA 01: 200704 bytes,
+  `e1e6eedc3722f442d02b4054247726927956e2681609b673c2f42f67cbcf5404`.
+- S017 ETAPA 02: 397312 bytes,
+  `cef79db5efa58cc07a6e4083b7e026b5d050d1c36eab0c27c5db61e95a34edee`.
+
+CI main pós-merge:
+https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/38206754775
+**success** (XEX CRT-free); regressão canônica
+https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/38206754778
+**success**. Ambos S017 continuam **NÃO TESTADOS NO XBOX**.
+O usuário já recebeu os executáveis no chat, seguindo
+guia de teste escalonado e sem alterar payload do desbloqueio.
