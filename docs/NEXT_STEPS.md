@@ -1,5 +1,16 @@
 # Próxima ação — após resultado físico S015, 12/10/2026
 
+## Condição anterior ao próximo teste — desbloqueio SOFTWARE (12/10/2026)
+
+O proprietário confirmou **desbloqueio por software**, sem RGH/JTAG físico, e disse usar a versão mais recente; **FreeMyXe versus XeUnshackle e suas versões ainda não estão confirmados**. Hipótese mais plausível: BadUpdate/ABadAvatar + patcher, mas não assumir. Antes de solicitar qualquer S016 físico:
+1. Perguntar qual tela/nome aparece ao ativar o desbloqueio: **FreeMyXe ou XeUnshackle**; registrar a versão se conhecida, sem pedir CPU key, DVD key ou credenciais.
+2. Conferir se o loader é Aurora/XeXMenu e se outros XEX homebrew já carregam. Esse dado separa problema de formato/segurança XEX de startup e API.
+3. Analisar `default.xex` S015 e XEX de isolamento S016 quanto a tipo retail/devkit, criptografia, imports e permissões. As recomendações antigas da wiki FreeMyXe sobre retail encryption diferem do README atual, que declara suporte devkit; considerar **versão** antes de converter XEX.
+4. Manter S015 vetado por Fatal Crash. Evitar modificações de NAND, flash ou configuração persistente. Até resolver compatibilidade, **nenhuma convocação para novo teste físico**.
+
+Registro permanente: https://github.com/PedroMarioaBros/SMNEStoX360/issues/12 .
+
+
 **BLOQUEIO CONFIRMADO:** o proprietário executou S015 no Xbox 360,
 e o `default.xex` produziu **Fatal Crash imediato**; reiniciou
 o console. **NÃO REEXECUTAR S015.** Registro:
