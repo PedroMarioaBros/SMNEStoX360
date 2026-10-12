@@ -1,5 +1,10 @@
 # Próxima ação — após resultado físico S015, 12/10/2026
 
+## Confirmação importante (12/10/2026): ABadAvatar em entrada automática
+
+O proprietário confirmou **ABadAvatar** na versão mais recente que usa, ativado automaticamente. Não continuar perguntando qual é o **entrypoint**: essa dúvida está resolvida. **Ainda não se sabe qual payload pós-exploit** (`FreeMyXe`, `XeUnshackle` ou outro) roda em `BadUpdatePayload`; o README oficial ABadAvatar https://github.com/shutterbug2000/ABadAvatar informa que ABadAvatar **não inclui XEX**, logo não determina sozinho como é autorizada/lançada uma aplicação XEX. Perguntar apenas se o pós-boot mostra FreeMyXe, XeUnshackle ou segue direto ao Aurora; se oculto, leitura passiva de nomes de arquivos pode ajudar. Não exigir atualização, substituição ou alteração de `launch.ini`, NAND, payload nem reinício de exploit por causa da investigação. Não declarar causa do Fatal Crash. A S015 continua vetada e a S016 permanece sem validação física; examinar primeiro a compatibilidade do patcher específico e os cabeçalhos/assinaturas XEX.
+
+
 ## Condição anterior ao próximo teste — desbloqueio SOFTWARE (12/10/2026)
 
 O proprietário confirmou **desbloqueio por software**, sem RGH/JTAG físico, e disse usar a versão mais recente; **FreeMyXe versus XeUnshackle e suas versões ainda não estão confirmados**. Hipótese mais plausível: BadUpdate/ABadAvatar + patcher, mas não assumir. Antes de solicitar qualquer S016 físico:
