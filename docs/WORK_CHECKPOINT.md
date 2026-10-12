@@ -29,7 +29,13 @@ passou, artifact #11726049878; host
 https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/38204649340
 quatro jobs PASS; compilação canônica
 https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/38204649496 PASS.
-Nenhum novo XEX foi testado fisicamente.
+CI pós-merge na main, commit `cf10bc38eb1dbf564a83438d60f07dace96766a7`:
+S016 https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/38204726453
+`success`, artifact #11726453526; host
+https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/38204726543
+`success`; XEX canônico S015 apenas compilado
+https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/38204726479
+`success`. **Nenhum novo XEX S016 foi testado fisicamente.**
 
 1. `src/platform/canonical_xex/boot_kernel_only.c`: sem ROM
    e sem gameplay, apenas `KeDelayExecutionThread`
