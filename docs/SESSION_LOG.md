@@ -736,3 +736,10 @@ A identidade do commit que contém uma entrada pode ser consultada no histórico
 - S015 continua **FATAL CRASH CONFIRMADO**, portanto nenhum
   novo XEX deve ser vendido como jogo/boot validado.
   S016 é apenas isolamento controlado **não testado em hardware**.
+
+### Continuidade S016 — 12/10/2026: desbloqueio por software
+
+- O proprietário esclareceu que o console **não possui RGH/JTAG físico**: usa desbloqueio **por software**, descrito como a versão mais recente. O **nome exato do patcher não foi informado**. Não converter essa informação em certeza de FreeMyXe/XeUnshackle sem confirmação.
+- Consulta a https://consolemods.org/wiki/Xbox_360:Bad_Update : BadUpdate/ABadAvatar é um método plausível, normalmente temporário. FreeMyXe e XeUnshackle são alternativas de patcher/ambiente, não sinônimos do exploit inicial.
+- Compatibilidade variável com XEX devkit/retail: o guia FreeMyXe de 2025 (https://github.com/FreeMyXe/FreeMyXe/wiki/Guidance-for-Homebrew-developers) menciona restrição, mas o README atual (https://github.com/FreeMyXe/FreeMyXe) afirma suporte a XEX devkit-encrypted; XeUnshackle (https://github.com/Byrom90/XeUnshackle) descreve ambos os formatos. Não assumir incompatibilidade nem converter o executável sem inspecionar a versão e cabeçalho.
+- A causa do Fatal Crash S015 continua **não comprovada**; 01/02 S016 **não testados fisicamente**. Próximo passo: identificar patcher pelo nome exibido no console e então estudar imports/criptografia compatíveis. Atualizada a issue #12. Não solicitar reteste agora.
