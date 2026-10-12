@@ -1,3 +1,9 @@
+> **S015 FALHOU NO XBOX REAL (12/10/2026): FATAL CRASH IMEDIATO.**
+> **NÃO EXECUTAR NOVAMENTE ESTE ARQUIVO.** O proprietário precisou
+> reiniciar o console. Evidência: [issue #12](https://github.com/PedroMarioaBros/SMNEStoX360/issues/12).
+> Este guia está preservado só por histórico; para investigação
+> controlada consultar [S016](TESTE_FISICO_S016.md).
+
 # S015 — teste físico de inicialização no Xbox 360 desbloqueado
 
 **ATENÇÃO:** `default.xex` deste teste **não é um jogo jogável**.

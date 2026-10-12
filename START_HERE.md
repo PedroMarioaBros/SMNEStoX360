@@ -52,9 +52,12 @@ S015 ampliou o diagnóstico Xbox canônico com notificações XAM
 de início/conclusão, leitura de dois gamepads Xbox e validação
 de que a ROM inteira está realmente no PE PowerPC. O teste
 sintético de controles amplia para 14 suítes host.
-**Quando houver artifact da main com CI verde, o proprietário
-deve testar o boot no console** seguindo
-[TESTE_FISICO_S015.md](docs/TESTE_FISICO_S015.md).
+**S015 falhou em hardware real: Fatal Crash imediato no Xbox 360 em
+12/10/2026; o proprietário precisou reiniciar. NÃO repetir o S015.**
+A falha está na [issue #12](https://github.com/PedroMarioaBros/SMNEStoX360/issues/12).
+S016 isola boot do kernel de execução da ROM, sem XAM, com testes
+separados e guia [S016](docs/TESTE_FISICO_S016.md).
+Novo teste físico depende de build S016 comprovado e orientação explícita.
 Ainda sem imagem nem áudio do Mario no Xbox e sem
 tradução estática PowerPC; o PRG 6502 é interpretado em C.
 Consulte sempre o checkpoint e NEXT_STEPS.md: este resumo não substitui os dois.

@@ -1,4 +1,85 @@
-# Checkpoint operacional — 2026-10-09 (S015)
+# Checkpoint operacional — 12/10/2026 (S016)
+
+## BLOQUEIO REAL: S015 causou Fatal Crash no Xbox 360
+
+O proprietário baixou o artifact S015, executou
+`default.xex` no console e obteve **Fatal Crash
+imediato**, necessitando reiniciar o Xbox.
+Portanto, o S015 é **TESTADO EM HARDWARE E FALHOU**.
+Não afirmar que o S015 não foi testado; referências
+antigas nesse sentido são históricas.
+Não recomendar reexecutar S015.
+Registro: https://github.com/PedroMarioaBros/SMNEStoX360/issues/12 .
+
+Arquivo S015: 528384 B, SHA256
+`48a9071765d3b9db8cfe9cfb91423b5f437ce990d262e380cd7bdd01dea7d077`,
+commit `bd9775a84d1b9451f61bc5d79bf1df0b2002952d`,
+CI https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/37966878615
+`success` **só** de compilação, nunca sucesso de boot.
+
+## S016 — dois programas de isolamento, NÃO testados no console
+
+HEAD entrada main `2a7a2f6af127adbbb8a025b801d2612fdba55561`,
+branch `work/s016-isolate-fatal-crash-20261012`.
+
+1. `src/platform/canonical_xex/boot_kernel_only.c`: sem ROM
+   e sem gameplay, apenas `KeDelayExecutionThread`
+   (~5s) e retorno, sem funções de notificação,
+   controle, vídeo bruto ou printf.
+2. `src/platform/canonical_xex/boot_canonical_no_xam.c`:
+   a ROM original embutida e `src/canonical/` com
+   120 quadros, sem chamadas diretas XAM,
+   stdout, áudio ou framebuffer.
+3. `scripts/build-xex-boot-isolation.sh`: valida
+   ROM e produz PE PowerPC 0x01f2 + XEX2 em
+   `01_KERNEL_ONLY/` e `02_CANONICAL_NO_XAM/`,
+   manifests/checksums. `.github/workflows/xex-boot-isolation.yml`
+   publica artifact **DISTINTO** do S015. Instruções
+   `docs/TESTE_FISICO_S016.md` ficam junto ao pacote.
+
+**Fato descoberto pela leitura do PE compilado:**
+a CRT do OpenXeChain liga `xam.xex` e
+`XamLoaderLaunchTitle` mesmo em kernel-only.
+Os novos programas **não** importam diretamente
+`XNotifyQueueUI` ou `XamInputGetState`,
+mas NÃO estão livres de toda dependência XAM.
+A biblioteca CRT deve ser investigada em S017.
+
+Falhas de desenvolvimento S016 preservadas:
+- Workflow `38204175107`: verificação exigia
+  ausência total de xam.xex, hipótese descartada
+  por inspeção binária do artifact de debug.
+- Workflow `38204354807`: compilou ambos e
+  testou PE/ROM com PASS, mas etapa CI tinha
+  `grep` shell malformado.
+- Uma substituição textual incorreta gerou
+  YAML duplicado e jobs inválidos; corrigido
+  por reconstrução do arquivo e releitura exata.
+- Evidência detalhada
+  [S016](evidence/S016/README.md).
+
+A ROM `assets/canonical/SMB_v026.nes` permanece
+exclusiva, 40976 B e SHA-256
+`57fb4ee14288853bc0c8a5a629a103e51e87a4ebae1cc699b435060d2690b047`.
+Não importar `nathsou/smb`, não editar PRG/CHR.
+A CPU 6502 ainda é interpretada em C compilado PPC,
+não é tradução estática PowerPC nem jogo jogável.
+
+O próximo teste **não é obrigatório agora** e pode
+causar outro Fatal Crash. Caso seja oferecido,
+testar SOMENTE o novo pacote S016, **etapa 01 primeiro**;
+etapa 02 somente se 01 retornar normalmente.
+Qualquer crash interrompe os testes. Não mexer em NAND
+ou firmware. Nenhum dos dois novos XEX foi testado fisicamente.
+
+Próxima tarefa S017: distinguir startup/CRT/ABI/imports
+versus runtime, diagnosticar aviso LLD e estudar renderização
+segura; instruções em [NEXT_STEPS.md](NEXT_STEPS.md).
+
+---
+
+# Histórico dos checkpoints — S015 e anteriores
+
 
 ## S015 — diagnóstico XAM e dois controles Xbox
 

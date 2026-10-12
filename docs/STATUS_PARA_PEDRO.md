@@ -1,3 +1,10 @@
+> **ATUALIZAÇÃO CRÍTICA — 12/10/2026:** o usuário testou
+> `default.xex` da S015 e recebeu **Fatal Crash imediato**, necessitando
+> reiniciar o Xbox 360. O XEX S015 NÃO FUNCIONOU em hardware;
+> não usar esse arquivo novamente. Ver
+> [issue #12](https://github.com/PedroMarioaBros/SMNEStoX360/issues/12) e
+> [plano S016](TESTE_FISICO_S016.md). Compilação CI verde não é boot real.
+
 # Super Mario Bros. NES → Xbox 360 — situação para o proprietário
 
 **Fotografia de 09/10/2026 — atualização S015.**
