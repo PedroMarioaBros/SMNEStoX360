@@ -759,3 +759,18 @@ A identidade do commit que contém uma entrada pode ser consultada no histórico
 - **Falha investigada no próprio SynthXEX:** CI `38206298625` retornou `Out of memory` ao converter PE canônico, embora o PE tivesse sido compilado. O mapeador de PE upstream faz `realloc(buffer, rawSize)` e trata retorno NULL como OOM até para rawSize=0; o PE CRT-less tinha `.data` BSS-only raw size 0. Variável inicializada e usada cria `.data` válida, sem mudar ROM/gameplay. Workaround e erro preservados em `docs/evidence/S017/README.md`.
 - **CI dos dois XEX S017:** https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/38206437946 `completed/success`, PE 2048/68608 B, XEX 200704/397312 B, importações exatas, hashes. Testes host e compilação canônica da branch no commit `439ab0ce46f497a220f803cb34e3ac805e6a148e` `success`.
 - **Físico:** S015 `Fatal Crash` confirmado. Ambos os novos S017 permanecem **hardware UNTESTED**. O aviso de LLD sobre `/align` permanece; XEX2 estruturalmente correto pode ainda falhar. Roteiro `docs/TESTE_FISICO_S017.md`: sonda 01 primeiro em pasta isolada, 02 apenas se 01 funcionar; interromper no primeiro crash. Não alterar NAND/firmware/exploit.
+
+### S017 — conclusão PR #14 e entrega de arquivos ao proprietário
+
+- PR [#14](https://github.com/PedroMarioaBros/SMNEStoX360/pull/14)
+  merge squash em `40825ff3530d426b05d3e23b4ab02b8d82f12ebe`.
+- S017 CI da main para XEX CRT-free: [run 38206754775](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/38206754775)
+  **completed/success**, build canônico regressão
+  [run 38206754778](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/38206754778)
+  **completed/success**. Branch código final [run 38206678772](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/38206678772) **success** e artifact #11728050710.
+- ZIP S017 baixado para o usuário e validado: 01 `default.xex` 200704 B SHA-256
+  `e1e6eedc3722f442d02b4054247726927956e2681609b673c2f42f67cbcf5404`;
+  02 `02_CANONICAL_CRTLESS/default.xex` 397312 B SHA-256
+  `cef79db5efa58cc07a6e4083b7e026b5d050d1c36eab0c27c5db61e95a34edee`. ROM original exata incorporada uma vez no PE 02.
+- Entregues links ZIP e arquivos individuais ao proprietário; **não equivale a console testado**. A ausência de vídeo e áudio é intencional neste diagnóstico. A CPU 6502 segue interpretada em C, não estática PPC.
+- S015 permanece Fatal Crash físico. Precisa-se de retorno físico da Etapa 01 S017 antes da 02; não mexer em NAND/desbloqueio. Se 01 falhar, investigar PE/XEX/ABI/cabeçalhos do SynthXEX e não insistir com a 02.
