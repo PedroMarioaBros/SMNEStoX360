@@ -718,3 +718,21 @@ A identidade do commit que contém uma entrada pode ser consultada no histórico
   se primeira funcionar. Sem garantia de que
   novo XEX não crashe; parar no primeiro Fatal Crash.
   A CPU 6502 segue interpretada, sem PPC estático.
+
+### S016 — publicação, PR #13 e estado físico
+
+- PR #13 https://github.com/PedroMarioaBros/SMNEStoX360/pull/13
+  merge squash `cf10bc38eb1dbf564a83438d60f07dace96766a7`.
+- CI da branch `fe340af22cf40689580b774a164d475078799195`:
+  isolamento https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/38204649408
+  `success`, artifact #11726049878; host 4 jobs
+  https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/38204649340
+  `success`; XEX canônico
+  https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/38204649496
+  `success`.
+- CI da main após merge está nos runs
+  `38204726453` (S016), `38204726543` (host) e
+  `38204726479` (canônico); verificar separadamente.
+- S015 continua **FATAL CRASH CONFIRMADO**, portanto nenhum
+  novo XEX deve ser vendido como jogo/boot validado.
+  S016 é apenas isolamento controlado **não testado em hardware**.
