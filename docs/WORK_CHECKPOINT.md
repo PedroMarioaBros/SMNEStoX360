@@ -20,7 +20,16 @@ CI https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/37966878615
 ## S016 — dois programas de isolamento, NÃO testados no console
 
 HEAD entrada main `2a7a2f6af127adbbb8a025b801d2612fdba55561`,
-branch `work/s016-isolate-fatal-crash-20261012`.
+branch `work/s016-isolate-fatal-crash-20261012`,
+integrada pela PR #13:
+https://github.com/PedroMarioaBros/SMNEStoX360/pull/13 ,
+commit squash `cf10bc38eb1dbf564a83438d60f07dace96766a7`.
+O CI S016 do PR https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/38204649408
+passou, artifact #11726049878; host
+https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/38204649340
+quatro jobs PASS; compilação canônica
+https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/38204649496 PASS.
+Nenhum novo XEX foi testado fisicamente.
 
 1. `src/platform/canonical_xex/boot_kernel_only.c`: sem ROM
    e sem gameplay, apenas `KeDelayExecutionThread`
