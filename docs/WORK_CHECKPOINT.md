@@ -1,5 +1,21 @@
 # Checkpoint operacional — 12/10/2026 (S016)
 
+## S017 — novo XEX Xbox OS sem Newlib CRT (12/10/2026)
+
+O usuário solicitou explicitamente prosseguir **independente do método de desbloqueio** e produzir um executável real. ABadAvatar é informação conhecida, mas não bloqueia implementação. Não alegar que existe executável universal comprovado sem teste físico.
+
+Branch `work/s017-crtless-xex-20261012`.
+**Avanço compilado:** criado entrypoint próprio `smb360_entry`, ligado diretamente por `-nostdlib -Wl,/entry:smb360_entry`, sem o runtime C Newlib que anteriormente importava APIs de filesystem/thread/debug desnecessárias. O novo PE importa **somente 3 funções**: `KeDelayExecutionThread` (kernel), `XamLoaderTerminateTitle` (XAM), `ExTerminateThread` (kernel fallback). Isso corrige uma dependência real do build S015/S016 e conserva formato de título Xbox OS.
+
+Há **duas imagens separadas**: 01 mínimo nativo, aguarda ~5 s e retorna; 02 runtime original C99 + ROM `SMB_v026.nes` embutida, 120 quadros com watchdog, sem XAM input/notification, sem vídeo/áudio Xbox. A CPU 6502 **continua interpretada**, portanto o port estático ainda não foi atingido. A ROM e PRG/CHR permanecem byte-idênticos. O novo `tools/verify_crtless_xex.py` confere XEX2/PE PPC Xbox, entrypoint e importações exatas; exige ROM íntegra apenas na variante 02.
+
+Bug novo encontrado e contornado: SynthXEX retorna falsamente "Out of memory" ao passar `realloc(buffer,0)` numa seção `.data` BSS-only, demonstrado nos arquivos PE do CI `38206298625` e fonte público upstream. Uma variável estática inicializada e usada força seção de raw size não-zero, sem afetar gameplay nem ROM. Ver [evidência S017](evidence/S017/README.md).
+
+CI código completo: https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/38206437946 `success` para ambas as imagens. **Apenas compilação/inspeção; S017 NÃO TESTADA em hardware.** Aviso LLD `/align specified without /driver; image may not run` permanece. S015 é **Fatal Crash em hardware**, permanentemente vetada. Etapa 01 primeiro, 02 só após retorno seguro e decisão consciente do proprietário. Não publicar "Mario jogável".
+
+---
+
+
 ## Precisão de ambiente — entrada ABadAvatar CONFIRMADA (12/10/2026)
 
 O proprietário identificou nominalmente o desbloqueio como **ABadAvatar**, em versão atual de uso, com ativação automática ao iniciar, sem procedimento manual com um jogo. Essa identificação **substitui** a hipótese anterior de que ABadAvatar seria apenas possível. Documentação primária: https://github.com/shutterbug2000/ABadAvatar . **ABadAvatar é o entrypoint do exploit, não necessariamente o patcher de permissões/XEX**: o próprio README avisa que não inclui XEX e usa payload separado em `BadUpdatePayload`, como FreeMyXe ou XeUnshackle. O patcher específico continua **DESCONHECIDO** e a compatibilidade retail/devkit continua sob investigação. Pergunta pendente: aparece tela de FreeMyXe/XeUnshackle ou vai direto ao Aurora? Se necessário, só conferir nomes de arquivos da mídia de desbloqueio, sem modificar nada. **S015 Fatal Crash CONFIRMADO; S016 não testado fisicamente; não solicitar novo XEX agora.** Registro [issue #12](https://github.com/PedroMarioaBros/SMNEStoX360/issues/12).
