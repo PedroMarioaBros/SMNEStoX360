@@ -1,6 +1,7 @@
 /* S016 boot isolation, stage 02: exact owner's 6502 PRG, no XAM.
  * Only run on real Xbox if stage 01 has safely returned to dashboard.
- * NO graphics/MMIO, NO XAM notifications/input, NO stdio/printf.
+ * NO graphics/MMIO, NO direct XAM notifications/input, NO stdio/printf.
+ * The OpenXeChain CRT still imports xam.xex for title exit.
  * The canonical machine runs a bounded CPU/PPU test, then exits.
  * Failure in this stage after 01 works narrows the cause to game
  * runtime or binary image differences, not proof of either. */
