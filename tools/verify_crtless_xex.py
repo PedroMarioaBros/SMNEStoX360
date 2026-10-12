@@ -51,7 +51,7 @@ def check(pe, xex, rom=None):
     if len(pe) > 0x100000 or len(xex) > 0x100000:
         raise ValueError("unexpectedly big CRT-less title")
     if rom is None:
-        if b"NES\\x1a" in pe:
+        if b"NES\x1a" in pe:
             raise ValueError("minimal XEX unexpectedly embeds NES ROM header")
     else:
         if pe.count(rom) != 1:
