@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # S016: two controlled BOOT DIAGNOSTICS after real Xbox Fatal Crash #12.
-# NO nathsou, no raw GPU framebuffer, no XAM, no print/stdio.
+# NO nathsou, no raw GPU framebuffer, no direct XAM calls, no printf.
+# The default OpenXeChain CRT STILL imports xam.xex/XamLoaderLaunchTitle.
 # Not a playable game. Do not ask for test unless exact CI run is GREEN.
 set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -13,13 +14,13 @@ test -x "$TC/bin/synthxex"
 mkdir -p "$OUT/01_KERNEL_ONLY" "$OUT/02_CANONICAL_NO_XAM"
 export PATH="$TC/bin:$PATH"
 export C_INCLUDE_PATH= CPLUS_INCLUDE_PATH= LIBRARY_PATH=
-echo "S016 boot-isolation: minimal Xbox OS kernel, no ROM, no XAM"
+echo "S016 boot-isolation: minimal kernel program, NO DIRECT XAM calls (CRT imports XAM)"
 "$TC/bin/clang" -O2 -std=c99 -Wall -Wextra -Werror \
  src/platform/canonical_xex/boot_kernel_only.c \
  -o "$OUT/01_KERNEL_ONLY/boot.exe"
 "$TC/bin/synthxex" -i "$OUT/01_KERNEL_ONLY/boot.exe" \
  -o "$OUT/01_KERNEL_ONLY/default.xex" -t title
-echo "S016 boot-isolation: original SMB_v026 ROM and canonical C99 core, no XAM"
+echo "S016 boot-isolation: canonical ROM/core, NO DIRECT XAM calls (CRT imports XAM)"
 "$TC/bin/clang" -O2 -std=c99 -Wall -Wextra -Werror \
  -Isrc/canonical src/canonical/*.c \
  src/platform/canonical_xex/boot_canonical_no_xam.c \
@@ -48,13 +49,18 @@ for stage in ("01_KERNEL_ONLY","02_CANONICAL_NO_XAM"):
     assert pe[off:off+4]==b"PE\0\0"
     machine=struct.unpack_from("<H",pe,off+4)[0]
     assert machine==0x1f2, f"{stage} machine={machine:#x} not Xbox PowerPC"
-    assert b"xam.xex" not in pe.lower(), f"{stage} incorrectly links XAM imports"
-    assert b"XNotifyQueueUI" not in pe
+    # OpenXeChain's default CRT uses XamLoaderLaunchTitle to return to the
+    # dashboard even if the program makes no explicit XAM API calls.
+    # Distinguish these unavoidable CRT imports from S015 direct XAM calls.
+    assert b"xam.xex" in pe.lower(), f"{stage}: expected CRT XAM module missing"
+    assert b"XamLoaderLaunchTitle" in pe, f"{stage}: CRT loader exit import missing"
+    assert b"XNotifyQueueUI" not in pe, f"{stage}: S015 notification still linked"
+    assert b"XamInputGetState" not in pe, f"{stage}: S015 gamepad API still linked"
     if stage.startswith("01_"):
         assert rom not in pe, "kernel-only stage unexpectedly embeds ROM"
     else:
         assert pe.count(rom)==1, "canonical stage missing full ROM or duplicates"
-    print(f"S016 {stage}: PE PowerPC 0x{machine:04x}, no XAM, XEX2, ROM={'absent' if stage.startswith('01_') else 'exactly once'}: PASS")
+    print(f"S016 {stage}: PE PowerPC 0x{machine:04x}; CRT xam.xex import PRESENT; no direct XNotifyQueueUI/XamInputGetState; XEX2; ROM={'absent' if stage.startswith('01_') else 'exactly once'}: PASS")
 PY
 for stage in 01_KERNEL_ONLY 02_CANONICAL_NO_XAM; do
  (cd "$OUT/$stage" && sha256sum boot.exe default.xex > SHA256SUMS.txt)
@@ -65,7 +71,8 @@ project_commit=$(git rev-parse HEAD)
 os=XBOX360_DASHBOARD
 rom_sha256=57fb4ee14288853bc0c8a5a629a103e51e87a4ebae1cc699b435060d2690b047
 game_source=$(if [ "$stage" = "01_KERNEL_ONLY" ]; then echo NONE; else echo ORIGINAL_ROM_AND_CANONICAL_C99; fi)
-xam_imports=NONE
+xam_crt_imports=PRESENT_XamLoaderLaunchTitle
+direct_xam_input_notifications=NONE
 direct_gpu_mmio=NONE
 stdio=NONE
 xbox_boot_status=UNTESTED_NEW_IMAGE_AFTER_S015_FATAL_CRASH
