@@ -32,8 +32,10 @@ independentes e com importações estritamente minimizadas:
 - Compilação Xbox OS via OpenXeChain + SynthXEX.
 - Apenas `main`, importação de `KeDelayExecutionThread` para
   aguardar aproximadamente **5 segundos** e retornar.
-- **Sem ROM NES, sem core 6502, sem XAM, sem `printf`, sem
-  memória GPU, sem áudio e sem gamepad.**
+- **Sem ROM NES, sem core 6502, sem chamadas diretas de notificação/
+  controle XAM, sem `printf`, sem memória GPU, sem áudio e sem gamepad.**
+  Atenção: o runtime de inicialização da toolchain ainda importa
+  `xam.xex`/`XamLoaderLaunchTitle`, observado no PE produzido.
 - Se sofrer Fatal Crash, é improvável que a lógica do Mario,
   CPU NES ou XAM do S015 sejam necessárias para reproduzir
   o problema; investigar headers, imports, formato XEX,
