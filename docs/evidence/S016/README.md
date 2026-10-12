@@ -115,3 +115,24 @@ normal voltou a executar. Erros e correções preservados.
   ainda não foi construído.
 - Integridade da ROM canônica preservada:
   SHA-256 `57fb4ee14288853bc0c8a5a629a103e51e87a4ebae1cc699b435060d2690b047`.
+
+## Integração do isolamento S016
+
+- PR #13: https://github.com/PedroMarioaBros/SMNEStoX360/pull/13
+  integrada por squash em `cf10bc38eb1dbf564a83438d60f07dace96766a7`.
+  Revisão: 12 arquivos alterados, zero alterações em `assets/canonical/`.
+- Commit da branch com o código final:
+  `fe340af22cf40689580b774a164d475078799195`.
+- Workflow S016 do PR `38204649408` **completed/success**:
+  https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/38204649408
+  Artifact `smb360-S016-BOOT-ISOLATION-NOT-PLAYABLE`
+  id `11726049878`, ZIP 177016 B, com dois XEXs separados.
+- Regressão host `38204649340` **completed/success**
+  nos quatro jobs; build canônico `38204649496`
+  **completed/success** para o mesmo commit.
+- CI pós-merge na main (commit `cf10bc38...`)
+  iniciado: isolamento `38204726453`, host `38204726543`,
+  core canônico `38204726479`; conferir seus resultados
+  separadamente antes de um novo pacote físico.
+- Novos XEXs **ainda não foram testados no Xbox**.
+  A falha física S015 permanece confirmada.
