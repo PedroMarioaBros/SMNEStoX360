@@ -48,7 +48,8 @@ independentes e com importações estritamente minimizadas:
 
 - Usa o mesmo `src/canonical/` da máquina NES, ROM autorizada
   de **40976 bytes** embutida e CPU 6502 interpretada,
-  **sem XAM**, sem `printf`, sem framebuffer e sem áudio.
+  **sem chamadas diretas XAM**, sem `printf`, sem framebuffer e sem áudio.
+  A dependência XAM da biblioteca de inicialização permanece.
 - Executa, no máximo, 120 quadros; tem limites de
   1.000.000 de instruções por quadro; após conclusão
   espera cinco segundos e retorna.
