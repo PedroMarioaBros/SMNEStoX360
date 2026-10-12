@@ -1,5 +1,10 @@
 # Checkpoint operacional — 12/10/2026 (S016)
 
+## Precisão de ambiente — entrada ABadAvatar CONFIRMADA (12/10/2026)
+
+O proprietário identificou nominalmente o desbloqueio como **ABadAvatar**, em versão atual de uso, com ativação automática ao iniciar, sem procedimento manual com um jogo. Essa identificação **substitui** a hipótese anterior de que ABadAvatar seria apenas possível. Documentação primária: https://github.com/shutterbug2000/ABadAvatar . **ABadAvatar é o entrypoint do exploit, não necessariamente o patcher de permissões/XEX**: o próprio README avisa que não inclui XEX e usa payload separado em `BadUpdatePayload`, como FreeMyXe ou XeUnshackle. O patcher específico continua **DESCONHECIDO** e a compatibilidade retail/devkit continua sob investigação. Pergunta pendente: aparece tela de FreeMyXe/XeUnshackle ou vai direto ao Aurora? Se necessário, só conferir nomes de arquivos da mídia de desbloqueio, sem modificar nada. **S015 Fatal Crash CONFIRMADO; S016 não testado fisicamente; não solicitar novo XEX agora.** Registro [issue #12](https://github.com/PedroMarioaBros/SMNEStoX360/issues/12).
+
+
 ## Atualização de compatibilidade — 12/10/2026 (relato do proprietário)
 
 O proprietário esclareceu que o Xbox 360 usa **desbloqueio exclusivamente por software**, descrito como a versão mais recente disponível, **não RGH/JTAG por hardware**. Ainda **não confirmou o nome do desbloqueio**; os candidatos BadUpdate/ABadAvatar com FreeMyXe ou XeUnshackle são hipóteses, não identificação definitiva. A diferença de compatibilidade retail/devkit de XEX depende do patcher e da versão exata. Orientações antigas do FreeMyXe indicavam restrição a XEX devkit-criptografado, mas o README atual já lista suporte; portanto não concluir incompatibilidade sem confirmar a versão. Fonte técnica e detalhes registrados na [issue #12](https://github.com/PedroMarioaBros/SMNEStoX360/issues/12). Até obter o nome do payload/patcher/launcher, **não recomendar novo teste físico S016**. S015 permanece Fatal Crash confirmado e os XEX S016 continuam não testados fisicamente.
