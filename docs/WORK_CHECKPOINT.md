@@ -1,5 +1,25 @@
 # Checkpoint operacional — 12/10/2026 (S016)
 
+### S017 — publicação e CI confirmado na main
+
+PR [#14](https://github.com/PedroMarioaBros/SMNEStoX360/pull/14)
+integrada por squash `40825ff3530d426b05d3e23b4ab02b8d82f12ebe`.
+O CI da main para XEX **CRT-free** foi
+https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/38206754775
+`completed/success`; o build canônico legado apenas como
+regressão está em `38206754778` `success`. O CI da branch
+com código final é `38206678772` `success`; artifact #11728050710,
+com `default.xex` mínimo 200704 B e `02_CANONICAL_CRTLESS/default.xex`
+397312 B. SHA-256 PR mínimo
+`e1e6eedc3722f442d02b4054247726927956e2681609b673c2f42f67cbcf5404`,
+ROM embutida
+`cef79db5efa58cc07a6e4083b7e026b5d050d1c36eab0c27c5db61e95a34edee`.
+Confirmação física de boot: **NÃO TESTADO**.
+Proprietário recebeu o novo pacote no chat. S015 fatal crash não
+é evidência de falha automática do novo XEX; S017 também não
+foi validado em console. Nenhuma garantia universal.
+
+
 ## S017 — novo XEX Xbox OS sem Newlib CRT (12/10/2026)
 
 O usuário solicitou explicitamente prosseguir **independente do método de desbloqueio** e produzir um executável real. ABadAvatar é informação conhecida, mas não bloqueia implementação. Não alegar que existe executável universal comprovado sem teste físico.
