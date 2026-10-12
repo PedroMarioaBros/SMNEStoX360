@@ -1,5 +1,6 @@
 /* S016 boot isolation, stage 01: Xbox OS kernel only.
- * NO ROM, NO graphics/MMIO, NO XAM, NO stdio/printf,
+ * NO ROM, NO graphics/MMIO, NO direct XAM calls, NO stdio/printf,
+ * but the linked OpenXeChain CRT still imports xam.xex.
  * NO dynamic allocations, NO threads. Return after a 5s delay.
  * This can still crash if the PE/XEX/startup/kernel import is broken.
  * It is NOT the Mario game. */
