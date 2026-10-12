@@ -90,3 +90,18 @@ Nenhuma mudança de NAND, firmware ou bootloader.
   e futura tradução estática 6502→PowerPC desejada.
 - Nenhum `default.xex` da rota antiga/nathsou, nem
   endereços de vídeo MMIO hardcoded do Fatal Crash #16.
+
+## Fechamento S016 — build validado, diagnóstico físico pendente
+
+- PR #13 https://github.com/PedroMarioaBros/SMNEStoX360/pull/13
+  integrada por squash: `cf10bc38eb1dbf564a83438d60f07dace96766a7`.
+- CI exato do merge: `38204726453` isolamento S016,
+  `38204726543` host e `38204726479` XEX canônico:
+  **três success**.
+- Artifact *somente diagnóstico* S016 #11726453526, 177016 B,
+  expira em 11/11/2026; duas etapas em pastas diferentes.
+- **Não recomendar S015**. Não solicitar automaticamente
+  novo teste físico: primeiro confirmar compatibilidade
+  do desbloqueio/loader, pois novo crash é possível.
+  Se proprietário quiser continuar e estiver informado do risco,
+  guiar SOMENTE etapa 01 inicialmente.
