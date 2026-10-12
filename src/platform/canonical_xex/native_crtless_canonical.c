@@ -16,10 +16,16 @@
 extern const uint8_t smb360_canonical_rom[];
 extern const uint8_t smb360_canonical_rom_end[];
 static smb360_machine machine;
+/* SynthXEX's PE mapper treats realloc(ptr,0) as ERR_OUT_OF_MEM when
+ * .data has zero raw bytes (BSS-only).  Keep one intentionally
+ * initialized, used scalar so .data has nonzero raw size. This is
+ * NOT a gameplay patch and does not modify ROM bytes. */
+static volatile uint32_t s017_data_section_marker = 0x534D4232u;
 
 static int run_probe(void) {
     uint32_t frame;
     const uint8_t *rom=smb360_canonical_rom;
+    if(s017_data_section_marker!=0x534D4232u) return 0;
     if((size_t)(smb360_canonical_rom_end-rom)!=ROM_SIZE ||
        rom[0]!=0x4eu || rom[1]!=0x45u || rom[2]!=0x53u ||
        rom[3]!=0x1au || rom[4]!=2u || rom[5]!=1u) return 0;
