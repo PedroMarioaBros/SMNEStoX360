@@ -1,4 +1,5 @@
 name: Actions Diagnostic
+# connector-visible smoke test
 
 on:
   workflow_dispatch:
