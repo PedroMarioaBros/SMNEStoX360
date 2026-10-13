@@ -774,3 +774,39 @@ A identidade do commit que contém uma entrada pode ser consultada no histórico
   `cef79db5efa58cc07a6e4083b7e026b5d050d1c36eab0c27c5db61e95a34edee`. ROM original exata incorporada uma vez no PE 02.
 - Entregues links ZIP e arquivos individuais ao proprietário; **não equivale a console testado**. A ausência de vídeo e áudio é intencional neste diagnóstico. A CPU 6502 segue interpretada em C, não estática PPC.
 - S015 permanece Fatal Crash físico. Precisa-se de retorno físico da Etapa 01 S017 antes da 02; não mexer em NAND/desbloqueio. Se 01 falhar, investigar PE/XEX/ABI/cabeçalhos do SynthXEX e não insistir com a 02.
+
+## S018 — 13/10/2026: resultado físico S017 e diagnóstico observável
+
+- O proprietário informou testado S017 **01 minimal**:
+  tela preta e congelamento do console, sem Fatal Crash,
+  dashboard original ou Aurora acessível. **FALHA.**
+- S017 **02 ROM original**: tela preta sem erro visível e
+  **reabertura/reinício automático do Aurora**. Não sabemos
+  se rodou 120 frames, se terminou antecipadamente ou se
+  houve recuperação automática. NÃO classificar como PASS.
+  Issue #12 atualizada e nova issue #15 com fatos separados.
+- A observação expôs impossibilidade de distinguir sucesso
+  ou erro no S017 pelo sintoma. `native_crtless_status.c`
+  mantém entrypoint nativo sem Newlib e ROM exata,
+  adicionando notificações XAM START/ROM_INVALID/CPU_STOP/
+  FRAME_TIMEOUT/120_FRAMES_PASS e contador da PPU como
+  condição, 120 incrementos e watchdog por quadro.
+  Não usar MMIO direto de vídeo, `printf`, dependências
+  de filesystem ou nathsou. ROM SHA original intacta.
+- `tools/verify_crtless_xex.py` estende com
+  `--allow-notifications`, conservando modo anterior
+  sem flag. Importações esperadas são 3 APIs de S017
+  mais `XNotifyQueueUI`; PE PowerPC/XEX/ROM conferidos.
+  Workflow S018 `xex-status.yml`, script
+  `build-xex-s018-status.sh`, guia e evidência S018.
+- Primeiro CI branch código S018
+  https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/38415557401
+  **completed/success**. Novo pacote ainda NÃO testado
+  no Xbox; aviso XAM pode ser bloqueado ou instável,
+  logo ausência de notificações inconclusiva.
+- O caminho de encerramento `XamLoaderTerminateTitle`
+  e fallback `ExTerminateThread`+loop é suspeita
+  e deve ser isolado; não afirmar que foi a causa do
+  travamento S017. A CPU NES continua interpretada C99
+  em PowerPC e o Mario ainda não aparece no Xbox.
+  Não repetir testes S015/S017 antigos.
