@@ -103,12 +103,16 @@ def check(pe, xex, rom=None, allow_notifications=False):
     for forbidden in forbidden_names:
         if forbidden in pe:
             raise ValueError(f"CRT or game code accidentally linked: {forbidden!r}")
-    print("S017 PE/XEX2: PowerPC machine=0x01f2; subsystem=XBOX")
-    print(f"S017 PE entry=0x{imagebase+entry:08x}, matches XEX optional header")
-    print(f"S017 import modules={sorted(libraries)}; EXACT APIs={sorted(names)}")
-    print(f"S017 size PE={len(pe)} XEX={len(xex)}; NO Newlib startup/file syscalls: PASS")
-    print(f"S017 XEX sha256={hashlib.sha256(xex).hexdigest()}")
-    print("S017 Xbox hardware test: NOT TESTED. Old S015: FATAL CRASH.")
+    tag = "S018 STATUS" if allow_notifications else "S017"
+    print(f"{tag} PE/XEX2: PowerPC machine=0x01f2; subsystem=XBOX")
+    print(f"{tag} PE entry=0x{imagebase+entry:08x}, matches XEX optional header")
+    print(f"{tag} import modules={sorted(libraries)}; EXACT APIs={sorted(names)}")
+    print(f"{tag} size PE={len(pe)} XEX={len(xex)}; NO Newlib startup/file syscalls: PASS")
+    print(f"{tag} XEX sha256={hashlib.sha256(xex).hexdigest()}")
+    if allow_notifications:
+        print("S018 Xbox hardware: NOT TESTED. S017 minimal FREEZE; canonical returned Aurora without frame proof.")
+    else:
+        print("S017 Xbox hardware: 01 FREEZE, 02 Aurora returned; not proof of successful frames.")
 def main():
     p=argparse.ArgumentParser()
     p.add_argument("--pe",required=True)
