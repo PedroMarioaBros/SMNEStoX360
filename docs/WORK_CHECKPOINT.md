@@ -1,5 +1,31 @@
 # Checkpoint operacional — 13/10/2026 (S018)
 
+### S018 — publicação, CI da main e entrega verificada (13/10/2026)
+
+PR [#16](https://github.com/PedroMarioaBros/SMNEStoX360/pull/16)
+integrada por squash `f94f8acd553777ea198d617ced63d924c9cde3a4`.
+CI exato do merge, **todos completed/success**:
+- XEX S018 https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/38416357552
+- Host (14 suítes normal/ASan, referência e frontend)
+  https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/38416357745
+- XEX CRT-free S017 regressão
+  https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/38416357481
+- Build canônico S015 regressão (NÃO executar S015)
+  https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/38416357713
+
+Artifact `smb360-S018-STATUS-NATIVE-XEX` #11824027270
+(92383 B compactados, expires 12/11/2026),
+inclui `default.xex` 397312 bytes SHA-256
+`c1e5e5846e77ec1b4374720160ac597f9d16331287f91378f113d6e18732aeb0`.
+ZIP baixado e o XEX extraído; `SHA256SUMS.txt`
+foi conferido e manifest `kind=S018_CANONICAL_VISIBLE_STATUS_UNTESTED`
+foi lido. A ROM original permanece exata.
+O proprietário recebeu XEX individual e ZIP no chat.
+**S018 ainda NÃO TESTADA fisicamente.**
+CI verde valida compilação e estrutura do arquivo,
+não compatibilidade de runtime com Xbox/Aurora.
+
+
 ## Observação física comprovada S017: NÃO é boot validado
 
 O proprietário executou ambas as versões S017 no Xbox 360 com
