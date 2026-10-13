@@ -1,5 +1,33 @@
 # Próxima ação — após feedback físico S017 (13/10/2026)
 
+## Fechamento implementação S018 (13/10/2026)
+
+- PR [#16](https://github.com/PedroMarioaBros/SMNEStoX360/pull/16)
+  merged `f94f8acd553777ea198d617ced63d924c9cde3a4`.
+- CI main S018 https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/38416357552
+  **success**, host `38416357745`, S017 regressão
+  `38416357481`, canônico `38416357713` success.
+- Artifact S018 #11824027270 ZIP com XEX válido
+  397312 B SHA-256 `c1e5e5846e77ec1b4374720160ac597f9d16331287f91378f113d6e18732aeb0`;
+  ROM intacta. Arquivo já entregue ao proprietário no chat.
+- **S017 01 congelou**; **S017 02 retornou ao Aurora
+  sem evidência de 120 frames concluídos**. Não pedir
+  reteste de S015/S017 nem atribuir boot PASS.
+- Próximo resultado útil: observar se S018 mostra
+  avisos START/ROM INVALID/CPU STOP/TIMEOUT/PASS,
+  e se retorna ou congela. **S018 ainda não foi
+  testada no Xbox** e chamar XAM pode travar.
+  A decisão de teste pertence ao usuário, em pasta
+  isolada, sem tocar em NAND/ABadAvatar/Aurora.
+- Se XAM não mostrar avisos, **não insistir cegamente
+  em novas notificações**. Buscar método de tela segura
+  oficial da plataforma Xbox 360, ou evidência
+  de execução por depuração/telemetria suportada.
+- Só declarar próximo marco de jogo portado quando
+  gameplay/render/input nativos forem testados
+  fisicamente. CPU 6502 ainda interpretada em C PPC.
+
+
 ## Hardware: S017 01 FALHOU; S017 02 VOLTOU AO AURORA, sem prova de PASS
 
 O proprietário executou ambos os XEX: estágio 01 teve **tela
