@@ -34,7 +34,19 @@ para o próximo.
 
 ## Estado resumido
 
-**ATUALIZAÇÃO 12/10/2026 — S017:** o S015 testado pelo proprietário
+**ATUALIZAÇÃO 13/10/2026 — RESULTADO FÍSICO S017:** o proprietário
+testou ambas as etapas: **01 travou em tela preta sem Fatal Crash e
+sem retorno ao menu; 02 ficou em tela preta e retornou/relançou o
+Aurora automaticamente, sem mensagem de erro**. NÃO declarar 01 ou 02
+como prova de CPU/frame PASS. Não pedir reexecução. A S018
+introduziu mensagens XAM de progresso/error/PASS em novo XEX
+nativo CRT-free; veja [evidência S018](docs/evidence/S018/README.md),
+[issue #15](https://github.com/PedroMarioaBros/SMNEStoX360/issues/15)
+e [próximas ações](docs/NEXT_STEPS.md). S018 ainda sem hardware testado.
+Acesso ABadAvatar está confirmado; não bloquear a engenharia por
+identificação do segundo patcher.
+
+**ATUALIZAÇÃO HISTÓRICA 12/10/2026 — S017:** o S015 testado pelo proprietário
 causou Fatal Crash real. Pela PR #14, integrada na main como
 `40825ff3530d426b05d3e23b4ab02b8d82f12ebe`, foram gerados
 **dois executáveis XEX2 PowerPC Xbox OS sem startup Newlib CRT**:

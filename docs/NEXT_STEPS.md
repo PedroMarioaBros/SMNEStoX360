@@ -1,4 +1,51 @@
-# Próxima ação — após resultado físico S015, 12/10/2026
+# Próxima ação — após feedback físico S017 (13/10/2026)
+
+## Hardware: S017 01 FALHOU; S017 02 VOLTOU AO AURORA, sem prova de PASS
+
+O proprietário executou ambos os XEX: estágio 01 teve **tela
+preta congelada**, sem menu nem Fatal Crash; estágio 02 ficou
+em **tela preta** e **Aurora relançou automaticamente**, sem
+mensagem de erro. Não assumir CPU/PPU 120 quadros PASS ou
+retorno voluntário pela XAM. Não repetir S015, S017 01 ou
+S017 02. A causa do retorno ou congelamento segue aberta
+(issues #12 e #15). Identidade exata do patcher não bloqueia
+a engenharia, conforme ordem expressa do proprietário.
+
+## Implementação S018
+
+O novo arquivo `src/platform/canonical_xex/native_crtless_status.c`
+incorpora ROM exata e CPU/PPU canônicas em XEX PowerPC Xbox sem
+Newlib CRT, com um novo canal opcional de notificação
+`XNotifyQueueUI`: `CPU START`, `ROM INVALID`,
+`CPU STOP`, `FRAME TIMEOUT`, `120 FRAMES PASS`.
+Esse último só é emitido após observar 120 incrementos
+de `machine.ppu.frame`, com watchdog de 1.000.000 de
+instruções por quadro. Avisos suprimidos = inconclusivo.
+Não existe Mario gráfico e a CPU 6502 continua interpretada C.
+
+Workflow `.github/workflows/xex-status.yml`,
+script `scripts/build-xex-s018-status.sh`, validador
+`tools/verify_crtless_xex.py --allow-notifications`,
+[guia](TESTE_FISICO_S018.md).
+CI branch [run 38415557401](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/38415557401)
+**success**. Antes de oferecer qualquer novo teste, conferir
+PR e CI da main no **commit exato**, SHA do XEX e manifest.
+Testar S018 envolve risco real de freeze/Fatal Crash; não
+apagar/instalar firmware, exploit, Aurora ou substituir
+`BadUpdatePayload/default.xex`. A decisão física é do dono.
+
+Próxima engenharia se START/PASS não aparecer: isolar XAM UI,
+corrigir caminho de término de título `XamLoaderTerminateTitle`
+sem inferir que `ExTerminateThread`/loop causou 01 travar;
+investigar importações/cabeçalhos e alternativa de retorno.
+Para objetivo principal, planejar saída vídeo Xbox por API
+segura (sem MMIO antigo) + input e áudio, depois tradução
+direta estática NES 6502→PPC. Não declarar jogo funcional.
+
+---
+
+# Histórico de próximos passos S017 e anteriores
+
 
 ### Resultado fechado S017, 12/10/2026
 

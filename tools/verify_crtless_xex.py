@@ -21,7 +21,7 @@ def cstr(data, start):
     end = data.index(b"\x00", start)
     return data[start:end].decode("ascii")
 
-def check(pe, xex, rom=None):
+def check(pe, xex, rom=None, allow_notifications=False):
     if pe[:2] != b"MZ":
         raise ValueError("not a PE image")
     nt = u32(pe, 0x3c)
@@ -92,28 +92,37 @@ def check(pe, xex, rom=None):
             raise ValueError("unbounded thunk list")
     else:
         raise ValueError("unbounded import modules")
-    if names != ALLOWED or libraries != {"xboxkrnl.exe","xam.xex"}:
+    allowed = ALLOWED | ({"XNotifyQueueUI"} if allow_notifications else set())
+    if names != allowed or libraries != {"xboxkrnl.exe","xam.xex"}:
         raise ValueError(f"forbidden/missing imports: {sorted(names)}; modules: {sorted(libraries)}")
-    for forbidden in (b"XamLoaderLaunchTitle",b"CreateFileA",
-                      b"WriteFile",b"ReadFile",b"XamInputGetState",
-                      b"XNotifyQueueUI",b"printf",b"SMB_v026.nes"):
+    forbidden_names = [b"XamLoaderLaunchTitle", b"CreateFileA",
+                       b"WriteFile", b"ReadFile", b"XamInputGetState",
+                       b"printf", b"SMB_v026.nes"]
+    if not allow_notifications:
+        forbidden_names.append(b"XNotifyQueueUI")
+    for forbidden in forbidden_names:
         if forbidden in pe:
             raise ValueError(f"CRT or game code accidentally linked: {forbidden!r}")
-    print("S017 PE/XEX2: PowerPC machine=0x01f2; subsystem=XBOX")
-    print(f"S017 PE entry=0x{imagebase+entry:08x}, matches XEX optional header")
-    print(f"S017 import modules={sorted(libraries)}; EXACT APIs={sorted(names)}")
-    print(f"S017 size PE={len(pe)} XEX={len(xex)}; NO Newlib startup/file syscalls: PASS")
-    print(f"S017 XEX sha256={hashlib.sha256(xex).hexdigest()}")
-    print("S017 Xbox hardware test: NOT TESTED. Old S015: FATAL CRASH.")
+    tag = "S018 STATUS" if allow_notifications else "S017"
+    print(f"{tag} PE/XEX2: PowerPC machine=0x01f2; subsystem=XBOX")
+    print(f"{tag} PE entry=0x{imagebase+entry:08x}, matches XEX optional header")
+    print(f"{tag} import modules={sorted(libraries)}; EXACT APIs={sorted(names)}")
+    print(f"{tag} size PE={len(pe)} XEX={len(xex)}; NO Newlib startup/file syscalls: PASS")
+    print(f"{tag} XEX sha256={hashlib.sha256(xex).hexdigest()}")
+    if allow_notifications:
+        print("S018 Xbox hardware: NOT TESTED. S017 minimal FREEZE; canonical returned Aurora without frame proof.")
+    else:
+        print("S017 Xbox hardware: 01 FREEZE, 02 Aurora returned; not proof of successful frames.")
 def main():
     p=argparse.ArgumentParser()
     p.add_argument("--pe",required=True)
     p.add_argument("--xex",required=True)
     p.add_argument("--embedded-rom")
+    p.add_argument("--allow-notifications", action="store_true", help="only for the distinct S018 XAM diagnostic; require exact extra XNotifyQueueUI import")
     a=p.parse_args()
     rom=Path(a.embedded_rom).read_bytes() if a.embedded_rom else None
     if rom is not None and hashlib.sha256(rom).hexdigest() != "57fb4ee14288853bc0c8a5a629a103e51e87a4ebae1cc699b435060d2690b047":
         raise ValueError("canonical ROM SHA-256 mismatch")
-    check(Path(a.pe).read_bytes(),Path(a.xex).read_bytes(),rom)
+    check(Path(a.pe).read_bytes(),Path(a.xex).read_bytes(),rom,a.allow_notifications)
 if __name__ == "__main__":
     main()

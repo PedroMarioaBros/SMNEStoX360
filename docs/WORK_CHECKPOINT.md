@@ -1,4 +1,56 @@
-# Checkpoint operacional — 12/10/2026 (S016)
+# Checkpoint operacional — 13/10/2026 (S018)
+
+## Observação física comprovada S017: NÃO é boot validado
+
+O proprietário executou ambas as versões S017 no Xbox 360 com
+ABadAvatar e Aurora:
+- **01, XEX mínimo:** tela preta e congelamento completo;
+  sem Fatal Crash visível e sem retorno possível pelo menu.
+  **FALHA / HARDWARE FREEZE**.
+- **02, XEX com ROM canônica:** tela preta, sem erro visível,
+  **Aurora reiniciado/relançado automaticamente**.
+  Não há prova de 120 frames nem causa do retorno; pode ser
+  término normal, erro antecipado ou recuperação do gerenciador.
+- Não repetir S015 (Fatal Crash real) nem as duas S017.
+  Logs: [issue #12](https://github.com/PedroMarioaBros/SMNEStoX360/issues/12),
+  [issue #15](https://github.com/PedroMarioaBros/SMNEStoX360/issues/15).
+
+## S018 — novo XEX com telemetria de progresso (ainda NÃO físico)
+
+Branch `work/s018-visible-progress-20261013`.
+Novo `native_crtless_status.c`: ROM original 40976B embutida,
+mesmo núcleo canônico C99 (interpreta CPU 6502 no PPC), sem
+Newlib CRT e sem framebuffer; solicitação de avisos do
+sistema por XAM para START, ROM INVALID, CPU STOP,
+FRAME TIMEOUT ou 120 FRAMES PASS. A conclusão de 120
+incrementos da PPU agora é testada com contador 64 bits
+e watchdog finito, mas continua **evidência apenas do próprio
+programa** até ser executado fisicamente.
+
+`tools/verify_crtless_xex.py --allow-notifications` exige
+agora importações exatas (as três de S017 + `XNotifyQueueUI`);
+S017 mantém validação estrita das três funções sem a flag.
+O workflow separado `xex-status.yml` compila um artifact
+`smb360-S018-STATUS-NATIVE-XEX`. Primeiro CI branch
+https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/38415557401
+**completed/success**. A ROM não foi editada,
+SHA256 `57fb4ee14288853bc0c8a5a629a103e51e87a4ebae1cc699b435060d2690b047`.
+Avisos XAM podem não aparecer ou até provocar falha; o
+S015 usou XAM com runtime diferente e sofreu Fatal Crash,
+causa não comprovada. Sem imagem nem áudio Xbox.
+Ver [S018](evidence/S018/README.md) e
+[guia físico S018](TESTE_FISICO_S018.md).
+
+**Estado: S017 fisicamente testado com FALHA na etapa 01 e
+RETORNO INCONCLUSIVO na 02; S018 COMPILADO em CI, ainda NÃO
+testado em console.** Nenhuma garantia universal nem
+Mario jogável. Não insistir em identificar FreeMyXe/XeUnshackle.
+Próxima tarefa no NEXT_STEPS.
+
+---
+
+# Histórico operacional — S017 e anteriores
+
 
 ### S017 — publicação e CI confirmado na main
 
