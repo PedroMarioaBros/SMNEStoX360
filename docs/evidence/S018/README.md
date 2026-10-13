@@ -101,3 +101,27 @@ arquivo. Checar também host tests, hashes ROM/PRG/CHR,
 manifesto, logs `lld-link`, retorno XAM e status real
 da PR. Manter registro de falhas e não
 substituir o exploit, NAND ou Aurora.
+
+## Publicação e verificação final
+
+- PR #16 https://github.com/PedroMarioaBros/SMNEStoX360/pull/16
+  merge `f94f8acd553777ea198d617ced63d924c9cde3a4`
+  (nenhuma alteração em `assets/canonical/`).
+- CI pós-merge
+  https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/38416357552
+  **completed/success** XEX S018;
+  https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/38416357745
+  **completed/success** host;
+  `38416357481` S017 e `38416357713`
+  regressão canônica **success**.
+- Artifact S018 `smb360-S018-STATUS-NATIVE-XEX`
+  #11824027270 (92383 B ZIP, válido até 12/11/2026);
+  `default.xex` 397312 B SHA256
+  `c1e5e5846e77ec1b4374720160ac597f9d16331287f91378f113d6e18732aeb0`.
+  Os checksums foram conferidos em ZIP extraído
+  junto ao manifesto `kind=S018_CANONICAL_VISIBLE_STATUS_UNTESTED`.
+  Proprietário recebeu artifact individual + pacote completo.
+- **A entrega não substitui o teste físico**: S018 ainda
+  não foi executado no Xbox, pode não mostrar notificações
+  ou até travar; o teste é opcional. A ROM permaneceu
+  byte-idêntica e o backend Xbox ainda não renderiza Mario.
