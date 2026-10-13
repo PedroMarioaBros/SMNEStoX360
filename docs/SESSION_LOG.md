@@ -810,3 +810,25 @@ A identidade do commit que contém uma entrada pode ser consultada no histórico
   travamento S017. A CPU NES continua interpretada C99
   em PowerPC e o Mario ainda não aparece no Xbox.
   Não repetir testes S015/S017 antigos.
+
+### S018 — merge #16, builds principais aprovados, artifact entregue
+
+- PR [#16](https://github.com/PedroMarioaBros/SMNEStoX360/pull/16)
+  squash `f94f8acd553777ea198d617ced63d924c9cde3a4`.
+- CI do HEAD de implementação pós-merge:
+  XEX status https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/38416357552
+  **success**, host
+  https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/38416357745
+  **success**, S017 regressão `38416357481` e
+  canônico regressão `38416357713` **success**.
+- Artifact S018 `smb360-S018-STATUS-NATIVE-XEX`
+  id #11824027270, ZIP 92383 bytes; contém
+  `default.xex` 397312 bytes SHA-256
+  `c1e5e5846e77ec1b4374720160ac597f9d16331287f91378f113d6e18732aeb0`.
+  Descompactado e verificado por SHA256SUMS, manifest S018
+  e cabeçalho `XEX2`; entregue ao proprietário com
+  link individual e ZIP em chat.
+- Continuidade do hardware: S017 01 travou sem Fatal Crash,
+  S017 02 relançou Aurora sem erro/sem prova de frames.
+  S018 **ainda não foi testado no console**. Nenhuma
+  promessa de execução universal ou Mario gráfico.
