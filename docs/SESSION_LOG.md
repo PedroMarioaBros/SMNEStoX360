@@ -882,3 +882,12 @@ A identidade do commit que contém uma entrada pode ser consultada no histórico
   a engenharia, como solicitado pelo proprietário.
   O Mario ainda não renderiza vídeo/áudio Xbox nem é
   port estático PPC. ROM/PRG/CHR intactos.
+
+### S019 — prevenção de reenvio acidental da S018
+
+- Modificado `.github/workflows/xex-status.yml` para deixar de publicar
+  `smb360-S018-STATUS-NATIVE-XEX` após o Fatal Crash confirmado no Xbox.
+  O build estático continua como regressão, com aviso explícito
+  `::warning::S018 is RETIRED`. Histórico dos artifacts preservado,
+  nenhuma ROM ou código de CPU alterado e nenhum novo XEX solicitado
+  ao proprietário. Dossiê `docs/evidence/S019/README.md`.
