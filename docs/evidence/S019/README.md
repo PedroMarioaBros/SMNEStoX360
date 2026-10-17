@@ -103,3 +103,15 @@ semântica de retorno ao Aurora, ou outras mudanças de código.
 **Status:** S018 = `HARDWARE_TESTED_FAIL_FATAL_CRASH`.
 S017 01 = `HARDWARE_TESTED_FAIL_BLACK_SCREEN_FREEZE`.
 S017 02 = `HARDWARE_TESTED_AURORA_RETURN_INCONCLUSIVE`.
+
+## Medida preventiva de distribuição após Fatal Crash
+
+O workflow `.github/workflows/xex-status.yml` foi atualizado na S019:
+**continua compilando/verificando o código S018 para fins de regressão**, mas
+**não publica mais** o artifact `smb360-S018-STATUS-NATIVE-XEX` com o
+`default.xex` que falhou em hardware. A etapa de publicação foi
+substituída por uma advertência `::warning::` identificando
+`Fatal Crash Detected` e apontando este dossiê. O artifact histórico
+#11824027270 continua existindo enquanto não expirar, mas seu estado
+é **NÃO EXECUTAR**. Nenhum executável novo foi gerado/entregue ao usuário
+nesta investigação.
