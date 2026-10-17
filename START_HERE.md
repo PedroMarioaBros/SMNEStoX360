@@ -32,6 +32,19 @@ para o próximo.
 > Use a ROM versionada em assets/canonical/ e confira seus hashes.
 > Se faltar acesso ao GitHub, registre o bloqueio real, sem inventar progresso.
 
+> **ATUALIZAÇÃO FÍSICA CRÍTICA — 17/10/2026:** o proprietário
+> confirmou `S018 resultou em Fatal Crash Detected` no Xbox 360.
+> A S018 está **TESTADA E FALHOU**, não "aguardando teste".
+> **NÃO EXECUTAR NOVAMENTE S018, S015 ou S017.**
+> S017 01 congelou em tela preta; S017 02 retornou ao
+> Aurora sem confirmar conclusão da CPU. A comparação exata
+> de binários localizou a importação/chamada adicional de
+> `XNotifyQueueUI` no S018, hipótese prioritária mas
+> **não comprovada como causa do crash**. Ver
+> [S019](docs/evidence/S019/README.md), [issue #15](https://github.com/PedroMarioaBros/SMNEStoX360/issues/15)
+> e [NEXT_STEPS](docs/NEXT_STEPS.md). Nenhum novo XEX físico
+> está liberado para testar. ROM canônica intacta.
+
 ## Estado resumido
 
 **ATUALIZAÇÃO 13/10/2026 — RESULTADO FÍSICO S017:** o proprietário

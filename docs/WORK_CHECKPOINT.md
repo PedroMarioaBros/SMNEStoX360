@@ -1,4 +1,68 @@
-# Checkpoint operacional — 13/10/2026 (S018)
+# Checkpoint operacional — 17/10/2026 (S019)
+
+
+**Prevenção de reteste acidental:** S019 também aposentou a publicação
+de `smb360-S018-STATUS-NATIVE-XEX` no workflow
+`.github/workflows/xex-status.yml`. O CI ainda compila apenas
+para investigação, emite aviso de Fatal Crash e **não envia artifact
+executável S018 para novos downloads**. Pacote antigo segue vetado.
+
+
+## RESULTADO FÍSICO S018 = FATAL CRASH (NÃO REPETIR)
+
+Proprietário reportou literalmente **"S018 resultou em Fatal
+Crash Detected"** após executar o `default.xex` S018 no
+Xbox 360. Isto suplanta TODO texto histórico anterior
+de S018 "não testado". Não há relato de toast ou tempo
+até o erro; não inventar tais observações. **S018 FALHOU
+FISICAMENTE**. S015 também deu Fatal Crash; S017 01
+congelou em tela preta e S017 02 reabriu Aurora sem
+prova de CPU PASS. Não reexecutar nenhum deles.
+Registro: [issue #15](https://github.com/PedroMarioaBros/SMNEStoX360/issues/15).
+
+### S019 — comparação direta dos arquivos físicos entregues
+
+Branch `work/s019-s018-fatal-crash-evidence-20261017`.
+Comparados os artifacts exatos #11728050710 (S017 **entregue
+e testado** estágio 02) e #11824027270 (S018 testado).
+Ambos XEX2 têm **397312 bytes**, PE PowerPC de **68608 bytes**,
+entry `0x82015900`, ROM integral `SMB_v026.nes`
+incluída exatamente uma vez por PE e idêntica no SHA256.
+S017 02 SHA256 XEX
+`cef79db5efa58cc07a6e4083b7e026b5d050d1c36eab0c27c5db61e95a34edee`;
+S018 SHA256 XEX
+`c1e5e5846e77ec1b4374720160ac597f9d16331287f91378f113d6e18732aeb0`.
+O novo S018 contém a importação direta
+`XNotifyQueueUI` **além** das três importações
+do S017 02. Em `smb360_entry` do S018,
+a PRIMEIRA chamada é `notify(text_started)` que
+invoca XAM `XNotifyQueueUI`, **antes da ROM/CPU**.
+Ordinal 656 confirmado em `OpenXeChain/xecorelib`
+`xam/xam.def`. Este é o **principal suspeito**,
+não causa física provada: outros bytes/código mudaram,
+e não houve stack trace.
+
+Evidência com tabela de imports real e hipóteses:
+[docs/evidence/S019/README.md](evidence/S019/README.md).
+
+### Decisão imediata
+
+**Não gerar/enviar outro XEX automaticamente.**
+Fazer revisão offline do loader, ABI/imports e
+retorno do título, evitando novas notificações XAM
+em entrypoints até conhecer a causa. Sem usar
+Newlib, framebuffer/MMIO legado ou mexer em
+NAND/ABadAvatar/Aurora. Nenhuma exigência de
+identificar FreeMyXe/XeUnshackle, já descartada
+como bloqueio a pedido do proprietário.
+C99 ainda interpreta CPU 6502 no PPC; Mario
+não está jogável nem tem vídeo Xbox. A ROM
+do filho está preservada.
+
+---
+
+# Histórico — S018 e anteriores
+
 
 ### S018 — publicação, CI da main e entrega verificada (13/10/2026)
 

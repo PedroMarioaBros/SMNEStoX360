@@ -1,5 +1,15 @@
 # S018 — teste de progresso observável, após o retorno físico da S017
 
+> **AVISO NOVO — 17/10/2026: S018 DEU FATAL CRASH DETECTED NO
+> XBOX 360 REAL. NÃO EXECUTAR ESTE ARQUIVO NOVAMENTE.**
+> O restante deste documento descreve apenas o roteiro histórico
+> do teste que falhou. O próprio proprietário confirmou a falha;
+> não há outro reteste autorizado ou recomendável.
+> A investigação prossegue sem novo executável no
+> [dossiê S019](evidence/S019/README.md) e
+> [issue #15](https://github.com/PedroMarioaBros/SMNEStoX360/issues/15).
+
+
 **O usuário testou realmente as duas variantes S017 em 13/10/2026:**
 
 - **01:** tela preta, congelamento completo do console; não apareceu

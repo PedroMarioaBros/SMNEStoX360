@@ -1,5 +1,14 @@
 # S018 — Hardware S017 observado e novo diagnóstico PowerPC com telemetria visível
 
+> **CORREÇÃO HISTÓRICA EM 17/10/2026:** S018 foi TESTADA
+> no console pelo proprietário e produziu **Fatal Crash
+> Detected**. Textos abaixo que dizem "ainda não testada"
+> descrevem apenas a situação quando foram escritos,
+> **NÃO a situação atual**. S018 NÃO deve ser
+> reexecutada. Ver [S019](../S019/README.md) e
+> [issue #15](https://github.com/PedroMarioaBros/SMNEStoX360/issues/15).
+
+
 ## Histórico físico confirmado pelo proprietário em 13/10/2026
 
 Em console Xbox 360 com entrada de desbloqueio via software
