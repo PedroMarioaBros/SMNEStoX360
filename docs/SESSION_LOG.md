@@ -832,3 +832,53 @@ A identidade do commit que contém uma entrada pode ser consultada no histórico
   S017 02 relançou Aurora sem erro/sem prova de frames.
   S018 **ainda não foi testado no console**. Nenhuma
   promessa de execução universal ou Mario gráfico.
+
+## S019 — 17/10/2026: S018 causou Fatal Crash no Xbox REAL
+
+- **Novo relato físico literal:** proprietário executou S018:
+  **"S018 resultou em Fatal Crash Detected"**.
+  Resultado S018 agora `HARDWARE_TESTED_FAIL_FATAL_CRASH`,
+  e não "não testado" (estado dos docs antigos).
+  Sem horário de ocorrência, stack trace ou relato de
+  notificações, portanto NÃO inventar "imediato" ou "nenhuma
+  mensagem apareceu". O XEX S018 NÃO deve ser repetido.
+  Issue [#15](https://github.com/PedroMarioaBros/SMNEStoX360/issues/15)
+  atualizada.
+- Histórico: S015 Fatal Crash; S017 01 tela preta/freeze;
+  S017 02 tela preta/reabertura do Aurora sem comprovação
+  de que 120 quadros rodaram; S018 Fatal Crash.
+  CI verde S018 `38416357552` demonstrou APENAS build,
+  nunca execução em hardware.
+- Comparação nova feita com **artifacts efetivamente
+  entregues ao dono do Xbox**:
+  S017 #11728050710, estágio
+  `02_CANONICAL_CRTLESS/default.xex`, SHA256
+  `cef79db5efa58cc07a6e4083b7e026b5d050d1c36eab0c27c5db61e95a34edee`;
+  S018 #11824027270 `default.xex`, SHA256
+  `c1e5e5846e77ec1b4374720160ac597f9d16331287f91378f113d6e18732aeb0`.
+  Os PEs possuem 68608 bytes, XEX2 397312 bytes,
+  entry `0x82015900`, mesmo mapa de seções e
+  ROM `SMB_v026.nes` íntegra exatamente uma vez.
+  ROM 40976 B SHA256
+  `57fb4ee14288853bc0c8a5a629a103e51e87a4ebae1cc699b435060d2690b047`.
+- **Diferencial comprovado na import table**: S017 02
+  importa `ExTerminateThread`,
+  `KeDelayExecutionThread`,
+  `XamLoaderTerminateTitle`. S018 importa essas três
+  MAIS `XNotifyQueueUI`. O S018 a chama no início
+  de `smb360_entry`, antes do teste de ROM/core.
+  Ordinal 656 consta em `OpenXeChain/xecorelib/xam.def`.
+  Evidência em [S019](evidence/S019/README.md).
+- **Hipótese, não causa confirmada:** uso direto de
+  `XNotifyQueueUI` pode estar associado ao Fatal Crash,
+  consistente com S015, mas também há diferenças na
+  lógica de frames, imports, formato/código e pode falhar
+  antes de `smb360_entry`. Não há debug trace físico.
+- Decisão: não entregar nova S019 XEX e não sugerir
+  reteste S018. Investigar ABI/carregador XEX/erro na
+  importação ou retorno do título em ambiente offline;
+  sem mexer em NAND, Aurora ou ABadAvatar. A identidade
+  específica de FreeMyXe/XeUnshackle não bloqueia
+  a engenharia, como solicitado pelo proprietário.
+  O Mario ainda não renderiza vídeo/áudio Xbox nem é
+  port estático PPC. ROM/PRG/CHR intactos.
