@@ -1,5 +1,13 @@
 # Checkpoint operacional — 17/10/2026 (S019)
 
+
+**Prevenção de reteste acidental:** S019 também aposentou a publicação
+de `smb360-S018-STATUS-NATIVE-XEX` no workflow
+`.github/workflows/xex-status.yml`. O CI ainda compila apenas
+para investigação, emite aviso de Fatal Crash e **não envia artifact
+executável S018 para novos downloads**. Pacote antigo segue vetado.
+
+
 ## RESULTADO FÍSICO S018 = FATAL CRASH (NÃO REPETIR)
 
 Proprietário reportou literalmente **"S018 resultou em Fatal
