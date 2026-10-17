@@ -123,18 +123,14 @@ jobs:
           (cd "$SMB360_S018_WORK" && sha256sum -c SHA256SUMS.txt)
           echo "S018 native PPC progress diagnostic: build verified, HARDWARE UNTESTED"
 
-      - name: Publish ONLY new S018 progress XEX
-        uses: actions/upload-artifact@v4
-        with:
-          name: smb360-S018-STATUS-NATIVE-XEX
-          path: |
-            build-s018-status/default.xex
-            build-s018-status/status.exe
-            build-s018-status/SHA256SUMS.txt
-            build-s018-status/BUILD_MANIFEST.txt
-            build-s018-status/README_TESTE_S018.md
-          if-no-files-found: error
-          retention-days: 30
+      # S018 produced FATAL CRASH DETECTED on a physical Xbox 360,
+      # reported by the owner 17 Oct 2026. Keep building as a
+      # regression/investigation ONLY. Never publish a new S018
+      # default.xex as if it were validated for hardware testing.
+      - name: Known hardware failure warning (S018 retired)
+        run: |
+          echo "::warning::S018 is RETIRED: Fatal Crash Detected on real Xbox 360. CI success is build-only, NOT console compatibility. DO NOT TEST this default.xex."
+          echo "Comparison and next diagnostics: docs/evidence/S019/README.md"
 
       - name: Preserve failure data, do NOT run on Xbox
         if: failure()
