@@ -1,4 +1,58 @@
-# Próxima ação — após feedback físico S017 (13/10/2026)
+# Próximos passos — 17/10/2026, após Fatal Crash físico S018
+
+## Diagnóstico obrigatório S019 — ANTES de qualquer outro XEX
+
+**S018 físico: `Fatal Crash Detected`. NÃO repetir S018.**
+S017 estágio 01 congelou; S017 02 relançou Aurora
+sem prova de conclusão do núcleo; S015 Fatal Crash.
+Não converter build verde em promessa de boot.
+Dados brutos: [S019](evidence/S019/README.md) e
+[issue #15](https://github.com/PedroMarioaBros/SMNEStoX360/issues/15).
+
+Comparação já concluída usando os **ZIPs originais que
+foram efetivamente entregues**:
+- S017 02 SHA256 XEX `cef79db5efa58cc07a6e4083b7e026b5d050d1c36eab0c27c5db61e95a34edee`;
+- S018 SHA256 XEX `c1e5e5846e77ec1b4374720160ac597f9d16331287f91378f113d6e18732aeb0`;
+- entrada PE `0x82015900`, 397312 B XEX, 68608 B PE,
+  ROM canônica byte-idêntica e embutida uma vez em ambos.
+- A alteração de imports mais relevante foi
+  `XNotifyQueueUI` acrescentada no S018 (ordinal 656).
+  O S018 a chama PRIMEIRO no entrypoint, antes de
+  qualquer ROM/CPU, mas a causa do Crash NÃO é comprovada.
+
+**Próxima implementação técnica, sem risco físico:**
+1. Revisar offline `src/platform/canonical_xex/native_crtless_status.c`,
+   `native_crtless_canonical.c` e
+   `native_crtless_probe.c`, cabeçalhos XEX2, ABI PPC,
+   resolução de imports XAM/`XNotifyQueueUI`, sem
+   presumir que o ordinal validado assegura ABI.
+2. Investigar `XamLoaderTerminateTitle`,
+   `ExTerminateThread` e o fallback `for(;;)`.
+   O freeze S017 01 pode ter diversas causas;
+   o loop é hipótese, não prova.
+3. Testar em host o núcleo com ROM canônica e
+   watchdog/frame-counter, sem usar toast como
+   verificação de gameplay nem modificar a ROM.
+4. Só depois desenhar uma S020 ou equivalente
+   **materialmente diferente** dos XEX que falharam,
+   com critérios claros de retorno/sucesso,
+   verificação de imports/headers, CI verde,
+   risco de crash explícito e teste físico opcional.
+   **Não entregar nem pedir novo teste agora**.
+5. Progredir na implementação de vídeo seguro Xbox
+   por API comprovada, áudio e controles; a tradução
+   estática real 6502→PowerPC ainda é objetivo
+   futuro. Não chamar interpretador C99 de port
+   estático.
+
+Não discutir o nome de patcher como condição para
+avanço. Preservar a `SMB_v026.nes` original
+(SHA256 `57fb4ee14288853bc0c8a5a629a103e51e87a4ebae1cc699b435060d2690b047`).
+
+---
+
+# Histórico S018 e anteriores
+
 
 ## Fechamento implementação S018 (13/10/2026)
 
