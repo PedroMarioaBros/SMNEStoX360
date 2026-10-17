@@ -1,5 +1,13 @@
 # Próximos passos — 17/10/2026, após Fatal Crash físico S018
 
+
+**Controle de segurança do CI:** `.github/workflows/xex-status.yml`
+foi alterado para manter build/verificação S018 mas descontinuar
+a publicação do artifact com `default.xex` que falhou em console,
+substituído por aviso de falha física. Não reverter essa medida
+até que exista um novo XEX diferente validado fisicamente.
+
+
 ## Diagnóstico obrigatório S019 — ANTES de qualquer outro XEX
 
 **S018 físico: `Fatal Crash Detected`. NÃO repetir S018.**
