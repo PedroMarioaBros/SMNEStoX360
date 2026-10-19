@@ -9,7 +9,7 @@ Não apagar a POC nem afirmar que a arquitetura final foi escolhida.
 - Harness: `bash tools/evaluate_nesrecomp.sh`.
 - Workflow: [nesrecomp-evaluation.yml](../.github/workflows/nesrecomp-evaluation.yml).
 - Upstream pin: `a39d9cdbec0ac98b1430ddb53747b5ed8f8cac87`.
-- Resultado atual: **CI SUCCESS** no run mais recente [39186568820](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39186568820). O gerador compilou e analisou a ROM exata; o shell local não resolve github.com.
+- Resultado de geração inicial: **CI SUCCESS** em [39186568820](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39186568820). O ciclo de diagnóstico de tail também passou: [39207665461](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39207665461), com instrumentação temporária do gerador.
 - O harness gera código em diretório temporário e não versiona nem publica os
   arquivos gerados. Não usa o port SMB de terceiros como base.
 - Atenção: NESRecomp documenta um interpretador de fallback; o requisito final
@@ -26,7 +26,7 @@ compilação do gerador, mapper/vetores reconhecidos e C não vazio. Métricas: 
 instruções compiladas, 1 fallback interpretado, 5 arquivos C, 545.655 bytes e
 14.397 linhas. A arquitetura ainda NÃO está aprovada.
 
-Próxima ação: confirmar o endereço do único fallback. A inspeção dos bytes da ROM aponta $9FFF (DE 42 E2, DEC absoluto,X, 3 bytes) como candidato forte por atravessar um slot de 4 KiB, mas o log agregado não comprova que seja a entrada visitada. Instrumentar temporariamente a cópia do recompiler no CI para imprimir somente bank/slot/endereço/opcode/comprimento de cada entrada `seen && !is_insn`; não guardar nem publicar C gerado. Depois determinar se é possível cobri-lo estaticamente sem fallback; só então gerar/compilar o runner host e comparar cenários com a referência. A arquitetura não está aprovada; só depois avaliar portabilidade para Xbox 360.
+Diagnóstico confirmado: a única cauda é bank 7, slot 7, CPU `$FFFF`, opcode `$FF`, comprimento 3. O byte `$FFFF` é parte do vetor IRQ `$FFFE-$FFFF`, cujo destino é `$FFF0`; a varredura inicia ali e percorre bytes de tabela/vetor como se fossem instruções até chegar à fronteira final da ROM. O endereço `$9FFF` citado anteriormente era apenas hipótese e estava errado. Próxima ação: avaliar um modo genérico e explícito de tratar o vetor IRQ que aponta para dados, verificar na ROM que a rota IRQ não é requerida pelo jogo e repetir a geração com cobertura/diagnóstico registrado. A instrumentação aplicada na cópia temporária do upstream passou em [run 39207665461](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39207665461); código C gerado não foi publicado. Não aprovar a arquitetura até também demonstrar ausência do interpretador no binário runtime, compilar e testar o runner host, e comparar cenários determinísticos com a referência.
 
 ---
 
