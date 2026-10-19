@@ -920,3 +920,27 @@ A identidade do commit que contém uma entrada pode ser consultada no histórico
 - PR [#18](https://github.com/PedroMarioaBros/SMNEStoX360/pull/18) aprovada pelo próprio CI de host e integrada por squash em `d0822da58767ec8ee078752694e6d679445089dd`.
 - CI do HEAD completo da PR: [run 39183794667](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39183794667), `completed/success`, head `386774b5aa05b79a24c38a92fb4b2911f45e5965`. O run de host associado ao commit que continha o tradutor e o self-test também passou: `39183681786`.
 - O resultado é somente validação host de uma POC de seis instruções; nenhum XEX ou teste Xbox foi feito. Próxima ação registrada em NEXT_STEPS: expandir para blocos básicos/branches e comparar estado contra o runtime de referência.
+
+## Avaliação NESRecomp — 18/10/2026
+
+- O proprietário autorizou pausar a expansão do tradutor estático próprio e
+  testar a viabilidade do NESRecomp genérico com a ROM canônica exata.
+- Consultada a documentação upstream: https://github.com/mstan/nesrecomp .
+  Ela descreve tradução estática 6502→C, backend de ciclos, runner NES e mapper
+  0 suportado. Também documenta um interpretador de fallback, que é incompatível
+  com o requisito final se for executado no produto.
+- Revisada a licença upstream `PolyForm Noncommercial 1.0.0`: pesquisa e hobby
+  pessoal não comercial são permitidos; uso comercial não está concedido.
+  Não vendorizamos nem copiamos código upstream nesta etapa.
+- Criados `tools/evaluate_nesrecomp.sh`, workflow CI e
+  `docs/evidence/NESRECOMP_EVALUATION.md`. O script verifica SHA-256, baixa um
+  commit upstream fixo, compila o gerador e tenta gerar C em diretório temporário.
+- Pin: `a39d9cdbec0ac98b1430ddb53747b5ed8f8cac87`.
+- Tentativa local de `git clone https://github.com/mstan/nesrecomp.git` falhou
+  por DNS: `Could not resolve host: github.com`. Não houve build nem geração
+  local; o workflow Actions deverá fornecer a evidência automatizada.
+- Código C gerado não é commitado nem enviado como artifact nesta fase. Não foi
+  adotado o port SMB de terceiros e não foi gerado XEX nem realizado teste físico.
+- A PR #19 da POC própria fica aberta e sem merge enquanto a avaliação estiver
+  pendente. Próxima ação: verificar o resultado real do workflow, corrigir erros
+  do harness e registrar cobertura/limitações antes de decidir a arquitetura.
