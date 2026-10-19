@@ -34,7 +34,7 @@ diff --git a/recompiler/src/cyc_codegen.c b/recompiler/src/cyc_codegen.c
 +        uint8_t opcode = prg_byte(p, bank, k);
 +        if (opcode == 0x00 || opcode == 0x28 || opcode == 0x40 ||
 +            opcode == 0x58 || opcode == 0x78) {
-+            fprintf(stderr, "[IRQ_CONTROL_OPCODE] bank=%u slot=%u addr=$%04X opcode=$%02X\\n",
++            fprintf(stderr, "[IRQ_CONTROL_OPCODE] bank=%u slot=%u addr=$%04X opcode=$%02X\n",
 +                    bank, slot, addr, opcode);
 +        }
 +    }
