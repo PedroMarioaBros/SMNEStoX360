@@ -12,7 +12,7 @@ A expansão do tradutor próprio está pausada por ordem do proprietário enquan
 se avalia o NESRecomp genérico com a ROM canônica. Leia primeiro
 [plano/evidência NESRecomp](docs/evidence/NESRECOMP_EVALUATION.md) e confira o
 workflow [NESRecomp canonical ROM evaluation](.github/workflows/nesrecomp-evaluation.yml).
-Não declarar sucesso até o CI terminar; não adotar o port SMB de terceiros;
+A primeira etapa de geração C passou no [run 39186504796](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39186504796), mas há um fallback interpretado pendente; não declarar arquitetura concluída. Não adotar o port SMB de terceiros;
 não gerar XEX nem solicitar teste físico nesta etapa. A PR #19 permanece aberta
 sem merge durante a avaliação.
 
