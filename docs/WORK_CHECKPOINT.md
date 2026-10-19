@@ -11,9 +11,8 @@ foi apagado e não se declara que o tradutor atual está completo.
 - Commit upstream fixado: `a39d9cdbec0ac98b1430ddb53747b5ed8f8cac87`.
 - A avaliação verifica o SHA-256 da ROM, compila o gerador C do upstream,
   executa a análise estática e confirma a geração de arquivos C no diretório
-  temporário. O código gerado não é commitado nem publicado como artifact.
-- **Resultado técnico pendente** da execução CI. O container local não tem
-  resolução DNS para github.com; por isso não afirmamos build nem geração local.
+  temporário. O código gerado não é commitado nem publicado como artifact. Resultado medido: mapper 0, PRG 2×16 KiB, vetores NMI `$8082`, RESET `$8000`, IRQ `$FFF0`; 1.305 instruções compiladas, 1 deixada para interpretador, 5 arquivos C, 545.655 bytes e 14.397 linhas.
+- **Resultado da geração: CI SUCCESS** em [run 39186504796](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39186504796). O run de métricas [39186469481](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39186469481) confirma build do gerador e análise da ROM. O container local não resolve github.com, então a validação ocorreu no runner remoto.
 - A licença upstream consultada é PolyForm Noncommercial 1.0.0; o uso de
   pesquisa/hobby não comercial está contemplado, mas redistribuição comercial
   não está autorizada pela licença atual. Dependências têm licenças próprias.
@@ -21,8 +20,8 @@ foi apagado e não se declara que o tradutor atual está completo.
   usa apenas o recompilador genérico com nossa ROM canônica.
 - Risco crítico: NESRecomp documenta fallback interpretado para código não
   recompilado. O requisito final não permite interpretador 6502 em runtime.
-  Será necessário provar cobertura/ausência de fallback antes de qualquer
-  decisão de adoção.
+  A própria primeira geração relata um fallback por fronteira de banco de 4 KiB
+  ou `$FFFF`. Identificar esse endereço e eliminar o fallback é o próximo bloqueio.
 - PR #19 permanece aberta e sem merge durante a avaliação:
   https://github.com/PedroMarioaBros/SMNEStoX360/pull/19
 
