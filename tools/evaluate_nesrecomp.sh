@@ -43,6 +43,11 @@ if [[ "$ACTUAL_COMMIT" != "$NESRECOMP_COMMIT" ]]; then
   exit 4
 fi
 
+# Apply an evaluation-only instrumentation patch to the temporary upstream
+# checkout. The upstream commit remains pinned and the patch is not vendored.
+git -C "$TMP/nesrecomp" apply "$ROOT/tools/nesrecomp-tail-diagnostic.patch"
+echo "Applied temporary diagnostic patch; generated C remains private to temp."
+
 cmake -S "$TMP/nesrecomp/recompiler" -B "$TMP/build" -G Ninja \
   -DCMAKE_BUILD_TYPE=Release
 cmake --build "$TMP/build" --parallel 2
@@ -52,6 +57,17 @@ mkdir -p "$TMP/run"
   cd "$TMP/run"
   "$TMP/build/NESRecomp" "$ROM" --cycle-accurate --output-prefix smb_v026
 ) 2>&1 | tee "$TMP/generation.log"
+
+TAIL_DIAG_COUNT="$(grep -c '^\\[TAIL_DIAGNOSTIC\\]' "$TMP/generation.log" || true)"
+SUMMARY_TAIL_COUNT="$(sed -n 's/.*instructions compiled, \\([0-9][0-9]*\\) left to the interpreter.*/\\1/p' "$TMP/generation.log" | tail -n 1)"
+if [[ -z "$SUMMARY_TAIL_COUNT" ]]; then
+  SUMMARY_TAIL_COUNT=0
+fi
+if [[ "$TAIL_DIAG_COUNT" != "$SUMMARY_TAIL_COUNT" ]]; then
+  echo "ERROR: diagnostic count ($TAIL_DIAG_COUNT) does not match generator tail count ($SUMMARY_TAIL_COUNT)." >&2
+  exit 6
+fi
+echo "Tail diagnostic entries: $TAIL_DIAG_COUNT"
 
 mapfile -t GENERATED_C < <(find "$TMP/run/generated" -type f -name '*.c' -print | sort)
 if [[ "${#GENERATED_C[@]}" -eq 0 ]]; then
