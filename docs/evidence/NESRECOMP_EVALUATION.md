@@ -70,6 +70,14 @@ reported:
 
 **Interpretation:** this is a real positive result for the feasibility question: NESRecomp can parse our exact ROM and generate substantial cycle-backend C. It is not yet acceptable as the final architecture because the log explicitly reports one interpreter fallback. The next step must identify the exact fallback target and determine whether it can be compiled natively without retaining an interpreter. No generated runner was built or executed, and no Xbox/XEX test occurred.
 
+## Second-cycle finding — single interpreter tail (19/10/2026)
+
+The latest evaluation run [39186568820](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39186568820) completed successfully on the current PR head. Inspection of the pinned cycle generator shows that its `tails` count is computed from positions visited by discovery (`seen`) but not marked compilable (`!is_insn`); the current summary reports only the count, not individual addresses.
+
+A byte-level scan of the canonical PRG identifies CPU address `$9FFF` as a strong candidate: the bytes are `DE 42 E2`, opcode `DE` (6502 `DEC absolute,X`, length 3), which crosses the 4 KiB slot boundary. This is **not yet confirmed** as the one discovered tail; other boundary bytes can also encode multi-byte instructions, and the current log does not say which positions were visited. Do not treat the address as established until a temporary diagnostic in the CI copy of the pinned recompiler prints each `seen && !is_insn` position.
+
+The proposed diagnostic should print only bank, slot, CPU address, opcode, and instruction length; it must not commit or upload generated C and must not alter the canonical ROM or the generated code. PR #20 has a continuity comment documenting this next action.
+
 ## First-stage acceptance criteria
 
 1. The canonical SHA-256 check passes.
