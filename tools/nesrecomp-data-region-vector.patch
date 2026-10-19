@@ -25,7 +25,7 @@ diff --git a/recompiler/src/cyc_codegen.c b/recompiler/src/cyc_codegen.c
 -        if (target_pos(p, &from, target, &to)) seeds[(*n)++] = POS_PACK(to.bank, to.slot, to.k);
 +        if (target_pos(p, &from, target, &to)) {
 +            if (cycle_addr_in_data_region(cfg, (int)to.bank, target)) {
-+                fprintf(stderr, "[VECTOR_DATA_REGION] vector=$%04X target=$%04X bank=%u skipped\\n", v, target, to.bank);
++                fprintf(stderr, "[VECTOR_DATA_REGION] vector=$%04X target=$%04X bank=%u skipped\n", v, target, to.bank);
 +                continue;
 +            }
 +            seeds[(*n)++] = POS_PACK(to.bank, to.slot, to.k);
