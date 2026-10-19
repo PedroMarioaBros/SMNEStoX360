@@ -1,6 +1,6 @@
 # PRIORIDADE ATUAL — avaliar NESRecomp antes de expandir o tradutor próprio
 
-**Ordem atual do proprietário — 18/10/2026:** pausar a expansão de
+**Ordem atual do proprietário — 19/10/2026:** pausar a expansão de
 `tools/static6502_poc.py` enquanto avaliamos o recompilador genérico
 [NESRecomp](https://github.com/mstan/nesrecomp) com a ROM canônica exata.
 Não apagar a POC nem afirmar que a arquitetura final foi escolhida.
@@ -9,7 +9,7 @@ Não apagar a POC nem afirmar que a arquitetura final foi escolhida.
 - Harness: `bash tools/evaluate_nesrecomp.sh`.
 - Workflow: [nesrecomp-evaluation.yml](../.github/workflows/nesrecomp-evaluation.yml).
 - Upstream pin: `a39d9cdbec0ac98b1430ddb53747b5ed8f8cac87`.
-- Resultado da primeira etapa: **CI SUCCESS** em [run 39186504796](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39186504796). O gerador compilou e analisou a ROM exata; não foi possível executar localmente porque o shell deste ambiente não resolve github.com.
+- Resultado atual: **CI SUCCESS** no run mais recente [39186568820](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39186568820). O gerador compilou e analisou a ROM exata; o shell local não resolve github.com.
 - O harness gera código em diretório temporário e não versiona nem publica os
   arquivos gerados. Não usa o port SMB de terceiros como base.
 - Atenção: NESRecomp documenta um interpretador de fallback; o requisito final
@@ -26,10 +26,7 @@ compilação do gerador, mapper/vetores reconhecidos e C não vazio. Métricas: 
 instruções compiladas, 1 fallback interpretado, 5 arquivos C, 545.655 bytes e
 14.397 linhas. A arquitetura ainda NÃO está aprovada.
 
-Próxima ação: investigar o único fallback (a ferramenta diz que cruza limite de
-banco de 4 KiB ou `$FFFF`) e determinar como forçar tradução estática sem
-interpretador; em seguida gerar/compilar o runner host e comparar cenários com a
-referência. Só depois avaliar portabilidade do runner para Xbox 360.
+Próxima ação: confirmar o endereço do único fallback. A inspeção dos bytes da ROM aponta $9FFF (DE 42 E2, DEC absoluto,X, 3 bytes) como candidato forte por atravessar um slot de 4 KiB, mas o log agregado não comprova que seja a entrada visitada. Instrumentar temporariamente a cópia do recompiler no CI para imprimir somente bank/slot/endereço/opcode/comprimento de cada entrada `seen && !is_insn`; não guardar nem publicar C gerado. Depois determinar se é possível cobri-lo estaticamente sem fallback; só então gerar/compilar o runner host e comparar cenários com a referência. A arquitetura não está aprovada; só depois avaliar portabilidade para Xbox 360.
 
 ---
 
