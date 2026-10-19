@@ -891,3 +891,14 @@ A identidade do commit que contém uma entrada pode ser consultada no histórico
   `::warning::S018 is RETIRED`. Histórico dos artifacts preservado,
   nenhuma ROM ou código de CPU alterado e nenhum novo XEX solicitado
   ao proprietário. Dossiê `docs/evidence/S019/README.md`.
+
+
+## S020 — 18/10/2026, ordem explícita de recompilação estática
+
+- O proprietário esclareceu que o objetivo do SMNEStoX360 não é um emulador de NES nem um porte pronto de terceiros: é partir da ROM canônica SMB_v026.nes, analisar/desmontar o PRG 6502, desenvolver a tradução estática para C (ou representação equivalente compilável), compilar para PowerPC/Xenon e entregar execução nativa no Xbox 360.
+- Inspecionados no HEAD remoto os arquivos README.md, START_HERE.md, AGENTS.md, docs/WORK_CHECKPOINT.md, docs/NEXT_STEPS.md, docs/STATUS_PARA_PEDRO.md, docs/SMB_V026_CANONICAL_ROM.md, docs/REPRODUCIBILITY.md e o registro S015. A ROM canônica está versionada: 40.976 bytes, SHA-256 `57fb4ee14288853bc0c8a5a629a103e51e87a4ebae1cc699b435060d2690b047`.
+- Confirmado que o runtime atual interpreta o PRG 6502 em C e que o XEX de diagnóstico não tem vídeo/áudio jogável; não existe comprovação de recompilação estática nem jogo jogável no Xbox. Histórico de hardware permanece: S015/S018 Fatal Crash; S017 01 congelou e S017 02 retornou ao Aurora sem prova de sucesso. Não retestar.
+- Criado `docs/NATIVE_RECOMPILATION_POLICY.md` com as regras permanentes, restrições contra adotar porte SMB de terceiros como base, separação entre referência host e produto nativo, etapas de análise, critérios de conclusão e limites de testes físicos.
+- Atualizados AGENTS.md, START_HERE.md, README.md, docs/NEXT_STEPS.md e docs/WORK_CHECKPOINT.md para que sucessores encontrem a ordem ao abrir o repositório. O próximo trabalho é inspeção offline do código/branches e prova de conceito incremental de tradução estática 6502→C; não gerar XEX automaticamente.
+- Validação desta sessão: leitura do conteúdo remoto e escrita documental via GitHub API. Não foram executados compilação, testes host, análise binária nova, CI ou teste físico nesta sessão; não alegar tais resultados.
+- Próxima ação: confirmar HEAD remoto e conteúdo dos documentos alterados; depois inspecionar os arquivos reais do tradutor/runtime e implementar a menor prova de conceito estática com teste diferencial reproduzível.
