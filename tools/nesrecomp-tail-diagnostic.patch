@@ -14,7 +14,7 @@ diff --git a/recompiler/src/cyc_codegen.c b/recompiler/src/cyc_codegen.c
 +        uint16_t addr = (uint16_t)(0x8000 + (slot << SLOT_SHIFT) + k);
 +        uint8_t opcode = prg_byte(p, bank, k);
 +        fprintf(stderr,
-+                "[TAIL_DIAGNOSTIC] bank=%u slot=%u addr=$%04X opcode=$%02X len=%d\\n",
++                "[TAIL_DIAGNOSTIC] bank=%u slot=%u addr=$%04X opcode=$%02X len=%d\n",
 +                bank, slot, addr, opcode, op_length(opcode));
 +    }
 +    cyc_mkdir("generated");
