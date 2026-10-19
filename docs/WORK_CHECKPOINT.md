@@ -6,7 +6,7 @@ pausada para avaliar o framework genérico NESRecomp usando
 foi apagado e não se declara que o tradutor atual está completo.
 
 - Plano: [NESRECOMP_EVALUATION.md](evidence/NESRECOMP_EVALUATION.md).
-- Script repetível: `sh tools/evaluate_nesrecomp.sh`.
+- Script repetível: `bash tools/evaluate_nesrecomp.sh`.
 - CI: [NESRecomp canonical ROM evaluation](../.github/workflows/nesrecomp-evaluation.yml).
 - Commit upstream fixado: `a39d9cdbec0ac98b1430ddb53747b5ed8f8cac87`.
 - A avaliação verifica o SHA-256 da ROM, compila o gerador C do upstream,
