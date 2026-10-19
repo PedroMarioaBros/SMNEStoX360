@@ -46,7 +46,8 @@ fi
 # Apply an evaluation-only instrumentation patch to the temporary upstream
 # checkout. The upstream commit remains pinned and the patch is not vendored.
 git -C "$TMP/nesrecomp" apply "$ROOT/tools/nesrecomp-tail-diagnostic.patch"
-echo "Applied temporary diagnostic patch; generated C remains private to temp."
+git -C "$TMP/nesrecomp" apply "$ROOT/tools/nesrecomp-data-region-vector.patch"
+echo "Applied temporary diagnostic and data-region experiment patches; generated C remains private to temp."
 
 cmake -S "$TMP/nesrecomp/recompiler" -B "$TMP/build" -G Ninja \
   -DCMAKE_BUILD_TYPE=Release
@@ -68,6 +69,32 @@ if [[ "$TAIL_DIAG_COUNT" != "$SUMMARY_TAIL_COUNT" ]]; then
   exit 6
 fi
 echo "Tail diagnostic entries: $TAIL_DIAG_COUNT"
+
+# Controlled experiment: honor an explicit data_region annotation when deciding
+# whether to seed an interrupt-vector target as code. This is a temporary source
+# patch plus a project-specific TOML hypothesis, not a claim about runtime safety.
+mkdir -p "$TMP/run-data-region"
+(
+  cd "$TMP/run-data-region"
+  "$TMP/build/NESRecomp" "$ROM" --cycle-accurate \
+    --game "$ROOT/tools/nesrecomp_smb_v026_data_region_experiment.toml" \
+    --output-prefix smb_v026_data_region
+) 2>&1 | tee "$TMP/generation-data-region.log"
+
+FILTER_TAIL_DIAG_COUNT="$(grep -c '^\\[TAIL_DIAGNOSTIC\\]' "$TMP/generation-data-region.log" || true)"
+FILTER_SUMMARY_TAIL_COUNT="$(sed -n 's/.*instructions compiled, \\([0-9][0-9]*\\) left to the interpreter.*/\\1/p' "$TMP/generation-data-region.log" | tail -n 1)"
+if [[ -z "$FILTER_SUMMARY_TAIL_COUNT" ]]; then
+  FILTER_SUMMARY_TAIL_COUNT=0
+fi
+if [[ "$FILTER_TAIL_DIAG_COUNT" != "$FILTER_SUMMARY_TAIL_COUNT" ]]; then
+  echo "ERROR: configured diagnostic count ($FILTER_TAIL_DIAG_COUNT) does not match tail count ($FILTER_SUMMARY_TAIL_COUNT)." >&2
+  exit 7
+fi
+if [[ "$FILTER_SUMMARY_TAIL_COUNT" != "0" ]]; then
+  echo "ERROR: declared data_region did not eliminate the false IRQ-vector tail." >&2
+  exit 8
+fi
+echo "Data-region experiment: [VECTOR_DATA_REGION] skip was applied; fallback-tail count=0."
 
 mapfile -t GENERATED_C < <(find "$TMP/run/generated" -type f -name '*.c' -print | sort)
 if [[ "${#GENERATED_C[@]}" -eq 0 ]]; then
