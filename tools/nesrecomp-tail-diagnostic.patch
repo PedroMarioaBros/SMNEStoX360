@@ -1,7 +1,7 @@
 diff --git a/recompiler/src/cyc_codegen.c b/recompiler/src/cyc_codegen.c
 --- a/recompiler/src/cyc_codegen.c
 +++ b/recompiler/src/cyc_codegen.c
-@@ -2602,8 +2602,35 @@
+@@ -2602,8 +2602,36 @@
      uint32_t count = 0, tails = 0;
      for (size_t i = 0; i < pos_space(p); i++) {
          count += p->is_insn[i];
