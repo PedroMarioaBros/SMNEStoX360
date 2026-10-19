@@ -1,7 +1,7 @@
 diff --git a/recompiler/src/cyc_codegen.c b/recompiler/src/cyc_codegen.c
 --- a/recompiler/src/cyc_codegen.c
 +++ b/recompiler/src/cyc_codegen.c
-@@
+@@ -2608,1 +2608,15 @@
 -    cyc_mkdir("generated");
 +    /* Evaluation-only telemetry: identify each visited instruction start
 +     * that cannot be emitted because its bytes cross a 4 KiB slot or $FFFF.
