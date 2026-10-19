@@ -6,7 +6,7 @@
 Não apagar a POC nem afirmar que a arquitetura final foi escolhida.
 
 - Plano/evidência: [NESRECOMP_EVALUATION.md](evidence/NESRECOMP_EVALUATION.md).
-- Harness: `sh tools/evaluate_nesrecomp.sh`.
+- Harness: `bash tools/evaluate_nesrecomp.sh`.
 - Workflow: [nesrecomp-evaluation.yml](../.github/workflows/nesrecomp-evaluation.yml).
 - Upstream pin: `a39d9cdbec0ac98b1430ddb53747b5ed8f8cac87`.
 - Resultado: **PENDENTE CI** até que o workflow conclua; o shell deste ambiente
