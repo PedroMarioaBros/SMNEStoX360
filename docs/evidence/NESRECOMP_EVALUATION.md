@@ -74,9 +74,17 @@ reported:
 
 The latest evaluation run [39186568820](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39186568820) completed successfully on the current PR head. Inspection of the pinned cycle generator shows that its `tails` count is computed from positions visited by discovery (`seen`) but not marked compilable (`!is_insn`); the current summary reports only the count, not individual addresses.
 
-A byte-level scan of the canonical PRG identifies CPU address `$9FFF` as a strong candidate: the bytes are `DE 42 E2`, opcode `DE` (6502 `DEC absolute,X`, length 3), which crosses the 4 KiB slot boundary. This is **not yet confirmed** as the one discovered tail; other boundary bytes can also encode multi-byte instructions, and the current log does not say which positions were visited. Do not treat the address as established until a temporary diagnostic in the CI copy of the pinned recompiler prints each `seen && !is_insn` position.
+The temporary CI diagnostic now confirms the sole tail precisely:
 
-The proposed diagnostic should print only bank, slot, CPU address, opcode, and instruction length; it must not commit or upload generated C and must not alter the canonical ROM or the generated code. PR #20 has a continuity comment documenting this next action.
+```
+[TAIL_DIAGNOSTIC] bank=7 slot=7 addr=$FFFF opcode=$FF len=3
+```
+
+Run [39207665461](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39207665461) completed **success** with the patch applied only to the temporary upstream checkout. The reported tail count (1) matches the single diagnostic record; generated C metrics remain unchanged, and generated C was not committed or uploaded.
+
+The canonical PRG bytes at CPU `$FFFA-$FFFF` are `82 80 00 80 F0 FF`; the IRQ vector at `$FFFE-$FFFF` therefore points to `$FFF0`. NESRecomp's cycle backend seeds all three interrupt vectors and follows the decoded control flow. It then walks through the byte sequence beginning at `$FFF0` and eventually marks `$FFFF` as a seen instruction start, but cannot compile the three-byte `$FF` opcode because its bytes would wrap past `$FFFF`. The chain starts from the IRQ-vector seed; given the vector/table byte layout, this is strong evidence of a false code-discovery path into data/vector bytes, not evidence that gameplay code needs an interpreted instruction. The earlier `$9FFF` hypothesis was wrong and is superseded.
+
+This does **not** yet authorize removing the fallback. We must determine how to express the unused/invalid IRQ-vector target safely for this ROM, test whether existing generic configuration supports that intent, and prove the title does not rely on this IRQ path. The cycle backend currently seeds vectors unconditionally and does not directly consult `data_regions` in its discovery loop, so a TOML data-region annotation alone may not suppress this tail. Any source patch remains an evaluation experiment, not a final architecture decision.
 
 ## First-stage acceptance criteria
 
