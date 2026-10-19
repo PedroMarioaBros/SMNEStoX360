@@ -1,3 +1,13 @@
+# ORDEM DO PROPRIETÁRIO — 18/10/2026: destino nativo sem emulação
+
+A direção definitiva é recompilar estaticamente a ROM específica `assets/canonical/SMB_v026.nes` para um executável nativo Xbox 360. A tradução CPU 6502→C e compilação para PowerPC/Xenon devem substituir a interpretação em runtime no produto final; não adotar um porte SMB de terceiros como base. O runtime C99 atual continua útil apenas como referência host para testes diferenciais. Ler [docs/NATIVE_RECOMPILATION_POLICY.md](NATIVE_RECOMPILATION_POLICY.md), [AGENTS.md](../AGENTS.md) e [próximas ações](NEXT_STEPS.md).
+
+**Próximo trabalho:** inspeção offline do código/branches e prova de conceito incremental de tradutor estático 6502→C, preservando a ROM e toda evidência histórica. Nenhum novo XEX nem teste físico está autorizado automaticamente: S015/S018 tiveram Fatal Crash; S017 congelou/retornou sem validar sucesso. A causa de crash anterior não deve ser inventada.
+
+**Estado honesto em 18/10/2026:** não foi confirmada nesta sessão uma descompilação estática implementada nem um XEX jogável. O checkpoint anterior ainda descreve o runtime interpretado e o bloqueio de hardware; a nova política altera o objetivo/ordem de trabalho, não apaga esse histórico.
+
+---
+
 # Checkpoint operacional — 17/10/2026 (S019)
 
 
