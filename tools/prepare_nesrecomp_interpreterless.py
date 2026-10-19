@@ -49,7 +49,7 @@ def main() -> int:
     table_file = root / "runner/cyc/cpu6502_op_length.c"
     if table_file.exists():
         raise SystemExit(f"ERROR: refusing to overwrite {table_file}")
-    table_file.write_text('#include "cpu6502.h"\\n\\n' + table + "\\n", encoding="utf-8")
+    table_file.write_text('#include "cpu6502.h"' + chr(10) * 2 + table + chr(10), encoding="utf-8")
 
     replace_once(
         cmake_file,
