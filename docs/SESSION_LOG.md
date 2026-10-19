@@ -902,3 +902,14 @@ A identidade do commit que contém uma entrada pode ser consultada no histórico
 - Atualizados AGENTS.md, START_HERE.md, README.md, docs/NEXT_STEPS.md e docs/WORK_CHECKPOINT.md para que sucessores encontrem a ordem ao abrir o repositório. O próximo trabalho é inspeção offline do código/branches e prova de conceito incremental de tradução estática 6502→C; não gerar XEX automaticamente.
 - Validação desta sessão: leitura do conteúdo remoto e escrita documental via GitHub API. Não foram executados compilação, testes host, análise binária nova, CI ou teste físico nesta sessão; não alegar tais resultados.
 - Próxima ação: confirmar HEAD remoto e conteúdo dos documentos alterados; depois inspecionar os arquivos reais do tradutor/runtime e implementar a menor prova de conceito estática com teste diferencial reproduzível.
+
+
+## S021 — 18/10/2026: POC-001 de tradução estática ROM→C
+
+- Branch de trabalho criada: `work/static6502-poc-20261018`, baseada no HEAD remoto de `main`.
+- Adicionado `tools/static6502_poc.py`: verificação SHA-256 e layout da ROM canônica, extração do PRG e tradução direta de seis instruções reais de $8000-$8009 para C. Não há dispatch loop/opcode interpreter no C gerado. Opcode ainda não suportado interrompe a tradução.
+- Self-test integrado a `tests/run_host_tests.sh`: compila o C gerado com `-std=c99 -Wall -Wextra -Werror -pedantic`; verifica A=$10, X=$FF, S=$FF, flags e callback de escrita para $2000; testa rejeição de $AD em $800A.
+- Teste executado nesta sessão numa cópia local equivalente do tradutor, usando `/mnt/data/SMB_v026.nes` com SHA-256 canônico: PASS na compilação C e asserções. O arquivo já publicado na branch ainda precisa da execução CI exata; não declarar CI aprovada até haver run associado.
+- Criado `docs/evidence/STATIC_RECOMPILER_POC_001.md` com escopo, comando, resultado e limitações.
+- Limite: seis instruções lineares somente. Sem recompilação integral, branches, equivalência com o core, PPU/APU nativas, build PPC/XEX ou validação Xbox. Nenhum XEX gerado e nenhum teste físico pedido.
+- Próximo passo: expandir a tradução estática para blocos básicos e branches, adicionar testes por opcode e comparação diferencial, validar a branch com `python3 tools/verify_repository.py` e `sh tests/run_host_tests.sh`, depois avaliar PR.
