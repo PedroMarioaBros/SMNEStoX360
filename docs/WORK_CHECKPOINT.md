@@ -1,3 +1,37 @@
+# CHECKPOINT ATUAL — estudo de viabilidade NESRecomp (18/10/2026)
+
+A pedido do proprietário, a expansão do tradutor próprio está temporariamente
+pausada para avaliar o framework genérico NESRecomp usando
+`assets/canonical/SMB_v026.nes`. O código de POC existente é preservado, não
+foi apagado e não se declara que o tradutor atual está completo.
+
+- Plano: [NESRECOMP_EVALUATION.md](evidence/NESRECOMP_EVALUATION.md).
+- Script repetível: `sh tools/evaluate_nesrecomp.sh`.
+- CI: [NESRecomp canonical ROM evaluation](../.github/workflows/nesrecomp-evaluation.yml).
+- Commit upstream fixado: `a39d9cdbec0ac98b1430ddb53747b5ed8f8cac87`.
+- A avaliação verifica o SHA-256 da ROM, compila o gerador C do upstream,
+  executa a análise estática e confirma a geração de arquivos C no diretório
+  temporário. O código gerado não é commitado nem publicado como artifact.
+- **Resultado técnico pendente** da execução CI. O container local não tem
+  resolução DNS para github.com; por isso não afirmamos build nem geração local.
+- A licença upstream consultada é PolyForm Noncommercial 1.0.0; o uso de
+  pesquisa/hobby não comercial está contemplado, mas redistribuição comercial
+  não está autorizada pela licença atual. Dependências têm licenças próprias.
+- Regra intacta: não copiar/adotar o port SMB de terceiros como base. O teste
+  usa apenas o recompilador genérico com nossa ROM canônica.
+- Risco crítico: NESRecomp documenta fallback interpretado para código não
+  recompilado. O requisito final não permite interpretador 6502 em runtime.
+  Será necessário provar cobertura/ausência de fallback antes de qualquer
+  decisão de adoção.
+- PR #19 permanece aberta e sem merge durante a avaliação:
+  https://github.com/PedroMarioaBros/SMNEStoX360/pull/19
+
+**Critérios deste checkpoint:** não confundir geração C com código executável
+completo, runner validado, destino Xenon/PowerPC, XEX ou gameplay físico. Nenhum
+XEX foi gerado e nenhum novo teste físico foi solicitado.
+
+---
+
 # Checkpoint atual — POC-001 de tradução estática criada (18/10/2026)
 
 A PR [#18](https://github.com/PedroMarioaBros/SMNEStoX360/pull/18) foi integrada à `main` por squash no commit `d0822da58767ec8ee078752694e6d679445089dd`. A CI host exata do HEAD da PR passou no run [39183794667](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39183794667); a execução com o código tradutor também passou no run 39183681786. A primeira prova de conceito ROM-específica: `tools/static6502_poc.py`. Ela valida o SHA-256 canônico, extrai o PRG e converte diretamente seis instruções do reset ($8000-$8009) em statements C, sem despacho de opcode em runtime. O self-test compila C com `-std=c99 -Wall -Wextra -Werror -pedantic`, verifica registros/flags/escrita de barramento e exige rejeição do opcode $AD em $800A. O rascunho equivalente local passou; a branch inclui o self-test no script de regressão host para verificação pela CI. Evidência: [POC-001](evidence/STATIC_RECOMPILER_POC_001.md).
