@@ -43,3 +43,5 @@
     APU, temporização, DMA, memória mapeada e backend Xbox. Não declarar progresso
     sem código/evidência. S015/S018 deram Fatal Crash e S017 foi inconclusivo; não
     retestar nem emitir novo XEX automaticamente.
+
+14. POC de recompilação estática em andamento: execute `python3 tools/static6502_poc.py --self-test` e `sh tests/run_host_tests.sh`. A ferramenta deve rejeitar opcodes ainda não suportados; não ampliar cobertura sem testes de flags/endereçamento e comparação diferencial. A evidência atual cobre apenas seis instruções lineares do reset e não autoriza alegar recompilação integral ou gerar XEX.
