@@ -1,4 +1,4 @@
-# CHECKPOINT ATUAL — estudo de viabilidade NESRecomp (18/10/2026)
+# CHECKPOINT ATUAL — estudo de viabilidade NESRecomp (19/10/2026)
 
 A pedido do proprietário, a expansão do tradutor próprio está temporariamente
 pausada para avaliar o framework genérico NESRecomp usando
@@ -20,8 +20,20 @@ foi apagado e não se declara que o tradutor atual está completo.
   usa apenas o recompilador genérico com nossa ROM canônica.
 - Risco crítico: NESRecomp documenta fallback interpretado para código não
   recompilado. O requisito final não permite interpretador 6502 em runtime.
-  A própria primeira geração relata um fallback por fronteira de banco de 4 KiB
-  ou `$FFFF`. Identificar esse endereço e eliminar o fallback é o próximo bloqueio.
+  A instrumentação temporária confirmou a única cauda em bank 7, slot 7,
+  CPU `$FFFF`, opcode `$FF`, tamanho 3. Run [39207665461](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39207665461) passou e contou exatamente 1 entrada, igual ao sumário do gerador.
+- Contexto: bytes `$FFFA-$FFFF = 82 80 00 80 F0 FF`; vetor IRQ = `$FFF0`.
+  O backend cycle semeia os vetores incondicionalmente e sua caminhada a partir
+  do destino IRQ alcança `$FFFF` ao tratar bytes finais de vetor/tabela como
+  código. Isto é forte evidência de descoberta falsa, ainda não prova suficiente
+  para desabilitar IRQ: é necessário verificar uso real de IRQ e criar uma forma
+  explícita/genérica de excluir esse vetor ou faixa quando apropriado.
+- Patch de diagnóstico versionado em `tools/nesrecomp-tail-diagnostic.patch`,
+  aplicado apenas à cópia temporária upstream. O script compara o número de
+  registros de diagnóstico com a contagem de tails. Código C gerado continua
+  temporário, não commitado e não publicado. Próxima etapa: testar/configurar a
+  exclusão correta, provar caminhos runtime sem fallback, e então executar
+  testes host do runner.
 - PR #19 permanece aberta e sem merge durante a avaliação:
   https://github.com/PedroMarioaBros/SMNEStoX360/pull/19
 
