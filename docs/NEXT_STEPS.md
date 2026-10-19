@@ -9,8 +9,7 @@ Não apagar a POC nem afirmar que a arquitetura final foi escolhida.
 - Harness: `bash tools/evaluate_nesrecomp.sh`.
 - Workflow: [nesrecomp-evaluation.yml](../.github/workflows/nesrecomp-evaluation.yml).
 - Upstream pin: `a39d9cdbec0ac98b1430ddb53747b5ed8f8cac87`.
-- Resultado: **PENDENTE CI** até que o workflow conclua; o shell deste ambiente
-  não consegue resolver github.com, portanto não foi possível compilar localmente.
+- Resultado da primeira etapa: **CI SUCCESS** em [run 39186504796](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39186504796). O gerador compilou e analisou a ROM exata; não foi possível executar localmente porque o shell deste ambiente não resolve github.com.
 - O harness gera código em diretório temporário e não versiona nem publica os
   arquivos gerados. Não usa o port SMB de terceiros como base.
 - Atenção: NESRecomp documenta um interpretador de fallback; o requisito final
@@ -22,14 +21,15 @@ Não apagar a POC nem afirmar que a arquitetura final foi escolhida.
 ## Próxima ação executável
 
 No GitHub Actions, executar `NESRecomp canonical ROM evaluation` (ou aguardar
-a execução acionada pelo push/PR) e registrar o resultado real. Critérios
-iniciais: hash canônico correto, upstream pin correto, compilação do gerador,
-reconhecimento da ROM/mapper/vetores e geração de C não vazio.
+a execução acionada pelo push/PR) e registrar o resultado real. Critérios iniciais cumpridos: hash canônico correto, upstream pin correto,
+compilação do gerador, mapper/vetores reconhecidos e C não vazio. Métricas: 1.305
+instruções compiladas, 1 fallback interpretado, 5 arquivos C, 545.655 bytes e
+14.397 linhas. A arquitetura ainda NÃO está aprovada.
 
-Se a geração passar, inspecionar relatório/cobertura e depois planejar build do
-código gerado com o runner em host. Se falhar, preservar logs e corrigir o
-harness/configuração antes de retomar o tradutor próprio. Só depois avaliar
-portabilidade do runner para Xbox 360.
+Próxima ação: investigar o único fallback (a ferramenta diz que cruza limite de
+banco de 4 KiB ou `$FFFF`) e determinar como forçar tradução estática sem
+interpretador; em seguida gerar/compilar o runner host e comparar cenários com a
+referência. Só depois avaliar portabilidade do runner para Xbox 360.
 
 ---
 
