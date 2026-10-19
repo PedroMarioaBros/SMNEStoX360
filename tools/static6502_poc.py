@@ -106,9 +106,9 @@ def translate(prg, start, count):
     for r in records:
         if r["pc"] in targets:
             lines.append("L_%04X:" % r["pc"])
-        lines.append("    /* $%04X: %s %s */\\n    %s" % (r["pc"], " ".join("%02X" % b for b in r["raw"]), r["name"], r["stmt"]))
+        lines.append("    /* $%04X: %s %s */\n    %s" % (r["pc"], " ".join("%02X" % b for b in r["raw"]), r["name"], r["stmt"]))
         listing.append((r["pc"], r["raw"].hex(), r["name"], r["target"]))
-    return "\\n".join(lines), listing, pc
+    return "\n".join(lines), listing, pc
 
 def self_test(rom):
     prg = get_prg(rom)
@@ -138,7 +138,7 @@ int main(void) {
     with tempfile.TemporaryDirectory(prefix="smb360-static-poc-") as td:
         d = pathlib.Path(td)
         (d / "static6502_poc.h").write_text(HEADER)
-        (d / "generated.c").write_text(PRELUDE + "\\nvoid smb_static_poc_entry(smb_static_cpu *c) {\\n" + body + "\\n}\\n")
+        (d / "generated.c").write_text(PRELUDE + "\nvoid smb_static_poc_entry(smb_static_cpu *c) {\n" + body + "\n}\n")
         (d / "test.c").write_text(harness)
         exe = d / "test"
         subprocess.run([os.environ.get("CC", "cc"), "-std=c99", "-Wall", "-Wextra",
