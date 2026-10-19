@@ -1,6 +1,6 @@
 # NESRecomp feasibility evaluation — SMB_v026
 
-Status: **evaluation harness prepared; upstream generation result pending CI execution**.
+Status: **first-stage generation passed in GitHub Actions; deeper coverage/runtime checks remain pending**.
 
 ## Decision being tested
 
@@ -56,6 +56,20 @@ third-party Super Mario Bros. port as the product base. This evaluation invokes
 the generic recompiler against our own ROM; it does not use the third-party
 game project's generated code, game hooks, patches, or renderer.
 
+## Actual first-stage result — CI success
+
+Run [39186469481](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39186469481)
+reported:
+
+- Canonical ROM hash and size passed: 40,976 bytes, SHA-256 unchanged.
+- NESRecomp pinned revision fetched and built successfully with GCC 13.3/CMake/Ninja.
+- Parsed as 2 PRG banks × 16 KiB, mapper 0; vectors NMI `$8082`, RESET `$8000`, IRQ `$FFF0`.
+- Default cycle backend reported **1,305 instructions compiled and 1 left to the interpreter** because it crosses a 4 KiB bank boundary or `$FFFF`.
+- Generated **5 C files**, totaling **545,655 bytes / 14,397 lines**. They were kept in a temporary directory and were not committed or uploaded.
+- Upstream compiler emitted several C warnings (const qualifier and possible `snprintf` truncation); they did not fail its build.
+
+**Interpretation:** this is a real positive result for the feasibility question: NESRecomp can parse our exact ROM and generate substantial cycle-backend C. It is not yet acceptable as the final architecture because the log explicitly reports one interpreter fallback. The next step must identify the exact fallback target and determine whether it can be compiled natively without retaining an interpreter. No generated runner was built or executed, and no Xbox/XEX test occurred.
+
 ## First-stage acceptance criteria
 
 1. The canonical SHA-256 check passes.
@@ -99,7 +113,9 @@ and network access:
 bash tools/evaluate_nesrecomp.sh
 ```
 
-The container used for this session cannot resolve GitHub from its shell, so
-the actual upstream build/generation must be verified by the GitHub Actions
-run triggered by this change. Do not describe it as passed until that run has
-completed successfully.
+The local container could not resolve GitHub from its shell. The GitHub Actions
+run [39186504796](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39186504796)
+completed successfully on the evaluation branch, confirming the upstream build
+and generation test. The earlier run [39186469481](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39186469481)
+contains the full generation metrics below. The latest run at the time of this
+update also passed after removing unnecessary apt installation from the workflow.
