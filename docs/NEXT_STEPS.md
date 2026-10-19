@@ -1,3 +1,38 @@
+# PRIORIDADE ATUAL — avaliar NESRecomp antes de expandir o tradutor próprio
+
+**Ordem atual do proprietário — 18/10/2026:** pausar a expansão de
+`tools/static6502_poc.py` enquanto avaliamos o recompilador genérico
+[NESRecomp](https://github.com/mstan/nesrecomp) com a ROM canônica exata.
+Não apagar a POC nem afirmar que a arquitetura final foi escolhida.
+
+- Plano/evidência: [NESRECOMP_EVALUATION.md](evidence/NESRECOMP_EVALUATION.md).
+- Harness: `sh tools/evaluate_nesrecomp.sh`.
+- Workflow: [nesrecomp-evaluation.yml](../.github/workflows/nesrecomp-evaluation.yml).
+- Upstream pin: `a39d9cdbec0ac98b1430ddb53747b5ed8f8cac87`.
+- Resultado: **PENDENTE CI** até que o workflow conclua; o shell deste ambiente
+  não consegue resolver github.com, portanto não foi possível compilar localmente.
+- O harness gera código em diretório temporário e não versiona nem publica os
+  arquivos gerados. Não usa o port SMB de terceiros como base.
+- Atenção: NESRecomp documenta um interpretador de fallback; o requisito final
+  exige provar ausência desse fallback no produto. Geração C não é XEX nem prova
+  de jogabilidade no Xbox 360.
+- PR #19, que expande o tradutor próprio, fica **em pausa / sem merge por agora**
+  enquanto esta avaliação acontece: https://github.com/PedroMarioaBros/SMNEStoX360/pull/19
+
+## Próxima ação executável
+
+No GitHub Actions, executar `NESRecomp canonical ROM evaluation` (ou aguardar
+a execução acionada pelo push/PR) e registrar o resultado real. Critérios
+iniciais: hash canônico correto, upstream pin correto, compilação do gerador,
+reconhecimento da ROM/mapper/vetores e geração de C não vazio.
+
+Se a geração passar, inspecionar relatório/cobertura e depois planejar build do
+código gerado com o runner em host. Se falhar, preservar logs e corrigir o
+harness/configuração antes de retomar o tradutor próprio. Só depois avaliar
+portabilidade do runner para Xbox 360.
+
+---
+
 # PRIORIDADE ATUAL — POC-001: expandir tradutor estático 6502→C
 
 **Integrado à `main` na PR [#18](https://github.com/PedroMarioaBros/SMNEStoX360/pull/18), squash `d0822da58767ec8ee078752694e6d679445089dd`; CI host do HEAD passou no [run 39183794667](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39183794667). Implementado: `tools/static6502_poc.py` valida a ROM canônica e traduz seis instruções reais do reset ($8000-$8009) para statements C diretos. O self-test compila o C gerado com avisos estritos, verifica A/X/S/flags e callback de escrita, e confirma que opcode não suportado ($AD em $800A) é rejeitado. Evidência: [POC-001](evidence/STATIC_RECOMPILER_POC_001.md). A implementação ainda aguarda validação automatizada da branch; o teste equivalente local passou contra a ROM anexada.
