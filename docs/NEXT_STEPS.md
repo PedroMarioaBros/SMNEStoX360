@@ -9,7 +9,7 @@ Não apagar a POC nem afirmar que a arquitetura final foi escolhida.
 - Harness: `bash tools/evaluate_nesrecomp.sh`.
 - Workflow: [nesrecomp-evaluation.yml](../.github/workflows/nesrecomp-evaluation.yml).
 - Upstream pin: `a39d9cdbec0ac98b1430ddb53747b5ed8f8cac87`.
-- Resultado de geração inicial: **CI SUCCESS** em [39186568820](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39186568820). O ciclo de diagnóstico de tail também passou: [39207665461](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39207665461), com instrumentação temporária do gerador.
+- Geração inicial: **CI SUCCESS** em [39186568820](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39186568820). Diagnóstico confirmado em [39207665461](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39207665461); teste de configuração de região de dados em [39208412755](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39208412755).
 - O harness gera código em diretório temporário e não versiona nem publica os
   arquivos gerados. Não usa o port SMB de terceiros como base.
 - Atenção: NESRecomp documenta um interpretador de fallback; o requisito final
@@ -26,7 +26,7 @@ compilação do gerador, mapper/vetores reconhecidos e C não vazio. Métricas: 
 instruções compiladas, 1 fallback interpretado, 5 arquivos C, 545.655 bytes e
 14.397 linhas. A arquitetura ainda NÃO está aprovada.
 
-Diagnóstico confirmado: a única cauda é bank 7, slot 7, CPU `$FFFF`, opcode `$FF`, comprimento 3. O byte `$FFFF` é parte do vetor IRQ `$FFFE-$FFFF`, cujo destino é `$FFF0`; a varredura inicia ali e percorre bytes de tabela/vetor como se fossem instruções até chegar à fronteira final da ROM. O endereço `$9FFF` citado anteriormente era apenas hipótese e estava errado. Próxima ação: avaliar um modo genérico e explícito de tratar o vetor IRQ que aponta para dados, verificar na ROM que a rota IRQ não é requerida pelo jogo e repetir a geração com cobertura/diagnóstico registrado. A instrumentação aplicada na cópia temporária do upstream passou em [run 39207665461](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39207665461); código C gerado não foi publicado. Não aprovar a arquitetura até também demonstrar ausência do interpretador no binário runtime, compilar e testar o runner host, e comparar cenários determinísticos com a referência.
+Diagnóstico confirmado: a única cauda no upstream sem configuração é bank 7, slot 7, CPU `$FFFF`, opcode `$FF`, comprimento 3. O vetor IRQ `$FFFE-$FFFF` aponta para `$FFF0`; a caminhada desse alvo alcança bytes de vetor/tabela como se fossem instruções. Na experiência controlada, um patch temporário fez o ciclo respeitar `[[data_region]]` e a configuração marcou bank 7, `$FFF0-$FFFE`, como dados: o baseline manteve 1 tail; o experimento passou a 1.298 instruções compiladas e 0 tails no run [39208412755](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39208412755). Isso comprova que a configuração explícita tira o falso caminho da análise estática, mas NÃO prova que o jogo nunca use IRQ nem que o runtime não contenha interpretador. Próximas tarefas: confirmar como a ROM inicializa/usa IRQ; criar cobertura/trap fail-fast para qualquer PC não compilado e provar que o interpretador foi removido do runtime; compilar e executar o runner host com inputs determinísticos e comparar estado/quadro com a referência. C gerado continua temporário; sem XEX e sem teste físico.
 
 ---
 
