@@ -1,3 +1,11 @@
+# Checkpoint atual — POC-001 de tradução estática criada (18/10/2026)
+
+Foi criada na branch `work/static6502-poc-20261018` a primeira prova de conceito ROM-específica: `tools/static6502_poc.py`. Ela valida o SHA-256 canônico, extrai o PRG e converte diretamente seis instruções do reset ($8000-$8009) em statements C, sem despacho de opcode em runtime. O self-test compila C com `-std=c99 -Wall -Wextra -Werror -pedantic`, verifica registros/flags/escrita de barramento e exige rejeição do opcode $AD em $800A. O rascunho equivalente local passou; a branch inclui o self-test no script de regressão host para verificação pela CI. Evidência: [POC-001](evidence/STATIC_RECOMPILER_POC_001.md).
+
+**Limite explícito:** isto NÃO é decompilação completa nem jogo funcional. Só seis instruções lineares; ainda sem branches, leitura/mapeamento de barramento NES, análise de dados misturados, teste diferencial de traces, build PowerPC/XEX ou teste físico. Não gerar XEX nem pedir teste de hardware. Próximo passo é expandir o decodificador/tradutor incrementalmente e fazer CI/host tests da branch.
+
+---
+
 # ORDEM DO PROPRIETÁRIO — 18/10/2026: destino nativo sem emulação
 
 A direção definitiva é recompilar estaticamente a ROM específica `assets/canonical/SMB_v026.nes` para um executável nativo Xbox 360. A tradução CPU 6502→C e compilação para PowerPC/Xenon devem substituir a interpretação em runtime no produto final; não adotar um porte SMB de terceiros como base. O runtime C99 atual continua útil apenas como referência host para testes diferenciais. Ler [docs/NATIVE_RECOMPILATION_POLICY.md](NATIVE_RECOMPILATION_POLICY.md), [AGENTS.md](../AGENTS.md) e [próximas ações](NEXT_STEPS.md).

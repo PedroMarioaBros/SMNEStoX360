@@ -12,3 +12,6 @@ for test in test_apu_pulse test_apu_pulse2 test_apu_triangle test_apu_noise test
  printf '%s: PASS\n' "$test"
 done
 ${CC:-cc} $flags src/canonical/*.c tests/run_canonical_rom.c -o build/run_canonical_rom
+
+# Static recompilation proof of concept: compile generated C and test fail-closed behavior.
+python3 tools/static6502_poc.py --self-test

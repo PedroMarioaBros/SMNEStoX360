@@ -1,3 +1,15 @@
+# PRIORIDADE ATUAL — POC-001: expandir tradutor estático 6502→C
+
+**Implementado na branch `work/static6502-poc-20261018`:** `tools/static6502_poc.py` valida a ROM canônica e traduz seis instruções reais do reset ($8000-$8009) para statements C diretos. O self-test compila o C gerado com avisos estritos, verifica A/X/S/flags e callback de escrita, e confirma que opcode não suportado ($AD em $800A) é rejeitado. Evidência: [POC-001](evidence/STATIC_RECOMPILER_POC_001.md). A implementação ainda aguarda validação automatizada da branch; o teste equivalente local passou contra a ROM anexada.
+
+**Próxima tarefa concreta:** expandir o tradutor a um bloco básico que inclua instruções realmente encontradas no PRG, branches condicionais e labels de destino; adicionar flags/endereçamento sem usar um interpretador genérico em runtime. Implementar testes por opcode e comparar estados/traces com o core C99 de referência. Mapear código alcançável versus tabelas/dados antes de aumentar a cobertura. Rodar `python3 tools/verify_repository.py`, `sh tests/run_host_tests.sh` e `python3 tools/static6502_poc.py --self-test` no clone atualizado; corrigir qualquer falha antes do merge.
+
+**Critério de conclusão desta fase:** C gerado reprodutível para mais de um bloco da ROM, opcodes/endereçamentos suportados explicitamente listados, branches corretos, teste diferencial automatizado e cobertura reportada sem confundir dados com código. Não declarar descompilação completa.
+
+**Segurança:** não gerar nem entregar novo XEX nem pedir teste físico. S015/S018 deram Fatal Crash e S017 foi inconclusivo. Nenhum hardware test nesta fase.
+
+---
+
 # PRIORIDADE ATUAL — 18/10/2026: recompilação estática da ROM canônica
 
 Esta seção registra a instrução explícita do proprietário e prevalece sobre planos

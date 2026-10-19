@@ -46,6 +46,10 @@ para o próximo.
 > e [NEXT_STEPS](docs/NEXT_STEPS.md). Nenhum novo XEX físico
 > está liberado para testar. ROM canônica intacta.
 
+## Último avanço verificado — S021 / POC-001 (18/10/2026)
+
+Branch `work/static6502-poc-20261018`: primeiro tradutor estático ROM-específico em `tools/static6502_poc.py`, com seis instruções de $8000-$8009 geradas como C direto e self-test estrito integrado a `tests/run_host_tests.sh`. Evidência/limitações: [POC-001](docs/evidence/STATIC_RECOMPILER_POC_001.md), [checkpoint](docs/WORK_CHECKPOINT.md), [próxima ação](docs/NEXT_STEPS.md). O teste local equivalente passou; aguardar CI da branch para validar exatamente o arquivo publicado. Isto não é descompilação completa nem jogo funcional. Sem XEX/teste físico.
+
 ## Estado resumido
 
 **ATUALIZAÇÃO 13/10/2026 — RESULTADO FÍSICO S017:** o proprietário
