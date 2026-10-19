@@ -8,13 +8,13 @@ em arquivos do projeto.
 
 ## Ordem obrigatória de leitura
 
-1. [AGENTS.md](AGENTS.md): regras permanentes.
-2. [Protocolo de continuidade](docs/CONTINUITY_PROTOCOL.md): como iniciar,
+1. [AGENTS.md](AGENTS.md): regras permanentes.\n2. [Política obrigatória de recompilação nativa](docs/NATIVE_RECOMPILATION_POLICY.md): ROM específica, sem porte de terceiros e sem emulação como produto final.
+3. [Protocolo de continuidade](docs/CONTINUITY_PROTOCOL.md): como iniciar,
    registrar avanços e encerrar toda sessão.
-3. [Checkpoint atual](docs/WORK_CHECKPOINT.md): implementação, evidências e limites.
-4. [Próxima ação](docs/NEXT_STEPS.md): tarefa ativa e próximos comandos.
-5. [Histórico de sessões](docs/SESSION_LOG.md): o que já foi feito e tentado.
-6. [ROM canônica](docs/SMB_V026_CANONICAL_ROM.md): identidade e arquitetura.
+4. [Checkpoint atual](docs/WORK_CHECKPOINT.md): implementação, evidências e limites.
+5. [Próxima ação](docs/NEXT_STEPS.md): tarefa ativa e próximos comandos.
+6. [Histórico de sessões](docs/SESSION_LOG.md): o que já foi feito e tentado.
+7. [ROM canônica](docs/SMB_V026_CANONICAL_ROM.md): identidade e arquitetura.
 
 Leia o HEAD remoto antes de editar. As instruções de continuidade devem ser
 mantidas e cumpridas por cada sucessor, que também deve deixar o estado pronto
@@ -23,7 +23,7 @@ para o próximo.
 ## Comando de retomada para colar em outro chat
 
 > Continue o projeto PedroMarioaBros/SMNEStoX360. Leia START_HERE.md no HEAD
-> atual do GitHub e siga integralmente AGENTS.md e o protocolo de continuidade.
+> atual do GitHub e siga integralmente AGENTS.md, docs/NATIVE_RECOMPILATION_POLICY.md e o protocolo de continuidade.
 > Leia o checkpoint, o histórico e NEXT_STEPS.md antes de trabalhar.
 > Execute a próxima tarefa pendente, preservando a ROM canônica.
 > Registre cada avanço e tentativa relevante, atualize o próximo comando,
