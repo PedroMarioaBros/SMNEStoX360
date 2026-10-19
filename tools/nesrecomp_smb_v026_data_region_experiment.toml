@@ -1,10 +1,20 @@
-# Evaluation-only annotation for the canonical SMB_v026 ROM.
-# The diagnostic found IRQ vector $FFF0 enters bytes that appear to be data.
-# This config is used only for a host-side generation experiment; it is not a
-# final game configuration and does not prove the IRQ path is unreachable.
+# Evaluation-only annotations for the exact canonical SMB_v026 ROM.
+# The IRQ-vector target $FFF0 is treated as data based on verified byte layout.
+# SMB also uses the generic inline-argument dispatcher at $8E04: its two bytes
+# after JSR encode a dynamic code target. This list seeds the targets found in
+# the canonical PRG after the byte pattern JSR $8E04. This is experiment-only;
+# it is not a final game config, and runtime route coverage must still be tested.
 [game]
 output_prefix = "smb_v026_data_region_experiment"
 cycle_accurate = true
+cycle_inline_jsr = ["8E04:2"]
+
+[functions]
+fixed = [
+  0x8231, 0x8FCF, 0xCFEC, 0x858B, 0x9224, 0x92DB,
+  0x98E5, 0x974C, 0x8FE4, 0x9131, 0xB35A, 0xBDD2,
+  0xC30E, 0xC3A4, 0xC8E0, 0xCA77, 0xD432, 0xD311
+]
 
 [[data_region]]
 bank = 7
