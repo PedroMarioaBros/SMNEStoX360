@@ -119,7 +119,8 @@ if grep -Fq "cpu6502_interp.c" "$TMP/build-native-only/build.ninja"; then
   echo "ERROR: interpreter source is still listed in the runtime build." >&2
   exit 10
 fi
-if nm "$RUNTIME" | grep -q 'cpu_interp_step'; then
+nm "$RUNTIME" > "$TMP/runtime-symbols.txt"
+if grep -q 'cpu_interp_step' "$TMP/runtime-symbols.txt"; then
   echo "ERROR: cpu_interp_step is linked into the interpreter-free runtime." >&2
   exit 11
 fi
