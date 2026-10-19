@@ -1,7 +1,13 @@
 diff --git a/recompiler/src/cyc_codegen.c b/recompiler/src/cyc_codegen.c
 --- a/recompiler/src/cyc_codegen.c
 +++ b/recompiler/src/cyc_codegen.c
-@@ -2608,1 +2608,15 @@
+@@ -2602,8 +2602,22 @@
+     uint32_t count = 0, tails = 0;
+     for (size_t i = 0; i < pos_space(p); i++) {
+         count += p->is_insn[i];
+         tails += p->seen[i] && !p->is_insn[i];
+     }
+
 -    cyc_mkdir("generated");
 +    /* Evaluation-only telemetry: identify each visited instruction start
 +     * that cannot be emitted because its bytes cross a 4 KiB slot or $FFFF.
@@ -14,7 +20,8 @@ diff --git a/recompiler/src/cyc_codegen.c b/recompiler/src/cyc_codegen.c
 +        uint16_t addr = (uint16_t)(0x8000 + (slot << SLOT_SHIFT) + k);
 +        uint8_t opcode = prg_byte(p, bank, k);
 +        fprintf(stderr,
-+                "[TAIL_DIAGNOSTIC] bank=%u slot=%u addr=$%04X opcode=$%02X len=%d\n",
++                "[TAIL_DIAGNOSTIC] bank=%u slot=%u addr=$%04X opcode=$%02X len=%d\\n",
 +                bank, slot, addr, opcode, op_length(opcode));
 +    }
 +    cyc_mkdir("generated");
+     char path[512];
