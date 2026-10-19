@@ -1,0 +1,12 @@
+# Evaluation-only annotation for the canonical SMB_v026 ROM.
+# The diagnostic found IRQ vector $FFF0 enters bytes that appear to be data.
+# This config is used only for a host-side generation experiment; it is not a
+# final game configuration and does not prove the IRQ path is unreachable.
+[game]
+output_prefix = "smb_v026_data_region_experiment"
+cycle_accurate = true
+
+[[data_region]]
+bank = 7
+start = 0xFFF0
+end = 0xFFFF
