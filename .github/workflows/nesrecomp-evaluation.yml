@@ -7,6 +7,8 @@ on:
       - 'assets/canonical/SMB_v026.nes'
       - 'tools/evaluate_nesrecomp.sh'
       - 'tools/nesrecomp-tail-diagnostic.patch'
+      - 'tools/nesrecomp-data-region-vector.patch'
+      - 'tools/nesrecomp_smb_v026_data_region_experiment.toml'
       - 'docs/evidence/NESRECOMP_EVALUATION.md'
       - '.github/workflows/nesrecomp-evaluation.yml'
   pull_request:
@@ -14,6 +16,8 @@ on:
       - 'assets/canonical/SMB_v026.nes'
       - 'tools/evaluate_nesrecomp.sh'
       - 'tools/nesrecomp-tail-diagnostic.patch'
+      - 'tools/nesrecomp-data-region-vector.patch'
+      - 'tools/nesrecomp_smb_v026_data_region_experiment.toml'
       - 'docs/evidence/NESRECOMP_EVALUATION.md'
       - '.github/workflows/nesrecomp-evaluation.yml'
 
