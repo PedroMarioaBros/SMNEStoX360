@@ -1,3 +1,15 @@
+# PRIORIDADE ATUAL — POC-002: leitura absoluta e BPL estático
+
+Na branch `work/static6502-branches-20261018`, o tradutor foi expandido para o trecho de reset/polling real da ROM: inclui LDA absoluto por callback de leitura e BPL relativo convertido em label/goto C. O destino do branch é calculado com deslocamento assinado e deve estar dentro do bloco traduzido; caso contrário, o gerador falha explicitamente. Self-test previsto: oito instruções em $8000-$800E, compilação C estrita, polling simulado com duas leituras e rejeição de destino externo. Relatório: [POC-002](evidence/STATIC_RECOMPILER_POC_002.md).
+
+**Ação imediata:** verificar a CI exata desta branch/PR. Corrigir erros antes de merge; não assumir que código remoto passou sem resultado do workflow. Após CI verde, continuar com testes de flags/endereçamento para outros opcodes e gerar inventário do fluxo de controle alcançável. Comparar estados e traces com o core C99 de referência. Não tratar o callback de teste como implementação real do PPU.
+
+**Critérios antes de avançar para um bloco maior:** branch backward e forward, alvo interno/externo, leitura absoluta, instrução truncada, destino fora de PRG, compilação com warnings-as-errors e teste diferencial. Depois implementar JMP/JSR/RTS e branches adicionais conforme o código alcançável, sem confundir dados com código.
+
+**Segurança:** sem XEX novo e sem teste físico; os resultados S015/S018/S017 continuam impedindo novo teste automático.
+
+---
+
 # PRIORIDADE ATUAL — POC-001: expandir tradutor estático 6502→C
 
 **Integrado à `main` na PR [#18](https://github.com/PedroMarioaBros/SMNEStoX360/pull/18), squash `d0822da58767ec8ee078752694e6d679445089dd`; CI host do HEAD passou no [run 39183794667](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39183794667). Implementado: `tools/static6502_poc.py` valida a ROM canônica e traduz seis instruções reais do reset ($8000-$8009) para statements C diretos. O self-test compila o C gerado com avisos estritos, verifica A/X/S/flags e callback de escrita, e confirma que opcode não suportado ($AD em $800A) é rejeitado. Evidência: [POC-001](evidence/STATIC_RECOMPILER_POC_001.md). A implementação ainda aguarda validação automatizada da branch; o teste equivalente local passou contra a ROM anexada.
