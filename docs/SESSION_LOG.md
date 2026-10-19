@@ -944,3 +944,5 @@ A identidade do commit que contém uma entrada pode ser consultada no histórico
 - A PR #19 da POC própria fica aberta e sem merge enquanto a avaliação estiver
   pendente. Próxima ação: verificar o resultado real do workflow, corrigir erros
   do harness e registrar cobertura/limitações antes de decidir a arquitetura.
+
+- Primeira CI falhou imediatamente porque o workflow chamou um script Bash com `sh` (`set: Illegal option -o pipefail`). Corrigido o workflow para invocar `bash`; isso é falha do harness, não do NESRecomp. A avaliação precisa rodar novamente.
