@@ -96,6 +96,52 @@ if [[ "$FILTER_SUMMARY_TAIL_COUNT" != "0" ]]; then
 fi
 echo "Data-region experiment: [VECTOR_DATA_REGION] skip was applied; fallback-tail count=0."
 
+# Temporary runtime adaptation: exclude the interpreter translation unit and
+# make every uncovered dispatch fail closed. This is not a product port; it is
+# a coverage proof attempt for deterministic host scenarios only.
+python3 "$ROOT/tools/prepare_nesrecomp_interpreterless.py" "$TMP/nesrecomp"
+
+cmake -S "$TMP/nesrecomp/runner/cyc/project" -B "$TMP/build-native-only" -G Ninja \
+  -DCMAKE_BUILD_TYPE=Release \
+  -DNESRECOMP_ROM="$ROM" \
+  -DNESRECOMP_GAME_CONFIG="$ROOT/tools/nesrecomp_smb_v026_data_region_experiment.toml" \
+  -DNESRECOMP_HOST_COMPILER="$TMP/build/NESRecomp" \
+  -DNESRECOMP_HEADLESS=ON \
+  -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+cmake --build "$TMP/build-native-only" --parallel 2
+
+RUNTIME="$TMP/build-native-only/nes_game"
+if [[ ! -x "$RUNTIME" ]]; then
+  echo "ERROR: interpreter-free headless runner was not produced." >&2
+  exit 9
+fi
+if grep -Fq "cpu6502_interp.c" "$TMP/build-native-only/build.ninja"; then
+  echo "ERROR: interpreter source is still listed in the runtime build." >&2
+  exit 10
+fi
+if nm "$RUNTIME" | grep -q 'cpu_interp_step'; then
+  echo "ERROR: cpu_interp_step is linked into the interpreter-free runtime." >&2
+  exit 11
+fi
+echo "Runtime inspection: cpu6502_interp.c absent from build.ninja; cpu_interp_step absent from executable symbols."
+
+cat > "$TMP/native-route.input" <<'INPUT'
+0 -
+100 START
+102 -
+220 RIGHT+A
+270 RIGHT
+360 -
+INPUT
+
+echo "=== Interpreter-free runtime: 600 idle/title frames ==="
+"$RUNTIME" "$ROM" --frames 600 --miss-log "$TMP/native-idle-miss.log" \
+  2>&1 | tee "$TMP/native-idle.log"
+echo "=== Interpreter-free runtime: 600 scripted-input frames ==="
+"$RUNTIME" "$ROM" --frames 600 --input "$TMP/native-route.input" \
+  --miss-log "$TMP/native-route-miss.log" 2>&1 | tee "$TMP/native-route.log"
+echo "Interpreter-free host runtime passed both 600-frame scenarios without an uncovered-PC trap."
+
 mapfile -t GENERATED_C < <(find "$TMP/run/generated" -type f -name '*.c' -print | sort)
 if [[ "${#GENERATED_C[@]}" -eq 0 ]]; then
   echo "ERROR: NESRecomp completed without generating any C source files." >&2
