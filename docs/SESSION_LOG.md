@@ -946,3 +946,8 @@ A identidade do commit que contém uma entrada pode ser consultada no histórico
   do harness e registrar cobertura/limitações antes de decidir a arquitetura.
 
 - Primeira CI falhou imediatamente porque o workflow chamou um script Bash com `sh` (`set: Illegal option -o pipefail`). Corrigido o workflow para invocar `bash`; isso é falha do harness, não do NESRecomp. A avaliação precisa rodar novamente.
+
+- CI de avaliação concluiu success: [run 39186504796](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39186504796); métricas completas no [run 39186469481](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39186469481).
+- NESRecomp compilou no runner Linux e reconheceu a ROM canônica: 2×16 KiB PRG, mapper 0, NMI `$8082`, RESET `$8000`, IRQ `$FFF0`.
+- Resultado de geração cycle-accurate: 1.305 instruções compiladas; 1 ficou para interpretador por cruzar fronteira de banco 4 KiB ou `$FFFF`; 5 arquivos C, 545.655 bytes, 14.397 linhas. Saída ficou em temp e não foi commitada.
+- Conclusão: geração estática substancial para a ROM exata é viável. Ainda não é aceitável como arquitetura final enquanto existir fallback interpretado. Próxima ação: localizar o alvo que sobrou, tentar cobri-lo estaticamente, depois compilar e comparar o runner host. Sem XEX e sem teste físico.
