@@ -951,3 +951,11 @@ A identidade do commit que contém uma entrada pode ser consultada no histórico
 - NESRecomp compilou no runner Linux e reconheceu a ROM canônica: 2×16 KiB PRG, mapper 0, NMI `$8082`, RESET `$8000`, IRQ `$FFF0`.
 - Resultado de geração cycle-accurate: 1.305 instruções compiladas; 1 ficou para interpretador por cruzar fronteira de banco 4 KiB ou `$FFFF`; 5 arquivos C, 545.655 bytes, 14.397 linhas. Saída ficou em temp e não foi commitada.
 - Conclusão: geração estática substancial para a ROM exata é viável. Ainda não é aceitável como arquitetura final enquanto existir fallback interpretado. Próxima ação: localizar o alvo que sobrou, tentar cobri-lo estaticamente, depois compilar e comparar o runner host. Sem XEX e sem teste físico.
+
+### Próximo ciclo — diagnóstico do tail do NESRecomp (19/10/2026)
+
+- O run mais recente da PR #20, [39186568820](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39186568820), concluiu `success` no commit de avaliação. A geração e a verificação da ROM continuam reproduzíveis.
+- Inspecionada a lógica do backend cycle no pin upstream: o contador `tails` mede posições visitadas (`seen`) mas não compiladas (`!is_insn`), quando a instrução não cabe no slot de 4 KiB. O log atual não revela o endereço individual.
+- A ROM canônica contém bytes `DE 42 E2` em CPU `$9FFF`; `DE` é DEC absoluto,X de 3 bytes e atravessaria o slot. Esse é o candidato mais forte para o único tail, mas ainda não é prova de que seja a entrada visitada pelo analisador. Não afirmar endereço confirmado até adicionar diagnóstico temporário ao build do CI.
+- Comentário de continuidade deixado na PR #20 (comentário ID 6260695162): próxima alteração proposta imprime apenas bank/slot/endereço/opcode/comprimento para cada `seen && !is_insn`, sem guardar nem publicar C gerado. O diagnóstico deve acontecer na cópia temporária do upstream e manter o pin fixo.
+- Próximo gate: confirmar o endereço com instrumentação, verificar se existe forma genérica de compilá-lo estaticamente sem manter fallback; depois compilar runner host e executar testes determinísticos. Nenhum XEX ou teste físico.
