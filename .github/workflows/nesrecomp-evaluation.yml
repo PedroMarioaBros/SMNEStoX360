@@ -27,4 +27,4 @@ jobs:
       - name: Install native build dependencies
         run: sudo apt-get update && sudo apt-get install -y git cmake ninja-build build-essential
       - name: Verify canonical ROM and generate C with pinned NESRecomp
-        run: sh tools/evaluate_nesrecomp.sh
+        run: bash tools/evaluate_nesrecomp.sh
