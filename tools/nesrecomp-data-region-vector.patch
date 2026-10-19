@@ -1,0 +1,45 @@
+diff --git a/recompiler/src/cyc_codegen.c b/recompiler/src/cyc_codegen.c
+--- a/recompiler/src/cyc_codegen.c
++++ b/recompiler/src/cyc_codegen.c
+@@ -2450,14 +2450,29 @@
+ /* The three vectors as the bank in slot 3 holds them, seeded at whatever
+  * position each target resolves to. A mapper with a fixed $E000 slot has one
+  * such bank; one that switches all of $8000-$FFFF (AxROM, GxROM) has no fixed
+  * vectors at all, so every bank's are seeded - compiling a block that never
+  * runs costs output, not correctness. */
+-static void seed_vectors(const Program *p, uint32_t bank, uint32_t *seeds, int *n) {
++static bool cycle_addr_in_data_region(const GameConfig *cfg, int bank, uint16_t addr) {
++    for (int i = 0; i < cfg->data_region_count; i++) {
++        const DataRegion *dr = &cfg->data_regions[i];
++        if (dr->bank == bank && addr >= dr->start && addr < dr->end) return true;
++    }
++    return false;
++}
++
++static void seed_vectors(const Program *p, const GameConfig *cfg, uint32_t bank, uint32_t *seeds, int *n) {
+     Pos from = { bank, SLOT_COUNT - 1, SLOT_SIZE - 1 };
+     for (uint32_t v = 0xFFFA; v <= 0xFFFE; v += 2) {
+         uint32_t k = v & (SLOT_SIZE - 1);
+         uint16_t target = (uint16_t)(prg_byte(p, bank, k) | prg_byte(p, bank, k + 1) << 8);
+         Pos to;
+-        if (target_pos(p, &from, target, &to)) seeds[(*n)++] = POS_PACK(to.bank, to.slot, to.k);
++        if (target_pos(p, &from, target, &to)) {
++            if (cycle_addr_in_data_region(cfg, (int)to.bank, target)) {
++                fprintf(stderr, "[VECTOR_DATA_REGION] vector=$%04X target=$%04X bank=%u skipped\\n", v, target, to.bank);
++                continue;
++            }
++            seeds[(*n)++] = POS_PACK(to.bank, to.slot, to.k);
++        }
+     }
+ }
+@@ -2518,10 +2533,10 @@
+     size_t seed_cap = (size_t)p->banks * 3 + GAME_CFG_MAX_EXTRA_FUNCS + 0x20000;
+     uint32_t *seeds = (uint32_t *)malloc(sizeof(uint32_t) * seed_cap);
+     int n = 0;
+     if (any_fixed) {
+-        seed_vectors(p, (uint32_t)(p->fixed[SLOT_COUNT - 1] >= 0 ? p->fixed[SLOT_COUNT - 1] : p->power_on[SLOT_COUNT - 1]), seeds, &n);
++        seed_vectors(p, cfg, (uint32_t)(p->fixed[SLOT_COUNT - 1] >= 0 ? p->fixed[SLOT_COUNT - 1] : p->power_on[SLOT_COUNT - 1]), seeds, &n);
+     } else {
+-        for (uint32_t bank = 0; bank < p->banks; bank++) seed_vectors(p, bank, seeds, &n);
++        for (uint32_t bank = 0; bank < p->banks; bank++) seed_vectors(p, cfg, bank, seeds, &n);
+     }
