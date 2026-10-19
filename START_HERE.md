@@ -6,6 +6,16 @@ de uma conversa anterior. A ROM e os assets estão em assets/canonical/;
 consulte [REPRODUCIBILITY.md](docs/REPRODUCIBILITY.md) para um clone autossuficiente
 em arquivos do projeto.
 
+## Prioridade ativa — 18/10/2026
+
+A expansão do tradutor próprio está pausada por ordem do proprietário enquanto
+se avalia o NESRecomp genérico com a ROM canônica. Leia primeiro
+[plano/evidência NESRecomp](docs/evidence/NESRECOMP_EVALUATION.md) e confira o
+workflow [NESRecomp canonical ROM evaluation](.github/workflows/nesrecomp-evaluation.yml).
+Não declarar sucesso até o CI terminar; não adotar o port SMB de terceiros;
+não gerar XEX nem solicitar teste físico nesta etapa. A PR #19 permanece aberta
+sem merge durante a avaliação.
+
 ## Ordem obrigatória de leitura
 
 1. [AGENTS.md](AGENTS.md): regras permanentes. 
