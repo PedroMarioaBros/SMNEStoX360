@@ -48,6 +48,7 @@ fi
 git -C "$TMP/nesrecomp" apply "$ROOT/tools/nesrecomp-tail-diagnostic.patch"
 git -C "$TMP/nesrecomp" apply "$ROOT/tools/nesrecomp-data-region-vector.patch"
 python3 "$ROOT/tools/prepare_nesrecomp_fixed_slot_crossing.py" "$TMP/nesrecomp"
+python3 "$ROOT/tools/prepare_nesrecomp_inline_jmp.py" "$TMP/nesrecomp"
 python3 "$ROOT/tools/prepare_nesrecomp_interpreterless.py" "$TMP/nesrecomp"
 echo "Applied temporary diagnostics, data-region, fixed-slot, and interpreter-free experiments; generated C remains private to temp."
 
