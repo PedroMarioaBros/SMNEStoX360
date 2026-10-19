@@ -34,11 +34,29 @@ def main() -> int:
     if not cmake_file.is_file() or not run_file.is_file():
         raise SystemExit(f"ERROR: {root} is not the expected NESRecomp checkout")
 
+    # The interpreter translation unit also happens to own an opcode-length
+    # metadata table used by RAM-view analysis. Move that data-only table into
+    # a separate utility translation unit rather than retaining any interpreter
+    # function code in the executable.
+    interp_file = root / "runner/cyc/cpu6502_interp.c"
+    interp_source = interp_file.read_text(encoding="utf-8")
+    table_marker = "/* Bytes each opcode takes from the instruction stream (BRK: 2). */"
+    if interp_source.count(table_marker) != 1:
+        raise SystemExit("ERROR: expected one cpu6502_op_length metadata table")
+    table = interp_source.split(table_marker, 1)[1].strip()
+    if not table.startswith("const uint8_t cpu6502_op_length[256] = {"):
+        raise SystemExit("ERROR: interpreter opcode-length table format changed")
+    table_file = root / "runner/cyc/cpu6502_op_length.c"
+    if table_file.exists():
+        raise SystemExit(f"ERROR: refusing to overwrite {table_file}")
+    table_file.write_text('#include "cpu6502.h"\\n\\n' + table + "\\n", encoding="utf-8")
+
     replace_once(
         cmake_file,
         "    ${NESRECOMP_CYC_DIR}/cpu6502.c\n"
         "    ${NESRECOMP_CYC_DIR}/cpu6502_interp.c\n",
-        "    ${NESRECOMP_CYC_DIR}/cpu6502.c\n",
+        "    ${NESRECOMP_CYC_DIR}/cpu6502.c\n"
+        "    ${NESRECOMP_CYC_DIR}/cpu6502_op_length.c\n",
     )
     replace_once(
         run_file,
@@ -59,6 +77,11 @@ def main() -> int:
     source_list = cmake_source.split("set(NESRECOMP_C_INCLUDE_DIRS", 1)[0]
     if "${NESRECOMP_CYC_DIR}/cpu6502_interp.c" in source_list:
         raise SystemExit("ERROR: interpreter source remains in the cycle runner source list")
+    if "${NESRECOMP_CYC_DIR}/cpu6502_op_length.c" not in source_list:
+        raise SystemExit("ERROR: data-only opcode-length metadata was not added")
+    table_source = (root / "runner/cyc/cpu6502_op_length.c").read_text(encoding="utf-8")
+    if "cpu_interp_step" in table_source or "switch (opcode)" in table_source:
+        raise SystemExit("ERROR: interpreter logic leaked into the metadata translation unit")
     if "cpu_interp_step();" in run_source:
         raise SystemExit("ERROR: a runtime call to cpu_interp_step remains")
     if "[NATIVE_COVERAGE_MISS]" not in run_source:
