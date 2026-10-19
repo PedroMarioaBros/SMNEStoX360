@@ -4,7 +4,7 @@
 
 **[LEIA AQUI — STATUS PARA PEDRO](docs/STATUS_PARA_PEDRO.md)** · [Painel central dos projetos Xbox 360](https://github.com/PedroMarioaBros/OpenXeChain-X360-Builder/blob/main/docs/PAINEL_PMCN_XBOX360.md)
 
-**Caminho oficial:** `canonical-xex.yml` + `src/canonical/` + ROM `SMB_v026.nes`. A CI gera um XEX2 de **diagnóstico sem vídeo/áudio/controles**, ainda **não testado no Xbox físico**. A antiga compilação `xbox360-cloud-build.yml` usa `nathsou`, não é a entrega canônica e suas falhas não anulam a CI canônica. Consulte [S014](docs/evidence/S014/README.md) e [próxima etapa S015](docs/NEXT_STEPS.md).
+**Objetivo final obrigatório:** recompilação estática do PRG 6502 desta ROM para código compilável e execução nativa no Xbox 360, sem interpretador/emulador em runtime. Leia [política obrigatória](docs/NATIVE_RECOMPILATION_POLICY.md). O runtime C99 atual é apenas referência host, não o produto final. Não usar um porte SMB de terceiros como base.\n\n**Caminho de diagnóstico atual:** `canonical-xex.yml` + `src/canonical/` + ROM `SMB_v026.nes`. A CI gera um XEX2 de **diagnóstico sem vídeo/áudio/controles**, ainda **não testado no Xbox físico**. A antiga compilação `xbox360-cloud-build.yml` usa `nathsou`, não é a entrega canônica e suas falhas não anulam a CI canônica. Consulte [S014](docs/evidence/S014/README.md) e [próxima etapa S015](docs/NEXT_STEPS.md).
 
 ---
 
