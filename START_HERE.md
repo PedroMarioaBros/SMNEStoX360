@@ -8,7 +8,8 @@ em arquivos do projeto.
 
 ## Ordem obrigatória de leitura
 
-1. [AGENTS.md](AGENTS.md): regras permanentes.\n2. [Política obrigatória de recompilação nativa](docs/NATIVE_RECOMPILATION_POLICY.md): ROM específica, sem porte de terceiros e sem emulação como produto final.
+1. [AGENTS.md](AGENTS.md): regras permanentes. 
+2. [Política obrigatória de recompilação nativa](docs/NATIVE_RECOMPILATION_POLICY.md): ROM específica, sem porte de terceiros e sem emulação como produto final.
 3. [Protocolo de continuidade](docs/CONTINUITY_PROTOCOL.md): como iniciar,
    registrar avanços e encerrar toda sessão.
 4. [Checkpoint atual](docs/WORK_CHECKPOINT.md): implementação, evidências e limites.
