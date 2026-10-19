@@ -81,8 +81,8 @@ mkdir -p "$TMP/run-data-region"
     --output-prefix smb_v026_data_region
 ) 2>&1 | tee "$TMP/generation-data-region.log"
 
-FILTER_TAIL_DIAG_COUNT="$(grep -c '^\\[TAIL_DIAGNOSTIC\\]' "$TMP/generation-data-region.log" || true)"
-FILTER_SUMMARY_TAIL_COUNT="$(sed -n 's/.*instructions compiled, \\([0-9][0-9]*\\) left to the interpreter.*/\\1/p' "$TMP/generation-data-region.log" | tail -n 1)"
+FILTER_TAIL_DIAG_COUNT="$(grep -c '^\[TAIL_DIAGNOSTIC\]' "$TMP/generation-data-region.log" || true)"
+FILTER_SUMMARY_TAIL_COUNT="$(sed -n 's/.*instructions compiled, \([0-9][0-9]*\) left to the interpreter.*/\1/p' "$TMP/generation-data-region.log" | tail -n 1)"
 if [[ -z "$FILTER_SUMMARY_TAIL_COUNT" ]]; then
   FILTER_SUMMARY_TAIL_COUNT=0
 fi
