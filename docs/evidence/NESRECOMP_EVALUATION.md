@@ -31,9 +31,16 @@ It never patches or rewrites the canonical ROM.
 ## What is added to this repository
 
 - `tools/evaluate_nesrecomp.sh`: repeatable host-side evaluation. It fetches
-  only the pinned upstream commit, builds the standalone recompiler, generates
-  cycle-backend C in a temporary directory, and reports generated file count,
-  byte count, and line count.
+  only the pinned upstream commit, applies temporary diagnostic/experiment
+  patches, builds the standalone recompiler, and generates baseline/configured
+  cycle-backend C in temporary directories. It validates tail diagnostics
+  against NESRecomp's counts; no generated C is committed or uploaded.
+- `tools/nesrecomp-tail-diagnostic.patch`: prints only entries seen by analysis
+  but not compiled, without printing or publishing generated source.
+- `tools/nesrecomp-data-region-vector.patch` and
+  `tools/nesrecomp_smb_v026_data_region_experiment.toml`: a controlled test of
+  honoring an explicit data-region annotation while seeding vectors. These are
+  experiments, not approved product code/config.
 - `.github/workflows/nesrecomp-evaluation.yml`: runs the harness on demand and
   for relevant changes.
 - This evidence/decision document and updated project continuity docs.
@@ -84,7 +91,16 @@ Run [39207665461](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39
 
 The canonical PRG bytes at CPU `$FFFA-$FFFF` are `82 80 00 80 F0 FF`; the IRQ vector at `$FFFE-$FFFF` therefore points to `$FFF0`. NESRecomp's cycle backend seeds all three interrupt vectors and follows the decoded control flow. It then walks through the byte sequence beginning at `$FFF0` and eventually marks `$FFFF` as a seen instruction start, but cannot compile the three-byte `$FF` opcode because its bytes would wrap past `$FFFF`. The chain starts from the IRQ-vector seed; given the vector/table byte layout, this is strong evidence of a false code-discovery path into data/vector bytes, not evidence that gameplay code needs an interpreted instruction. The earlier `$9FFF` hypothesis was wrong and is superseded.
 
-This does **not** yet authorize removing the fallback. We must determine how to express the unused/invalid IRQ-vector target safely for this ROM, test whether existing generic configuration supports that intent, and prove the title does not rely on this IRQ path. The cycle backend currently seeds vectors unconditionally and does not directly consult `data_regions` in its discovery loop, so a TOML data-region annotation alone may not suppress this tail. Any source patch remains an evaluation experiment, not a final architecture decision.
+## Controlled data-region experiment — CI success
+
+Run [39208412755](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39208412755) passed with two generation runs against the same verified canonical ROM:
+
+- **Baseline (pinned upstream behavior, plus telemetry only):** 1,305 instructions compiled; one tail at bank 7 / slot 7 / `$FFFF` (`FF`, length 3).
+- **Configured experiment:** 1,298 instructions compiled; **zero interpreter-tail candidates**. The log shows `[VECTOR_DATA_REGION] vector=$FFFE target=$FFF0 bank=7 skipped`.
+
+The second result used a temporary patch, `tools/nesrecomp-data-region-vector.patch`, that makes cycle-backend vector seeding respect the already parsed `[[data_region]]` annotation, plus `tools/nesrecomp_smb_v026_data_region_experiment.toml` declaring bank 7, `$FFF0-$FFFE` as data. This exposes a gap in the pinned upstream cycle backend: its current vector seeding does not consult `data_regions`; the configuration alone would not currently stop the walk. The annotation suppresses the IRQ-vector path, whose bytes have the form of a data table and lead to the false tail. Both source patches are applied only to the temporary checkout by CI; no upstream source or generated C is vendored or published.
+
+**Interpretation:** the reported single tail is not necessary for the configured static code walk when the IRQ target is explicitly classified as data. This is progress, not architecture approval. It does not prove the IRQ path can never occur, and intentionally omits the code from `$FFF0`; if a real IRQ arrives there, this generated build would no longer contain a handler for it. Before treating the annotation as correct, verify from the canonical ROM and runtime behavior that the title does not rely on IRQ service, and build/test a runtime with the interpreter entirely removed (not merely unused). No runner execution, no differential gameplay test, no XEX and no Xbox test occurred.
 
 ## First-stage acceptance criteria
 
