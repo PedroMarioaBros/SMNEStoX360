@@ -49,7 +49,7 @@
 14. **Avaliação NESRecomp (18/10/2026):** a pedido do proprietário, pausar a
     expansão do tradutor próprio até avaliar `tools/evaluate_nesrecomp.sh` e
     `docs/evidence/NESRECOMP_EVALUATION.md`. Usar a ROM canônica e o commit
-    upstream fixado pelo harness. Não copiar/vendorizAR código ou jogo de
+    upstream fixado pelo harness. Não copiar, incorporar ou versionar código ou jogo de
     terceiros sem revisão de licença; não usar o port SMB de terceiros como base.
     A licença upstream consultada é PolyForm Noncommercial 1.0.0.
 15. A documentação NESRecomp descreve um interpretador de fallback. O objetivo
