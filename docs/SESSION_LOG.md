@@ -920,3 +920,14 @@ A identidade do commit que contém uma entrada pode ser consultada no histórico
 - PR [#18](https://github.com/PedroMarioaBros/SMNEStoX360/pull/18) aprovada pelo próprio CI de host e integrada por squash em `d0822da58767ec8ee078752694e6d679445089dd`.
 - CI do HEAD completo da PR: [run 39183794667](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39183794667), `completed/success`, head `386774b5aa05b79a24c38a92fb4b2911f45e5965`. O run de host associado ao commit que continha o tradutor e o self-test também passou: `39183681786`.
 - O resultado é somente validação host de uma POC de seis instruções; nenhum XEX ou teste Xbox foi feito. Próxima ação registrada em NEXT_STEPS: expandir para blocos básicos/branches e comparar estado contra o runtime de referência.
+
+
+## S022 — 18/10/2026: POC-002 inclui LDA absoluto e BPL
+
+- Branch `work/static6502-branches-20261018` criada a partir de `main`.
+- Tradutor atualizado para incluir opcode $AD (LDA absoluto) via callback de leitura e opcode $10 (BPL relativo), gerando branch C para label interno.
+- O deslocamento do BPL é assinado e calculado a partir do PC seguinte; branch para endereço não incluído no bloco causa erro explícito.
+- O self-test foi ampliado para oito instruções de $8000 a $800E, testar polling com duas leituras simuladas, callback de escrita, compilação C com warnings-as-errors e rejeição de alvo fora do bloco.
+- Relatório: `docs/evidence/STATIC_RECOMPILER_POC_002.md`.
+- Estado: aguardar CI da versão exata na PR; ainda não registrar aprovação até confirmar resultado do workflow. Sem build XEX/teste físico.
+- Próximo passo: corrigir falhas CI, depois adicionar cobertura gradual de opcodes e testes diferenciais contra o core C99 de referência.
