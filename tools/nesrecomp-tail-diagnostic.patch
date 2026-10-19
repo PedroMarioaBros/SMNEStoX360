@@ -1,7 +1,7 @@
 diff --git a/recompiler/src/cyc_codegen.c b/recompiler/src/cyc_codegen.c
 --- a/recompiler/src/cyc_codegen.c
 +++ b/recompiler/src/cyc_codegen.c
-@@ -2602,8 +2602,22 @@
+@@ -2602,8 +2602,35 @@
      uint32_t count = 0, tails = 0;
      for (size_t i = 0; i < pos_space(p); i++) {
          count += p->is_insn[i];
@@ -22,6 +22,21 @@ diff --git a/recompiler/src/cyc_codegen.c b/recompiler/src/cyc_codegen.c
 +        fprintf(stderr,
 +                "[TAIL_DIAGNOSTIC] bank=%u slot=%u addr=$%04X opcode=$%02X len=%d\n",
 +                bank, slot, addr, opcode, op_length(opcode));
++    }
++    /* Report reachable compiled instruction starts that can affect IRQ masking
++     * or interrupt return/control flow. Diagnostic only; no generated C is printed. */
++    for (size_t i = 0; i < pos_space(p); i++) {
++        if (!p->is_insn[i]) continue;
++        uint32_t bank = (uint32_t)(i >> 15);
++        uint32_t slot = (uint32_t)((i >> SLOT_SHIFT) & (SLOT_COUNT - 1));
++        uint32_t k = (uint32_t)(i & (SLOT_SIZE - 1));
++        uint16_t addr = (uint16_t)(0x8000 + (slot << SLOT_SHIFT) + k);
++        uint8_t opcode = prg_byte(p, bank, k);
++        if (opcode == 0x00 || opcode == 0x28 || opcode == 0x40 ||
++            opcode == 0x58 || opcode == 0x78) {
++            fprintf(stderr, "[IRQ_CONTROL_OPCODE] bank=%u slot=%u addr=$%04X opcode=$%02X\\n",
++                    bank, slot, addr, opcode);
++        }
 +    }
 +    cyc_mkdir("generated");
      char path[512];
