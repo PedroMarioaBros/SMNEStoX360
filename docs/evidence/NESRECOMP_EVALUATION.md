@@ -96,7 +96,7 @@ From the repository root on a Linux host with Git, CMake, Ninja, a C compiler,
 and network access:
 
 ```sh
-sh tools/evaluate_nesrecomp.sh
+bash tools/evaluate_nesrecomp.sh
 ```
 
 The container used for this session cannot resolve GitHub from its shell, so
