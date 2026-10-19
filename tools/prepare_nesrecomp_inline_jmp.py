@@ -104,7 +104,7 @@ def main() -> int:
     replace_once(
         cyc,
         """        case K_JSR: {
-            uint16_t target = (uint16_t)(prg_byte(p, at.bank, at.k + 1) | prg_byte(p, at.bank, at.k + 2) << 8);
+            uint16_t target = (uint16_t)(insn_byte_at(p, &at, 1) | insn_byte_at(p, &at, 2) << 8);
             succ[n++] = target;
             succ[n++] = (uint16_t)(next + p->inline_jsr[target]);  /* return address, past inline arguments */
             break;
