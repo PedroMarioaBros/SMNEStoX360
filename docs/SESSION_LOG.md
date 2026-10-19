@@ -913,3 +913,10 @@ A identidade do commit que contém uma entrada pode ser consultada no histórico
 - Criado `docs/evidence/STATIC_RECOMPILER_POC_001.md` com escopo, comando, resultado e limitações.
 - Limite: seis instruções lineares somente. Sem recompilação integral, branches, equivalência com o core, PPU/APU nativas, build PPC/XEX ou validação Xbox. Nenhum XEX gerado e nenhum teste físico pedido.
 - Próximo passo: expandir a tradução estática para blocos básicos e branches, adicionar testes por opcode e comparação diferencial, validar a branch com `python3 tools/verify_repository.py` e `sh tests/run_host_tests.sh`, depois avaliar PR.
+
+
+### S021 — validação CI e integração em main
+
+- PR [#18](https://github.com/PedroMarioaBros/SMNEStoX360/pull/18) aprovada pelo próprio CI de host e integrada por squash em `d0822da58767ec8ee078752694e6d679445089dd`.
+- CI do HEAD completo da PR: [run 39183794667](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39183794667), `completed/success`, head `386774b5aa05b79a24c38a92fb4b2911f45e5965`. O run de host associado ao commit que continha o tradutor e o self-test também passou: `39183681786`.
+- O resultado é somente validação host de uma POC de seis instruções; nenhum XEX ou teste Xbox foi feito. Próxima ação registrada em NEXT_STEPS: expandir para blocos básicos/branches e comparar estado contra o runtime de referência.
