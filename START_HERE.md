@@ -12,7 +12,7 @@ A expansão do tradutor próprio está pausada por ordem do proprietário enquan
 se avalia o NESRecomp genérico com a ROM canônica. Leia primeiro
 [plano/evidência NESRecomp](docs/evidence/NESRECOMP_EVALUATION.md) e confira o
 workflow [NESRecomp canonical ROM evaluation](.github/workflows/nesrecomp-evaluation.yml).
-O diagnóstico temporário passou no [run 39207665461](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39207665461) e confirmou a única cauda em CPU `$FFFF`, opcode `$FF`, tamanho 3, derivada da caminhada de descoberta iniciada pelo vetor IRQ `$FFF0`. Isso parece ser uma entrada falsa em bytes de vetor/tabela, mas ainda precisamos verificar o uso real de IRQ e remover o fallback do runtime de forma segura. Não declarar arquitetura concluída; não adotar o port SMB de terceiros; não gerar XEX nem solicitar teste físico nesta etapa. A PR #19 permanece aberta sem merge durante a avaliação.
+O diagnóstico e o experimento de região de dados passaram em [run 39208412755](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39208412755): baseline mostra um tail em `$FFFF` a partir do vetor IRQ `$FFF0`; com um patch temporário para honrar `[[data_region]]`, o alvo `$FFF0` é pulado e o relatório cai para 1.298 instruções compiladas e zero tails. Isso ainda não prova que IRQ nunca será chamado, nem que o runtime possa ser ligado sem interpretador. Próximo gate: verificar uso de IRQ, remover totalmente o interpretador e executar testes host/diferenciais. Não declarar arquitetura concluída; não adotar o port SMB de terceiros; não gerar XEX nem solicitar teste físico nesta etapa. A PR #19 permanece aberta sem merge durante a avaliação.
 
 ## Ordem obrigatória de leitura
 
