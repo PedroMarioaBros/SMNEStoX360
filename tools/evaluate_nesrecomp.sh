@@ -58,8 +58,8 @@ mkdir -p "$TMP/run"
   "$TMP/build/NESRecomp" "$ROM" --cycle-accurate --output-prefix smb_v026
 ) 2>&1 | tee "$TMP/generation.log"
 
-TAIL_DIAG_COUNT="$(grep -c '^\\[TAIL_DIAGNOSTIC\\]' "$TMP/generation.log" || true)"
-SUMMARY_TAIL_COUNT="$(sed -n 's/.*instructions compiled, \\([0-9][0-9]*\\) left to the interpreter.*/\\1/p' "$TMP/generation.log" | tail -n 1)"
+TAIL_DIAG_COUNT="$(grep -c '^\[TAIL_DIAGNOSTIC\]' "$TMP/generation.log" || true)"
+SUMMARY_TAIL_COUNT="$(sed -n 's/.*instructions compiled, \([0-9][0-9]*\) left to the interpreter.*/\1/p' "$TMP/generation.log" | tail -n 1)"
 if [[ -z "$SUMMARY_TAIL_COUNT" ]]; then
   SUMMARY_TAIL_COUNT=0
 fi
