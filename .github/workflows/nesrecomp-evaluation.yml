@@ -6,6 +6,7 @@ on:
     paths:
       - 'assets/canonical/SMB_v026.nes'
       - 'tools/evaluate_nesrecomp.sh'
+      - 'tools/prepare_nesrecomp_interpreterless.py'
       - 'tools/nesrecomp-tail-diagnostic.patch'
       - 'tools/nesrecomp-data-region-vector.patch'
       - 'tools/nesrecomp_smb_v026_data_region_experiment.toml'
@@ -15,6 +16,7 @@ on:
     paths:
       - 'assets/canonical/SMB_v026.nes'
       - 'tools/evaluate_nesrecomp.sh'
+      - 'tools/prepare_nesrecomp_interpreterless.py'
       - 'tools/nesrecomp-tail-diagnostic.patch'
       - 'tools/nesrecomp-data-region-vector.patch'
       - 'tools/nesrecomp_smb_v026_data_region_experiment.toml'
