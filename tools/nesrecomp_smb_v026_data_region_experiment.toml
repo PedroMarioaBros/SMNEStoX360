@@ -7,7 +7,7 @@
 [game]
 output_prefix = "smb_v026_data_region_experiment"
 cycle_accurate = true
-cycle_inline_jsr = ["8E04:2"]
+cycle_inline_jmp = ["8E04:2"]
 
 [functions]
 fixed = [
