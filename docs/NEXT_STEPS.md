@@ -1,3 +1,18 @@
+# PRIORIDADE ATUAL — 18/10/2026: recompilação estática da ROM canônica
+
+Esta seção registra a instrução explícita do proprietário e prevalece sobre planos
+históricos abaixo quando definirem o interpretador como destino final. Leia
+[política obrigatória](NATIVE_RECOMPILATION_POLICY.md).
+
+**Próxima tarefa técnica:** investigar o estado real do código e branches atuais;
+mapear a ROM canônica (SHA-256 `57fb4ee14288853bc0c8a5a629a103e51e87a4ebae1cc699b435060d2690b047`), PRG, vetores e código executável; localizar ferramentas genéricas de análise 6502 adequadas; definir uma prova de conceito determinística 6502→C com cobertura por opcode e comparação contra o runtime host. Não adotar um porte/reimplementação de Super Mario Bros. de terceiros como base do produto. O runtime C99 existente fica preservado apenas como referência de comparação; o executável final não poderá interpretar/emular a CPU 6502.
+
+**Não fazer nesta etapa:** não gerar nem entregar novo XEX automaticamente; não pedir novo teste físico. S015 e S018 resultaram em Fatal Crash e S017 não validou boot. A investigação deve ser offline e incremental, sem apagar evidências nem modificar a ROM canônica. Antes de qualquer alteração de arquitetura, registrar hipótese, comando, resultado e critério de aceitação. Compilação de C gerado no host é um marco intermediário, não prova de fidelidade nem de execução Xbox.
+
+**Critério da primeira prova de conceito:** traduzir um subconjunto claramente delimitado de instruções/rotinas da ROM para C compilável; cobrir flags, modos de endereçamento e saltos usados; demonstrar teste diferencial reproduzível; listar tudo que ficou fora. Não afirmar que houve descompilação completa até a cobertura e equivalência estarem demonstradas.
+
+---
+
 # Próximos passos — 17/10/2026, após Fatal Crash físico S018
 
 
