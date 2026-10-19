@@ -1,3 +1,13 @@
+# Checkpoint atual — POC-002 em validação
+
+Branch ativa: `work/static6502-branches-20261018`. O tradutor `tools/static6502_poc.py` agora adiciona LDA absoluto com callback de leitura e BPL relativo estático, com label/goto C e rejeição de destino fora do trecho. O bloco corresponde ao reset/polling real $8000-$800E; bytes e limitações estão em [POC-002](evidence/STATIC_RECOMPILER_POC_002.md).
+
+**Estado honesto:** esta etapa está aguardando a execução CI da versão exata da branch. Não declarar PASS antes do run. A POC segue muito limitada; o callback de barramento é apenas teste, não PPU implementado, e não há build Xenon/XEX ou teste Xbox. Não gerar XEX.
+
+Próximo passo imediato: obter CI da PR, corrigir falhas e só então atualizar o checkpoint com o resultado. Depois, implementar e testar mais opcodes de controle de fluxo e comparação diferencial com o core de referência.
+
+---
+
 # Checkpoint atual — POC-001 de tradução estática criada (18/10/2026)
 
 A PR [#18](https://github.com/PedroMarioaBros/SMNEStoX360/pull/18) foi integrada à `main` por squash no commit `d0822da58767ec8ee078752694e6d679445089dd`. A CI host exata do HEAD da PR passou no run [39183794667](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39183794667); a execução com o código tradutor também passou no run 39183681786. A primeira prova de conceito ROM-específica: `tools/static6502_poc.py`. Ela valida o SHA-256 canônico, extrai o PRG e converte diretamente seis instruções do reset ($8000-$8009) em statements C, sem despacho de opcode em runtime. O self-test compila C com `-std=c99 -Wall -Wextra -Werror -pedantic`, verifica registros/flags/escrita de barramento e exige rejeição do opcode $AD em $800A. O rascunho equivalente local passou; a branch inclui o self-test no script de regressão host para verificação pela CI. Evidência: [POC-001](evidence/STATIC_RECOMPILER_POC_001.md).
