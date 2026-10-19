@@ -32,7 +32,7 @@ diff --git a/recompiler/src/cyc_codegen.c b/recompiler/src/cyc_codegen.c
 +        }
      }
  }
-@@ -2518,10 +2533,10 @@
+@@ -2518,9 +2533,9 @@
      size_t seed_cap = (size_t)p->banks * 3 + GAME_CFG_MAX_EXTRA_FUNCS + 0x20000;
      uint32_t *seeds = (uint32_t *)malloc(sizeof(uint32_t) * seed_cap);
      int n = 0;
