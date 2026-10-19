@@ -1,0 +1,30 @@
+name: NESRecomp canonical ROM evaluation
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'assets/canonical/SMB_v026.nes'
+      - 'tools/evaluate_nesrecomp.sh'
+      - 'docs/evidence/NESRECOMP_EVALUATION.md'
+      - '.github/workflows/nesrecomp-evaluation.yml'
+  pull_request:
+    paths:
+      - 'assets/canonical/SMB_v026.nes'
+      - 'tools/evaluate_nesrecomp.sh'
+      - 'docs/evidence/NESRECOMP_EVALUATION.md'
+      - '.github/workflows/nesrecomp-evaluation.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  evaluate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install native build dependencies
+        run: sudo apt-get update && sudo apt-get install -y git cmake ninja-build build-essential
+      - name: Verify canonical ROM and generate C with pinned NESRecomp
+        run: sh tools/evaluate_nesrecomp.sh
