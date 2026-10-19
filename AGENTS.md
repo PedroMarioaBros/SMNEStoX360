@@ -32,3 +32,14 @@
     e deixe a próxima sessão pronta para continuar. Não remover numa limpeza.
 12. Não reiniciar etapas concluídas sem razão técnica registrada; retestes são
     verificações, não novo progresso. Histórico de tentativas deve ser preservado.
+
+
+13. **Objetivo final obrigatório: recompilação estática nativa da ROM SMB_v026.nes.**
+    Leia e cumpra docs/NATIVE_RECOMPILATION_POLICY.md antes de mexer na arquitetura.
+    Não adotar um porte/reimplementação SMB de terceiros como base do produto e não
+    entregar emulação/interpretação 6502 como solução final. O runtime interpretado
+    atual é apenas referência host. Traduzir o PRG 6502 para C (ou representação
+    equivalente compilável) e compilar para PowerPC/Xenon; tratar separadamente PPU,
+    APU, temporização, DMA, memória mapeada e backend Xbox. Não declarar progresso
+    sem código/evidência. S015/S018 deram Fatal Crash e S017 foi inconclusivo; não
+    retestar nem emitir novo XEX automaticamente.
