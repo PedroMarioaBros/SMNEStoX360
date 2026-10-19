@@ -47,7 +47,9 @@ fi
 # checkout. The upstream commit remains pinned and the patch is not vendored.
 git -C "$TMP/nesrecomp" apply "$ROOT/tools/nesrecomp-tail-diagnostic.patch"
 git -C "$TMP/nesrecomp" apply "$ROOT/tools/nesrecomp-data-region-vector.patch"
-echo "Applied temporary diagnostic and data-region experiment patches; generated C remains private to temp."
+python3 "$ROOT/tools/prepare_nesrecomp_fixed_slot_crossing.py" "$TMP/nesrecomp"
+python3 "$ROOT/tools/prepare_nesrecomp_interpreterless.py" "$TMP/nesrecomp"
+echo "Applied temporary diagnostics, data-region, fixed-slot, and interpreter-free experiments; generated C remains private to temp."
 
 cmake -S "$TMP/nesrecomp/recompiler" -B "$TMP/build" -G Ninja \
   -DCMAKE_BUILD_TYPE=Release
@@ -96,11 +98,8 @@ if [[ "$FILTER_SUMMARY_TAIL_COUNT" != "0" ]]; then
 fi
 echo "Data-region experiment: [VECTOR_DATA_REGION] skip was applied; fallback-tail count=0."
 
-# Temporary runtime adaptation: exclude the interpreter translation unit and
-# make every uncovered dispatch fail closed. This is not a product port; it is
-# a coverage proof attempt for deterministic host scenarios only.
-python3 "$ROOT/tools/prepare_nesrecomp_interpreterless.py" "$TMP/nesrecomp"
-
+# The temporary interpreter-free source adaptation was applied before building
+# the generator above; its CMake changes affect only the runtime host target.
 cmake -S "$TMP/nesrecomp/runner/cyc/project" -B "$TMP/build-native-only" -G Ninja \
   -DCMAKE_BUILD_TYPE=Release \
   -DNESRECOMP_ROM="$ROM" \
