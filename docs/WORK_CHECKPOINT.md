@@ -23,17 +23,17 @@ foi apagado e não se declara que o tradutor atual está completo.
   A instrumentação temporária confirmou a única cauda em bank 7, slot 7,
   CPU `$FFFF`, opcode `$FF`, tamanho 3. Run [39207665461](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39207665461) passou e contou exatamente 1 entrada, igual ao sumário do gerador.
 - Contexto: bytes `$FFFA-$FFFF = 82 80 00 80 F0 FF`; vetor IRQ = `$FFF0`.
-  O backend cycle semeia os vetores incondicionalmente e sua caminhada a partir
-  do destino IRQ alcança `$FFFF` ao tratar bytes finais de vetor/tabela como
-  código. Isto é forte evidência de descoberta falsa, ainda não prova suficiente
-  para desabilitar IRQ: é necessário verificar uso real de IRQ e criar uma forma
-  explícita/genérica de excluir esse vetor ou faixa quando apropriado.
-- Patch de diagnóstico versionado em `tools/nesrecomp-tail-diagnostic.patch`,
-  aplicado apenas à cópia temporária upstream. O script compara o número de
-  registros de diagnóstico com a contagem de tails. Código C gerado continua
-  temporário, não commitado e não publicado. Próxima etapa: testar/configurar a
-  exclusão correta, provar caminhos runtime sem fallback, e então executar
-  testes host do runner.
+  O backend cycle semeia os vetores incondicionalmente e a caminhada a partir do
+  destino IRQ alcança `$FFFF` ao tratar bytes de vetor/tabela como código.
+- Controle em [run 39208412755](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39208412755): upstream pinado + telemetria reproduz 1 tail e 1.305 instruções. Um patch experimental temporário passou a respeitar `[[data_region]]` ao semear vetores; a configuração de teste declara bank 7, `$FFF0-$FFFE`, como dados. Resultado: vetor IRQ `$FFF0` pulado por anotação, 1.298 instruções compiladas e zero tails. Esta é evidência de que a anotação evita a descoberta falsa, não prova de que o jogo nunca usa IRQ.
+- Patches e config do experimento: `tools/nesrecomp-tail-diagnostic.patch`,
+  `tools/nesrecomp-data-region-vector.patch` e
+  `tools/nesrecomp_smb_v026_data_region_experiment.toml`. Aplicados apenas à
+  cópia temporária upstream. C gerado permanece não commitado/não publicado.
+  Próximas etapas: verificar uso real de IRQ e comportamento de $4017; preparar
+  runtime com trap em qualquer PC não compilado e remover totalmente o
+  interpretador 6502; provar no host runner que o jogo executa e comparar
+  estados/quadros determinísticos com a referência. Sem XEX nem teste físico.
 - PR #19 permanece aberta e sem merge durante a avaliação:
   https://github.com/PedroMarioaBros/SMNEStoX360/pull/19
 
