@@ -88,8 +88,10 @@ def main() -> int:
     )
     diag_block = r'''
 /* Evaluation-only ring buffer. Records native instruction starts without
- * altering the emulated bus, cycles, or registers. */
-typedef struct { uint16_t pc; uint8_t opcode; } CycDiagInsn;
+ * altering the emulated bus, cycles, or registers. It also observes calls to
+ * the ROM's inline dispatcher, so a dynamically selected table entry can be
+ * attributed to its calling instruction and selector. */
+typedef struct { uint16_t pc; uint8_t opcode, a, x, y, s; } CycDiagInsn;
 #define CYC_DIAG_HISTORY 24
 static CycDiagInsn cyc_diag_history[CYC_DIAG_HISTORY];
 static unsigned cyc_diag_history_next, cyc_diag_history_count;
@@ -99,9 +101,31 @@ static uint8_t cyc_diag_last_opcode;
 static bool cyc_diag_have_transfer;
 static uint16_t cyc_diag_transfer_pc, cyc_diag_transfer_target;
 static uint8_t cyc_diag_transfer_opcode;
+static bool cyc_diag_have_dispatch;
+static uint16_t cyc_diag_dispatch_callsite, cyc_diag_dispatch_table_addr, cyc_diag_dispatch_target;
+static uint8_t cyc_diag_dispatch_index;
 
 void cyc_diag_instruction(uint16_t pc, uint8_t opcode) {
-    cyc_diag_history[cyc_diag_history_next] = (CycDiagInsn){pc, opcode};
+    /* $8E04 is SMB_v026's inline-argument tail dispatcher. A JSR stores its
+     * last-byte address; its inline target list starts three bytes later. */
+    if (pc == 0x8E04 && cyc_diag_have_last && cyc_diag_last_opcode == 0x20) {
+        uint16_t callsite = cyc_diag_last_pc;
+        uint8_t index = cpu.a;
+        uint32_t table_addr = (uint32_t)callsite + 3u + (uint32_t)index * 2u;
+        cyc_diag_have_dispatch = true;
+        cyc_diag_dispatch_callsite = callsite;
+        cyc_diag_dispatch_index = index;
+        cyc_diag_dispatch_table_addr = table_addr <= 0xFFFFu ? (uint16_t)table_addr : 0xFFFFu;
+        if (table_addr < 0xFFFFu && hw_prg_is_rom((uint16_t)table_addr) &&
+            hw_prg_is_rom((uint16_t)(table_addr + 1u))) {
+            uint8_t lo = hw_cart_prg_read((uint16_t)table_addr);
+            uint8_t hi = hw_cart_prg_read((uint16_t)(table_addr + 1u));
+            cyc_diag_dispatch_target = (uint16_t)(lo | ((uint16_t)hi << 8));
+        } else {
+            cyc_diag_dispatch_target = 0xFFFFu;
+        }
+    }
+    cyc_diag_history[cyc_diag_history_next] = (CycDiagInsn){pc, opcode, cpu.a, cpu.x, cpu.y, cpu.s};
     cyc_diag_history_next = (cyc_diag_history_next + 1) % CYC_DIAG_HISTORY;
     if (cyc_diag_history_count < CYC_DIAG_HISTORY) cyc_diag_history_count++;
     cyc_diag_last_pc = pc;
@@ -135,15 +159,22 @@ static void cyc_diag_dump_miss(uint16_t pc) {
         fprintf(stderr, "[NATIVE_LAST_TRANSFER] no non-sequential transfer observed yet\n");
     }
     if (cyc_diag_have_last) {
-        fprintf(stderr, "[NATIVE_LAST_INSN] pc=$%04X opcode=$%02X expected_next=$%04X actual_next=$%04X\n",
+        fprintf(stderr, "[NATIVE_LAST_INSN] pc=$%04X opcode=$%02X expected_next=$%04X actual_next=$%04X\\n",
                 cyc_diag_last_pc, cyc_diag_last_opcode,
                 (uint16_t)(cyc_diag_last_pc + cpu6502_op_length[cyc_diag_last_opcode]), pc);
     }
-    fprintf(stderr, "[NATIVE_INSN_HISTORY] newest-first count=%u\n", cyc_diag_history_count);
+    if (cyc_diag_have_dispatch) {
+        fprintf(stderr,
+                "[INLINE_DISPATCH] callsite=$%04X selector=%u table_entry=$%04X decoded_target=$%04X actual_miss=$%04X match=%s\\n",
+                cyc_diag_dispatch_callsite, cyc_diag_dispatch_index, cyc_diag_dispatch_table_addr,
+                cyc_diag_dispatch_target, pc, cyc_diag_dispatch_target == pc ? "yes" : "no");
+    }
+    fprintf(stderr, "[NATIVE_INSN_HISTORY] newest-first count=%u\\n", cyc_diag_history_count);
     for (unsigned n = 0; n < cyc_diag_history_count; n++) {
         unsigned i = (cyc_diag_history_next + CYC_DIAG_HISTORY - 1 - n) % CYC_DIAG_HISTORY;
-        fprintf(stderr, "[NATIVE_INSN] pc=$%04X opcode=$%02X\n",
-                cyc_diag_history[i].pc, cyc_diag_history[i].opcode);
+        fprintf(stderr, "[NATIVE_INSN] pc=$%04X opcode=$%02X A=$%02X X=$%02X Y=$%02X S=$%02X\\n",
+                cyc_diag_history[i].pc, cyc_diag_history[i].opcode,
+                cyc_diag_history[i].a, cyc_diag_history[i].x, cyc_diag_history[i].y, cyc_diag_history[i].s);
     }
     fflush(stderr);
 }
