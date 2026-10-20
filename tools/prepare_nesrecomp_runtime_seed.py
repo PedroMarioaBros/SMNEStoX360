@@ -21,6 +21,8 @@ def main() -> int:
     if not path.is_file():
         raise SystemExit(f"ERROR: temporary config not found: {path}")
     raw_pc = sys.argv[2].strip().replace("$", "0x")
+    if not raw_pc.lower().startswith("0x"):
+        raw_pc = "0x" + raw_pc
     try:
         pc = int(raw_pc, 0)
     except ValueError as exc:
