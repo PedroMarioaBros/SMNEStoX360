@@ -1059,30 +1059,19 @@ Somente semântica de hardware, nunca substituição do gameplay:
 Antes de finalizar a próxima sessão, atualizar este checkpoint com medidas
 novas e limites reais e confirmar commits no GitHub.
 
-## Atualização de progresso — ciclo 20/10/2026 (matriz estendida e diferencial por quadro)
+## Atualização de progresso — ciclo 20/10/2026 (dispatcher verificado e PCM comparado)
 
-**CI validada:** [39418927424](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39418927424) — success.
+**CI:** [39432801245](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39432801245) — success.
 
-- Runner experimental sem interpretador: arquivo cpu6502_interp.c ausente do build.ninja; símbolo cpu_interp_step ausente.
-- Matriz estendida passou sem NATIVE_COVERAGE_MISS após **15 seeds derivados por execução, todos apenas na configuração temporária**. Oito primeiros cobriram os dois roteiros curtos; mais sete foram necessários com a rota de gameplay mais longa.
-- Quatro cenários sem interpretador passaram, todos com 100,0% de ciclos nativos:
-  - idle/título, 600 quadros: 17.865.920 ciclos, 17.865.913 nativos.
-  - input de rota curto, 600 quadros: 17.865.925 ciclos, 17.865.918 nativos.
-  - variações de movimento/pulo, 1.800 quadros: 53.602.527 ciclos, 53.602.520 nativos.
-  - input estendido, 3.600 quadros: 107.207.435 ciclos, 107.207.428 nativos.
-- **Diferencial aprovado em 6.600 quadros totais:** hashes --hash-out coincidiram em cada quadro entre o build sem interpretador e o runner de referência com interpretador habilitado nos quatro cenários. A referência utilizou fallback ROM de 17.152 ciclos (0,1%) no idle, 1.145.069 (6,4%) na rota curta, 4.788.327 (8,9%) na variação de pulo e 8.937.607 (8,3%) na rota longa. Isso é uma comparação de trace, memória/pixels, registradores CPU e estado de hardware; não é uma comparação independente de PCM/WAV.
-- Geração C permaneceu temporária: 5 arquivos, 545.655 bytes, 14.397 linhas; nada foi publicado.
+- Perfil de dispatcher validado contra a ROM canônica: 18 candidatos brutos `JSR $8E04`, 12 callsites observados, 57 pares callsite/seletor e 47 destinos ROM únicos.
+- A configuração temporária recebeu 17 seeds adicionais derivados do perfil. A configuração versionada e a ROM canônica não foram modificadas.
+- A tentativa de seed de todos os PCs do miss-log foi rejeitada (run 39429365074; 2.072 entradas sequenciais indevidas). A instrumentação agora registra chamadas ao dispatcher inline e valida diretamente os bytes da ROM.
+- Runtime sem interpretador: arquivo `cpu6502_interp.c` ausente de Ninja e símbolo `cpu_interp_step` ausente; quatro roteiros passaram com 100,0% dos ciclos nativos e sem `NATIVE_COVERAGE_MISS`.
+- Paridade `--hash-out`: todos os 6.600 quadros em quatro roteiros; PCM/WAV 48 kHz mono 16-bit idêntico byte a byte nos quatro cenários.
 
-**Percentuais de progresso estimados:**
-- ROM canônica e geração C isolada: 100%.
-- Remoção estrutural do interpretador do build experimental: 100%.
-- Execução nativa sem miss nos quatro roteiros testados: 100% nesses roteiros; não representa cobertura total do jogo.
-- Equivalência de hash por quadro: 100% nos 6.600 quadros dos quatro roteiros; PCM exportado e matriz ampla ainda pendentes.
-- Cobertura de todos os caminhos/estados: em aberto.
-- Backend Xbox 360/Xenon/PowerPC e XEX final: 0%; validação física: 0%.
-- **Progresso global estimado do port funcional: 18%.**
+**Percentuais estimados:** ROM/geração C isolada 100%; remoção estrutural do interpretador experimental 100%; equivalência por quadro e PCM 100% apenas nos roteiros amostrados; cobertura integral permanece em aberto; Xenon/PowerPC/XEX e teste físico 0%; **progresso funcional estimado 20%**.
 
-Não transformar os 15 seeds em configuração final sem análise: eles foram derivados de execução, não por prova de exaustividade estática. A avaliação demonstra que destinos capturados podem ser recompilados sem alterar os hashes desses cenários, mas não fecha todos os destinos computados possíveis da ROM nem demonstra jogabilidade integral.
+Evidência detalhada em [INLINE_DISPATCH_PROFILE_20261020.md](evidence/INLINE_DISPATCH_PROFILE_20261020.md). O código C gerado não foi publicado. Não gerar XEX nem solicitar teste físico.
 
-### Próxima etapa
-Investigar generalização da descoberta do dispatcher e aumentar cobertura de estado, mantendo os quatro roteiros como regressão diferencial automatizada. Acrescentar teste independente de exportação PCM/WAV, sem alterar ROM ou gameplay. Não gerar XEX nem solicitar teste físico.
+### Próximo passo
+Enumerar os 18 candidatos a `JSR $8E04`, suas tabelas inline e os seis callsites candidatos que não apareceram no perfil. Expandir os roteiros apenas após análise do PRG; manter gates de miss, hash/frame e PCM. PR #20 aberto; PR #19 pausado.
