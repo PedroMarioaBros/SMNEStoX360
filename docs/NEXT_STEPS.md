@@ -363,12 +363,12 @@ Nenhuma mudança de NAND, firmware ou bootloader.
   Se proprietário quiser continuar e estiver informado do risco,
   guiar SOMENTE etapa 01 inicialmente.
 
-## Próxima ação — atualização de progresso 20/10/2026
+## Próxima ação — atualização de progresso 20/10/2026 (diferencial amostrado aprovado)
 
-**Última evidência:** run [39417601965](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39417601965) passou com o interpretador removido do runtime experimental e com dois roteiros de 600 quadros sem NATIVE_COVERAGE_MISS. O dispatcher indireto em $8E16 levou a oito seeds adicionados automaticamente somente à configuração temporária. Isso não é cobertura integral nem validação de jogabilidade; port/XEX/hardware seguem em 0%.
+**Última evidência:** run [39418368074](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39418368074) terminou success. O runner com o interpretador estruturalmente removido passou nos dois roteiros de 600 quadros e seus hashes --hash-out coincidiram, por quadro, com os do runner de referência com interpretador habilitado. No roteiro roteirizado, a referência executou 1.145.069 ciclos de ROM no interpretador (6,4%), enquanto o experimento executou 100% dos ciclos nativamente. No idle, a referência interpretou 17.152 ciclos ROM (0,1%).
 
 ### Próxima tarefa técnica
-1. Usar a mesma ROM e a mesma configuração temporária final para construir duas variantes: runner de referência normal, com interpretador habilitado, e runner experimental sem interpretador.
-2. Rodar os mesmos roteiros de 600 quadros nas duas variantes, salvar --hash-out e comparar quadro a quadro os hashes de trace, memória/pixels, CPU e hardware. Qualquer divergência é falha a investigar.
-3. Ampliar depois os roteiros, incluindo gameplay prolongado e transições. Tratar todo novo miss como falha; não incorporar seeds automáticos ao TOML final sem análise.
-4. Atualizar métricas apenas conforme evidência. Nenhum XEX, nenhuma chamada para teste físico. Manter PR #20 aberto e PR #19 sem merge enquanto a avaliação arquitetural estiver pendente.
+1. Expandir a matriz de teste: pelo menos 1.800 quadros e depois 3.600 quadros, com variações determinísticas de Start, direita, pulo e períodos sem entrada. Confirmar que o roteiro de gameplay realmente percorre estado do jogo, não apenas título/loading.
+2. Para cada input, construir/executar referência e build sem interpretador com a mesma ROM e salvar --hash-out. Comparar as linhas por quadro; divergência ou NATIVE_COVERAGE_MISS bloqueia a aprovação.
+3. Os oito seeds atuais ficam somente no arquivo TOML temporário gerado durante CI. Não copiá-los automaticamente para a configuração versionada como solução final; a descoberta genérica de dispatcher computado permanece trabalho em aberto.
+4. Depois da cobertura determinística mais ampla, avaliar comparação de PCM/áudio e só então a viabilidade de adaptação de plataforma. Xenon/PowerPC, XEX e validação física seguem em 0%. Não emitir XEX nem pedir teste físico. PR #20 permanece aberto; PR #19 sem merge.
