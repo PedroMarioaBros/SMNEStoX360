@@ -49,7 +49,7 @@ git -C "$TMP/nesrecomp" apply "$ROOT/tools/nesrecomp-tail-diagnostic.patch"
 git -C "$TMP/nesrecomp" apply "$ROOT/tools/nesrecomp-data-region-vector.patch"
 python3 "$ROOT/tools/prepare_nesrecomp_fixed_slot_crossing.py" "$TMP/nesrecomp"
 python3 "$ROOT/tools/prepare_nesrecomp_inline_jmp.py" "$TMP/nesrecomp"
-echo "Applied temporary diagnostics, data-region, fixed-slot, and interpreter-free experiments; generated C remains private to temp."
+echo "Applied temporary diagnostics, data-region and fixed-slot experiments; native-only runner instrumentation is applied after reference profiling."
 
 cmake -S "$TMP/nesrecomp/recompiler" -B "$TMP/build" -G Ninja \
   -DCMAKE_BUILD_TYPE=Release
@@ -330,6 +330,6 @@ echo "Generated C files: ${#GENERATED_C[@]}"
 echo "Generated C total bytes: $TOTAL_BYTES"
 echo "Generated C total lines: $TOTAL_LINES"
 echo "Generated C was kept in a temporary directory and was NOT committed."
-echo "This test proves code-generation feasibility only; it does not prove"
-echo "complete function coverage, no runtime fallback, Xbox 360 compatibility,"
+echo "This test validates code generation and sampled native/reference parity only; it does not prove"
+echo "complete function coverage, PCM equivalence on untested routes, Xbox 360 compatibility,"
 echo "or a playable XEX."
