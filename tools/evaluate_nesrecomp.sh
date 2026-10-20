@@ -254,6 +254,13 @@ echo "Interpreter-free deterministic coverage passed using profile-observed disp
 echo "These profile targets exist only in $TMP/runtime-config.toml; the repository config and canonical ROM are unchanged."
 
 for SCENARIO in idle route jump long; do
+  INPUT_FILE=""
+  case "$SCENARIO" in
+    idle) FRAMES=600 ;;
+    route) FRAMES=600; INPUT_FILE="$TMP/native-route.input" ;;
+    jump) FRAMES=1800; INPUT_FILE="$TMP/native-jump.input" ;;
+    long) FRAMES=3600; INPUT_FILE="$TMP/native-long.input" ;;
+  esac
   NATIVE_HASH="$TMP/native-$SCENARIO.hash"
   REFERENCE_HASH="$TMP/reference-$SCENARIO.hash"
   NATIVE_WAV="$TMP/native-$SCENARIO.wav"
