@@ -20,6 +20,7 @@ on:
       - 'assets/canonical/SMB_v026.nes'
       - 'tools/evaluate_nesrecomp.sh'
       - 'tools/prepare_nesrecomp_interpreterless.py'
+      - 'tools/prepare_nesrecomp_runtime_seed.py'
       - 'tools/prepare_nesrecomp_fixed_slot_crossing.py'
       - 'tools/prepare_nesrecomp_inline_jmp.py'
       - 'tools/nesrecomp-tail-diagnostic.patch'
