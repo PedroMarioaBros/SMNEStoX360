@@ -163,12 +163,9 @@ static void cyc_diag_dump_miss(uint16_t pc) {
     )
     replace_once(
         run_file,
-        "            fprintf(stderr, \"[NATIVE_COVERAGE_MISS] pc=$%04X bank=%u\\n\",\n"
-        "                    pc, hw_prg_is_rom(pc) ? hw_prg_bank4(pc) : 0u);\n"
-        "            fflush(stderr);\n"
-        "            exit(86);\n",
-        "            cyc_diag_dump_miss(pc);\n"
-        "            exit(86);\n",
+        "            cpu_interp_step();\\n",
+        "            cyc_diag_dump_miss(pc);\\n"
+        "            exit(86);\\n",
     )
 
     cmake_source = cmake_file.read_text(encoding="utf-8")
