@@ -217,3 +217,23 @@ As duas variantes usaram a ROM canônica. O runner nativo recebeu os oito destin
 - A experiência completa exigiu oito seeds temporários em endereços alcançados por JMP indireto compartilhado: $9061, $8245, $AEDC, $AEEA, $B069, $B376, $C328, $C9D8. Esses endereços não foram persistidos no config versionado e o código C não foi publicado.
 
 **Conclusão:** paridade observável comprovada em 1.200 quadros distribuídos em dois roteiros determinísticos; não significa equivalência em todo o gameplay, todas as rotas de despacho ou áudio PCM. Progresso global estimado: **15%**. Próximo passo: ampliar cenários e duração, depois comparar PCM/áudio. Sem XEX/teste físico.
+
+
+## Novo ciclo — matriz ampliada (20/10/2026)
+
+Run [39418927424](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39418927424) terminou **success**. O harness executou uma matriz de quatro cenários com o interpretador removido do runner e comparou as capturas --hash-out contra a variante de referência com interpretador habilitado.
+
+| Cenário | Quadros | Ciclos totais | Ciclos nativos no runner sem interpretador | Ciclos ROM interpretados na referência | Hashes por quadro |
+|---|---:|---:|---:|---:|---|
+| Idle/título | 600 | 17.865.920 | 17.865.913 (100,0%) | 17.152 (0,1%) | Iguais em todos os quadros |
+| Rota de input curta | 600 | 17.865.925 | 17.865.918 (100,0%) | 1.145.069 (6,4%) | Iguais em todos os quadros |
+| Movimento/pulo | 1.800 | 53.602.527 | 53.602.520 (100,0%) | 4.788.327 (8,9%) | Iguais em todos os quadros |
+| Input estendido | 3.600 | 107.207.435 | 107.207.428 (100,0%) | 8.937.607 (8,3%) | Iguais em todos os quadros |
+
+A matriz final soma **6.600 quadros**. O build nativo confirmou ausência de cpu6502_interp.c na lista do Ninja e ausência de cpu_interp_step nos símbolos do executável. A referência usou o interpretador, sobretudo durante rotas mais longas; ainda assim, os hashes por quadro coincidiram com o build nativo. Os hashes cobrem trace observável, memória/pixels, CPU e estado de hardware.
+
+Foi necessário adicionar **15 seeds temporários** à cópia de configuração durante as tentativas de cobertura: $9061, $8245, $AEDC, $AEEA, $B069, $B376, $C328, $C9D8, $BC85, $B245, $B269, $91CD, $C2F1, $B36D e $860D. A configuração de referência versionada não foi alterada. C gerado ficou no diretório temporário.
+
+**Limites:** os cenários são determinísticos e amostrados, não a totalidade do jogo. Não foi comparado o waveform PCM/WAV de forma independente. Nenhuma compatibilidade Xbox/XEX foi testada. Estimativa de progresso do port: **18%**.
+
+Próximo passo: caracterizar genericamente o dispatcher indireto compartilhado que produz os alvos, expandir a diversidade de estados e comparar PCM/WAV. Sem XEX ou teste físico.
