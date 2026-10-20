@@ -237,3 +237,50 @@ Foi necessário adicionar **15 seeds temporários** à cópia de configuração 
 **Limites:** os cenários são determinísticos e amostrados, não a totalidade do jogo. Não foi comparado o waveform PCM/WAV de forma independente. Nenhuma compatibilidade Xbox/XEX foi testada. Estimativa de progresso do port: **18%**.
 
 Próximo passo: caracterizar genericamente o dispatcher indireto compartilhado que produz os alvos, expandir a diversidade de estados e comparar PCM/WAV. Sem XEX ou teste físico.
+
+
+## Ciclo S024 — verificação do dispatcher e PCM, 20/10/2026
+
+**Run CI:** [39432801245](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39432801245) — **success**.
+
+A abordagem anterior de transformar todos os PCs do miss-log do interpretador em seeds foi rejeitada. O run [39429365074](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39429365074) encontrou 2.072 PCs porque o log incluía instruções sequenciais interpretadas, não apenas novas entradas de fluxo.
+
+O novo profiler observa a entrada do dispatcher inline em `$8E04`, registra o endereço de retorno empilhado pelo JSR, o seletor em A, a posição da palavra inline e o destino decodificado. `tools/verify_nesrecomp_dispatch_profile.py` verifica cada registro diretamente contra a ROM canônica.
+
+### Resultado do perfil
+
+- ROM: hash `57fb4ee14288853bc0c8a5a629a103e51e87a4ebae1cc699b435060d2690b047`, mapper 0, PRG 32.768 bytes.
+- Varredura do PRG: **18 candidatos brutos** `JSR $8E04`; os roteiros testados exercitaram **12 callsites**.
+- Perfil e validação direta: **57 pares únicos callsite/seletor**, **47 destinos ROM únicos**; bytes de chamada e palavras de tabela verificadas — PASS.
+- **17 seeds novos** foram aplicados somente ao TOML temporário: `$8245`, `$860D`, `$9061`, `$9071`, `$91CD`, `$AEDC`, `$AEEA`, `$B069`, `$B0E9`, `$B245`, `$B269`, `$B36D`, `$B376`, `$BC85`, `$C2F1`, `$C328`, `$C9D8`. A ROM canônica e a configuração versionada ficaram intactas.
+- Inventário dos 57 registros verificados: [INLINE_DISPATCH_PROFILE_20261020.md](INLINE_DISPATCH_PROFILE_20261020.md).
+
+### Recompilação e comparação
+
+O executável experimental não inclui `cpu6502_interp.c` no `build.ninja` e não contém o símbolo `cpu_interp_step`. Os quatro roteiros passaram sem `NATIVE_COVERAGE_MISS` e executaram 100,0% dos ciclos nativamente:
+
+| Cenário | Quadros | Ciclos totais | Ciclos nativos |
+|---|---:|---:|---:|
+| Idle/título | 600 | 17.865.920 | 17.865.913 (100,0%) |
+| Rota curta | 600 | 17.865.925 | 17.865.918 (100,0%) |
+| Movimento/pulo | 1.800 | 53.602.527 | 53.602.520 (100,0%) |
+| Rota longa | 3.600 | 107.207.435 | 107.207.428 (100,0%) |
+
+Os hashes `--hash-out` coincidiram por quadro entre o build sem interpretador e a referência em **6.600 quadros**. O PCM dos WAVs coincidiu byte a byte, com formato idêntico de 48 kHz, mono, 16-bit:
+
+| Cenário | Amostras PCM | SHA-256 |
+|---|---:|---|
+| Idle/título | 479.146 | `2cef570772cd9740096484f400d2119e9f1e04e6ff84f0bedc6b85f1377e108c` |
+| Rota curta | 479.147 | `74abe61c0278cb3368c448cbaace9138cdbb8e595b05324459ee0a500784d342` |
+| Movimento/pulo | 1.437.568 | `b03e2bd423f2456d5b5872d6a6d3263ae4ef16f6f7845e0aa5792158c4629ee9` |
+| Rota longa | 2.875.201 | `bf45771e7c88f372c0e19e73fb5468c9c0f92eda9d1b9d258881ce3ff216e67a` |
+
+### Conclusão e limites
+
+A descoberta de fluxo agora é guiada por chamadas reais ao dispatcher e cada alvo observado é validado contra a ROM; porém, ainda não é uma análise estática exaustiva. Seis dos 18 candidatos brutos a `JSR $8E04` não apareceram nos cenários testados, e seletores/estados não percorridos podem existir. Não declarar cobertura integral nem jogabilidade completa.
+
+A evidência de equivalência em 6.600 quadros mais PCM byte a byte aumenta a estimativa funcional de 18% para **20%**. Port Xenon/PowerPC, XEX e teste físico continuam em 0%. C gerado continua temporário, PR #20 segue aberto e PR #19 continua pausado. Nenhum XEX foi criado.
+
+### Próxima etapa
+
+Enumerar os 18 callsites candidatos e suas tabelas inline, identificar os seis ainda não observados e criar cenários determinísticos para alcançá-los quando a análise do PRG indicar caminhos válidos. Repetir os quatro roteiros atuais como regressão, com gates de cobertura fail-fast, hash por quadro e PCM. Sem XEX/teste físico.
