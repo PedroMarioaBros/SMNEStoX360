@@ -49,7 +49,6 @@ git -C "$TMP/nesrecomp" apply "$ROOT/tools/nesrecomp-tail-diagnostic.patch"
 git -C "$TMP/nesrecomp" apply "$ROOT/tools/nesrecomp-data-region-vector.patch"
 python3 "$ROOT/tools/prepare_nesrecomp_fixed_slot_crossing.py" "$TMP/nesrecomp"
 python3 "$ROOT/tools/prepare_nesrecomp_inline_jmp.py" "$TMP/nesrecomp"
-python3 "$ROOT/tools/prepare_nesrecomp_interpreterless.py" "$TMP/nesrecomp"
 echo "Applied temporary diagnostics, data-region, fixed-slot, and interpreter-free experiments; generated C remains private to temp."
 
 cmake -S "$TMP/nesrecomp/recompiler" -B "$TMP/build" -G Ninja \
@@ -99,10 +98,10 @@ if [[ "$FILTER_SUMMARY_TAIL_COUNT" != "0" ]]; then
 fi
 echo "Data-region experiment: [VECTOR_DATA_REGION] skip was applied; fallback-tail count=0."
 
-# Coverage-guided static seeding: on a fail-closed miss, add only the observed
-# ROM entry to a TEMPORARY copy of the config, regenerate, rebuild without the
-# interpreter, and replay the deterministic routes. This removes manual
-# one-target-at-a-time edits while keeping the canonical ROM/config untouched.
+# First execute the same deterministic routes with the interpreter-enabled
+# reference and collect every ROM instruction start actually sent to fallback.
+# One profile pass across all routes lets us seed observed dynamic-dispatch
+# targets in a single rebuild instead of rebuilding once per missed PC.
 cp "$ROOT/tools/nesrecomp_smb_v026_data_region_experiment.toml" "$TMP/runtime-config.toml"
 cat > "$TMP/native-route.input" <<'INPUT'
 0 -
@@ -157,97 +156,7 @@ cat > "$TMP/native-long.input" <<'INPUT'
 3500 -
 INPUT
 
-MAX_NATIVE_AUTO_SEEDS=24
-AUTO_NATIVE_SEEDS=0
-ATTEMPT=1
-while true; do
-  echo "=== Interpreter-free build attempt $ATTEMPT (auto-seeded targets: $AUTO_NATIVE_SEEDS) ==="
-  rm -rf "$TMP/build-native-only"
-  cmake -S "$TMP/nesrecomp/runner/cyc/project" -B "$TMP/build-native-only" -G Ninja \
-    -DCMAKE_BUILD_TYPE=Release \
-    -DNESRECOMP_ROM="$ROM" \
-    -DNESRECOMP_GAME_CONFIG="$TMP/runtime-config.toml" \
-    -DNESRECOMP_HOST_COMPILER="$TMP/build/NESRecomp" \
-    -DNESRECOMP_HEADLESS=ON \
-    -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
-  cmake --build "$TMP/build-native-only" --parallel 2
-
-  RUNTIME="$TMP/build-native-only/nes_game"
-  if [[ ! -x "$RUNTIME" ]]; then
-    echo "ERROR: interpreter-free headless runner was not produced." >&2
-    exit 9
-  fi
-  if grep -Fq "cpu6502_interp.c" "$TMP/build-native-only/build.ninja"; then
-    echo "ERROR: interpreter source is still listed in the runtime build." >&2
-    exit 10
-  fi
-  nm "$RUNTIME" > "$TMP/runtime-symbols.txt"
-  if grep -q 'cpu_interp_step' "$TMP/runtime-symbols.txt"; then
-    echo "ERROR: cpu_interp_step is linked into the interpreter-free runtime." >&2
-    exit 11
-  fi
-  echo "Runtime inspection: cpu6502_interp.c absent from build.ninja; cpu_interp_step absent from executable symbols."
-
-  NEEDS_REBUILD=0
-  for SCENARIO in idle route jump long; do
-    INPUT_FILE=""
-    case "$SCENARIO" in
-      idle) FRAMES=600; LOG="$TMP/native-idle.log" ;;
-      route) FRAMES=600; INPUT_FILE="$TMP/native-route.input"; LOG="$TMP/native-route.log" ;;
-      jump) FRAMES=1800; INPUT_FILE="$TMP/native-jump.input"; LOG="$TMP/native-jump.log" ;;
-      long) FRAMES=3600; INPUT_FILE="$TMP/native-long.input"; LOG="$TMP/native-long.log" ;;
-    esac
-    ARGS=(--frames "$FRAMES")
-    if [[ -n "$INPUT_FILE" ]]; then ARGS+=(--input "$INPUT_FILE"); fi
-    if [[ "$SCENARIO" == "idle" ]]; then ARGS+=(--miss-log "$TMP/native-idle-miss.log"); fi
-    echo "=== Interpreter-free runtime: scenario=$SCENARIO frames=$FRAMES ==="
-    set +e
-    "$RUNTIME" "$ROM" "${ARGS[@]}" > "$LOG" 2>&1
-    STATUS=$?
-    set -e
-    cat "$LOG"
-    if [[ "$STATUS" -eq 0 ]]; then
-      echo "Native-only scenario '$SCENARIO' passed."
-      continue
-    fi
-    if [[ "$STATUS" -ne 86 ]]; then
-      echo "ERROR: scenario '$SCENARIO' failed with exit code $STATUS, not a coverage miss." >&2
-      exit "$STATUS"
-    fi
-
-    MISSED_PC="$(sed -n 's/.*pc=\$\([0-9A-Fa-f]\{4\}\).*/\1/p' "$LOG" | head -n 1)"
-    if [[ -z "$MISSED_PC" ]]; then
-      echo "ERROR: exit code 86 without a parseable [NATIVE_COVERAGE_MISS] PC." >&2
-      exit 12
-    fi
-    if [[ "$AUTO_NATIVE_SEEDS" -ge "$MAX_NATIVE_AUTO_SEEDS" ]]; then
-      echo "ERROR: hit the automatic static-seed cap ($MAX_NATIVE_AUTO_SEEDS) at PC $MISSED_PC." >&2
-      exit 13
-    fi
-    python3 "$ROOT/tools/prepare_nesrecomp_runtime_seed.py" "$TMP/runtime-config.toml" "$MISSED_PC"
-    AUTO_NATIVE_SEEDS=$((AUTO_NATIVE_SEEDS + 1))
-    ATTEMPT=$((ATTEMPT + 1))
-    NEEDS_REBUILD=1
-    break
-  done
-
-  if [[ "$NEEDS_REBUILD" -eq 1 ]]; then
-    continue
-  fi
-  break
-done
-
-echo "Interpreter-free deterministic route coverage passed after $AUTO_NATIVE_SEEDS automatic ROM-target additions."
-echo "The auto-seeds exist only in $TMP/runtime-config.toml and are not committed."
-# Differential gate: compare the seeded interpreter-free runner against the
-# ordinary runtime using the original project experiment config. The reference
-# runtime keeps the interpreter enabled, so it can execute indirect targets
-# that are not among the original static seeds. Both receive identical ROM and
-# deterministic inputs; generated C stays under TMP.
-echo "=== Build interpreter-enabled reference runner (original experimental config) ==="
-git -C "$TMP/nesrecomp" checkout --quiet HEAD -- \
-  runner/cyc/cyc.cmake runner/cyc/cyc_run.c runner/cyc/cpu6502.h
-rm -f "$TMP/nesrecomp/runner/cyc/cpu6502_op_length.c"
+echo "=== Build interpreter-enabled reference runner ==="
 cmake -S "$TMP/nesrecomp/runner/cyc/project" -B "$TMP/build-reference" -G Ninja \
   -DCMAKE_BUILD_TYPE=Release \
   -DNESRECOMP_ROM="$ROM" \
@@ -260,6 +169,80 @@ if [[ ! -x "$REFERENCE" ]]; then
   echo "ERROR: interpreter-enabled reference runner was not produced." >&2
   exit 15
 fi
+
+rm -f "$TMP/reference-profile.miss-log"
+for SCENARIO in idle route jump long; do
+  INPUT_FILE=""
+  case "$SCENARIO" in
+    idle) FRAMES=600 ;;
+    route) FRAMES=600; INPUT_FILE="$TMP/native-route.input" ;;
+    jump) FRAMES=1800; INPUT_FILE="$TMP/native-jump.input" ;;
+    long) FRAMES=3600; INPUT_FILE="$TMP/native-long.input" ;;
+  esac
+  ARGS=(--frames "$FRAMES" --miss-log "$TMP/reference-profile.miss-log")
+  if [[ -n "$INPUT_FILE" ]]; then ARGS+=(--input "$INPUT_FILE"); fi
+  LOG="$TMP/reference-profile-$SCENARIO.log"
+  echo "=== Reference profile: scenario=$SCENARIO frames=$FRAMES ==="
+  "$REFERENCE" "$ROM" "${ARGS[@]}" > "$LOG" 2>&1
+  cat "$LOG"
+done
+
+python3 "$ROOT/tools/prepare_nesrecomp_runtime_seeds.py" \
+  "$TMP/runtime-config.toml" "$TMP/reference-profile.miss-log"
+
+echo "=== Apply interpreter-free fail-closed instrumentation ==="
+python3 "$ROOT/tools/prepare_nesrecomp_interpreterless.py" "$TMP/nesrecomp"
+echo "Building the native-only runtime once using all ROM fallback PCs observed in the four reference routes."
+cmake -S "$TMP/nesrecomp/runner/cyc/project" -B "$TMP/build-native-only" -G Ninja \
+  -DCMAKE_BUILD_TYPE=Release \
+  -DNESRECOMP_ROM="$ROM" \
+  -DNESRECOMP_GAME_CONFIG="$TMP/runtime-config.toml" \
+  -DNESRECOMP_HOST_COMPILER="$TMP/build/NESRecomp" \
+  -DNESRECOMP_HEADLESS=ON \
+  -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+cmake --build "$TMP/build-native-only" --parallel 2
+
+RUNTIME="$TMP/build-native-only/nes_game"
+if [[ ! -x "$RUNTIME" ]]; then
+  echo "ERROR: interpreter-free headless runner was not produced." >&2
+  exit 9
+fi
+if grep -Fq "cpu6502_interp.c" "$TMP/build-native-only/build.ninja"; then
+  echo "ERROR: interpreter source is still listed in the runtime build." >&2
+  exit 10
+fi
+nm "$RUNTIME" > "$TMP/runtime-symbols.txt"
+if grep -q 'cpu_interp_step' "$TMP/runtime-symbols.txt"; then
+  echo "ERROR: cpu_interp_step is linked into the interpreter-free runtime." >&2
+  exit 11
+fi
+echo "Runtime inspection: cpu6502_interp.c absent from build.ninja; cpu_interp_step absent from executable symbols."
+
+for SCENARIO in idle route jump long; do
+  INPUT_FILE=""
+  case "$SCENARIO" in
+    idle) FRAMES=600 ;;
+    route) FRAMES=600; INPUT_FILE="$TMP/native-route.input" ;;
+    jump) FRAMES=1800; INPUT_FILE="$TMP/native-jump.input" ;;
+    long) FRAMES=3600; INPUT_FILE="$TMP/native-long.input" ;;
+  esac
+  ARGS=(--frames "$FRAMES")
+  if [[ -n "$INPUT_FILE" ]]; then ARGS+=(--input "$INPUT_FILE"); fi
+  LOG="$TMP/native-$SCENARIO.log"
+  echo "=== Interpreter-free coverage: scenario=$SCENARIO frames=$FRAMES ==="
+  set +e
+  "$RUNTIME" "$ROM" "${ARGS[@]}" > "$LOG" 2>&1
+  STATUS=$?
+  set -e
+  cat "$LOG"
+  if [[ "$STATUS" -ne 0 ]]; then
+    echo "ERROR: interpreter-free scenario '$SCENARIO' failed with exit code $STATUS. Any new NATIVE_COVERAGE_MISS is a blocking gap, not auto-seeded here." >&2
+    exit "$STATUS"
+  fi
+  echo "Native-only scenario '$SCENARIO' passed."
+done
+echo "Interpreter-free deterministic coverage passed using the profile-derived temporary seed list."
+echo "The profile seeds exist only in $TMP/runtime-config.toml; repository TOML and canonical ROM are unchanged."
 
 for SCENARIO in idle route jump long; do
   INPUT_FILE=""
