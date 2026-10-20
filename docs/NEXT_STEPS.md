@@ -365,6 +365,10 @@ Nenhuma mudança de NAND, firmware ou bootloader.
 
 ## Próxima ação — atualização de progresso 20/10/2026
 
-A execução mais recente do experimento sem interpretador removeu o arquivo e símbolo do interpretador do build host, mas o gate de cobertura falhou em `pc=$9B0E`, bank 1. Percentuais estimados: ROM/entrada 100%; build do gerador 100%; geração C 100% como prova isolada; remoção estrutural do interpretador no build experimental 100%; cobertura nativa sem interpretador 35%; runner host com execução reproduzível 10%; teste diferencial 0%; port Xbox/XEX 0%; validação física 0%; port funcional completo **10%**.
+**Última evidência:** run [39417601965](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39417601965) passou com o interpretador removido do runtime experimental e com dois roteiros de 600 quadros sem NATIVE_COVERAGE_MISS. O dispatcher indireto em $8E16 levou a oito seeds adicionados automaticamente somente à configuração temporária. Isso não é cobertura integral nem validação de jogabilidade; port/XEX/hardware seguem em 0%.
 
-Próxima ação: melhorar a instrumentação do trap para capturar PC, banco, opcode e origem da transferência, rastrear a causa do endereço `$9B0E` e corrigir a análise genérica de fluxo/despacho. Não continuar a sequência de seeds manuais como solução final. Sem XEX/teste físico.
+### Próxima tarefa técnica
+1. Usar a mesma ROM e a mesma configuração temporária final para construir duas variantes: runner de referência normal, com interpretador habilitado, e runner experimental sem interpretador.
+2. Rodar os mesmos roteiros de 600 quadros nas duas variantes, salvar --hash-out e comparar quadro a quadro os hashes de trace, memória/pixels, CPU e hardware. Qualquer divergência é falha a investigar.
+3. Ampliar depois os roteiros, incluindo gameplay prolongado e transições. Tratar todo novo miss como falha; não incorporar seeds automáticos ao TOML final sem análise.
+4. Atualizar métricas apenas conforme evidência. Nenhum XEX, nenhuma chamada para teste físico. Manter PR #20 aberto e PR #19 sem merge enquanto a avaliação arquitetural estiver pendente.
