@@ -159,20 +159,20 @@ static void cyc_diag_dump_miss(uint16_t pc) {
         fprintf(stderr, "[NATIVE_LAST_TRANSFER] no non-sequential transfer observed yet\n");
     }
     if (cyc_diag_have_last) {
-        fprintf(stderr, "[NATIVE_LAST_INSN] pc=$%04X opcode=$%02X expected_next=$%04X actual_next=$%04X\\n",
+        fprintf(stderr, "[NATIVE_LAST_INSN] pc=$%04X opcode=$%02X expected_next=$%04X actual_next=$%04X\n",
                 cyc_diag_last_pc, cyc_diag_last_opcode,
                 (uint16_t)(cyc_diag_last_pc + cpu6502_op_length[cyc_diag_last_opcode]), pc);
     }
     if (cyc_diag_have_dispatch) {
         fprintf(stderr,
-                "[INLINE_DISPATCH] callsite=$%04X selector=%u table_entry=$%04X decoded_target=$%04X actual_miss=$%04X match=%s\\n",
+                "[INLINE_DISPATCH] callsite=$%04X selector=%u table_entry=$%04X decoded_target=$%04X actual_miss=$%04X match=%s\n",
                 cyc_diag_dispatch_callsite, cyc_diag_dispatch_index, cyc_diag_dispatch_table_addr,
                 cyc_diag_dispatch_target, pc, cyc_diag_dispatch_target == pc ? "yes" : "no");
     }
-    fprintf(stderr, "[NATIVE_INSN_HISTORY] newest-first count=%u\\n", cyc_diag_history_count);
+    fprintf(stderr, "[NATIVE_INSN_HISTORY] newest-first count=%u\n", cyc_diag_history_count);
     for (unsigned n = 0; n < cyc_diag_history_count; n++) {
         unsigned i = (cyc_diag_history_next + CYC_DIAG_HISTORY - 1 - n) % CYC_DIAG_HISTORY;
-        fprintf(stderr, "[NATIVE_INSN] pc=$%04X opcode=$%02X A=$%02X X=$%02X Y=$%02X S=$%02X\\n",
+        fprintf(stderr, "[NATIVE_INSN] pc=$%04X opcode=$%02X A=$%02X X=$%02X Y=$%02X S=$%02X\n",
                 cyc_diag_history[i].pc, cyc_diag_history[i].opcode,
                 cyc_diag_history[i].a, cyc_diag_history[i].x, cyc_diag_history[i].y, cyc_diag_history[i].s);
     }
