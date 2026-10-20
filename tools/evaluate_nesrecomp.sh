@@ -195,6 +195,57 @@ done
 
 echo "Interpreter-free deterministic route coverage passed after $AUTO_NATIVE_SEEDS automatic ROM-target additions."
 echo "The auto-seeds exist only in $TMP/runtime-config.toml and are not committed."
+# Differential gate: compare the seeded interpreter-free runner against the
+# ordinary runtime using the original project experiment config. The reference
+# runtime keeps the interpreter enabled, so it can execute indirect targets
+# that are not among the original static seeds. Both receive identical ROM and
+# deterministic inputs; generated C stays under TMP.
+echo "=== Build interpreter-enabled reference runner (original experimental config) ==="
+git -C "$TMP/nesrecomp" checkout --quiet HEAD -- \
+  runner/cyc/cyc.cmake runner/cyc/cyc_run.c runner/cyc/cpu6502.h
+rm -f "$TMP/nesrecomp/runner/cyc/cpu6502_op_length.c"
+cmake -S "$TMP/nesrecomp/runner/cyc/project" -B "$TMP/build-reference" -G Ninja \
+  -DCMAKE_BUILD_TYPE=Release \
+  -DNESRECOMP_ROM="$ROM" \
+  -DNESRECOMP_GAME_CONFIG="$ROOT/tools/nesrecomp_smb_v026_data_region_experiment.toml" \
+  -DNESRECOMP_HOST_COMPILER="$TMP/build/NESRecomp" \
+  -DNESRECOMP_HEADLESS=ON
+cmake --build "$TMP/build-reference" --parallel 2
+REFERENCE="$TMP/build-reference/nes_game"
+if [[ ! -x "$REFERENCE" ]]; then
+  echo "ERROR: interpreter-enabled reference runner was not produced." >&2
+  exit 15
+fi
+
+echo "=== Differential: idle/title 600 frames ==="
+"$RUNTIME" "$ROM" --frames 600 --hash-out "$TMP/native-idle.hash" \
+  > "$TMP/native-idle-hash.log" 2>&1
+"$REFERENCE" "$ROM" --frames 600 --hash-out "$TMP/reference-idle.hash" \
+  > "$TMP/reference-idle.log" 2>&1
+cat "$TMP/native-idle-hash.log"
+cat "$TMP/reference-idle.log"
+if ! cmp -s "$TMP/native-idle.hash" "$TMP/reference-idle.hash"; then
+  echo "ERROR: per-frame differential mismatch in idle/title scenario." >&2
+  diff -u "$TMP/reference-idle.hash" "$TMP/native-idle.hash" | head -n 40 || true
+  exit 16
+fi
+echo "Differential idle/title hashes match for all 600 frames."
+
+echo "=== Differential: scripted input 600 frames ==="
+"$RUNTIME" "$ROM" --frames 600 --input "$TMP/native-route.input" \
+  --hash-out "$TMP/native-route.hash" > "$TMP/native-route-hash.log" 2>&1
+"$REFERENCE" "$ROM" --frames 600 --input "$TMP/native-route.input" \
+  --hash-out "$TMP/reference-route.hash" > "$TMP/reference-route.log" 2>&1
+cat "$TMP/native-route-hash.log"
+cat "$TMP/reference-route.log"
+if ! cmp -s "$TMP/native-route.hash" "$TMP/reference-route.hash"; then
+  echo "ERROR: per-frame differential mismatch in scripted-input scenario." >&2
+  diff -u "$TMP/reference-route.hash" "$TMP/native-route.hash" | head -n 40 || true
+  exit 17
+fi
+echo "Differential scripted-input hashes match for all 600 frames."
+echo "Interpreter-free runner matched the interpreter-enabled reference on both sampled scenarios."
+
 mapfile -t GENERATED_C < <(find "$TMP/run/generated" -type f -name '*.c' -print | sort)
 if [[ "${#GENERATED_C[@]}" -eq 0 ]]; then
   echo "ERROR: NESRecomp completed without generating any C source files." >&2
