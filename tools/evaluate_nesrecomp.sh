@@ -177,7 +177,7 @@ while true; do
       exit 12
     fi
     if [[ "$AUTO_NATIVE_SEEDS" -ge "$MAX_NATIVE_AUTO_SEEDS" ]]; then
-      echo "ERROR: hit the automatic static-seed cap ($MAX_NATIVE_AUTO_SEEDS) at PC $$MISSED_PC." >&2
+      echo "ERROR: hit the automatic static-seed cap ($MAX_NATIVE_AUTO_SEEDS) at PC $MISSED_PC." >&2
       exit 13
     fi
     python3 "$ROOT/tools/prepare_nesrecomp_runtime_seed.py" "$TMP/runtime-config.toml" "$MISSED_PC"
