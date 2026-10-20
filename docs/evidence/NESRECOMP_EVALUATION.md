@@ -182,3 +182,22 @@ Esses percentuais são estimativas de marcos, não uma medição de linhas de c�
 ### Próxima ação única
 
 Parar de adicionar destinos manualmente em sequência. Instrumentar o trap para registrar PC, banco, opcode e origem da última transferência de controle; depois rastrear por que `$9B0E` é alcançado e melhorar a descoberta genérica de fluxo/despacho inline. Reexecutar a cobertura host até não existir `NATIVE_COVERAGE_MISS` em cenários determinísticos. Só então avançar para comparação de quadros/estado. Sem XEX e sem hardware.
+
+
+## Novo ciclo — diagnóstico de despacho indireto e cobertura orientada por execução (20/10/2026)
+
+Run [39417601965](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39417601965) terminou **success** para o harness experimental do PR #20. Esta é a primeira execução bem-sucedida do runner sem interpretador em dois roteiros determinísticos, sem PC nativo ausente nesses roteiros.
+
+O trap mostrou o miss inicial em $9061, opcode $A9, alcançado pela transferência [NATIVE_LAST_TRANSFER] from=$8E16 opcode=$6C to=$9061. O opcode $6C é JMP indireto. O trecho $8E04–$8E16 é o dispatcher inline; o destino é calculado em runtime, razão pela qual a análise estática inicial não encontrou todos os alvos.
+
+O harness agora aplica cobertura guiada por execução apenas à cópia temporária do TOML, adicionando o PC ROM que causou cada miss como seed, regenerando e recompilando o runner sem interpretador. Há limite de 24 adições para impedir loop infinito. O TOML versionado e a ROM canônica não são modificados. Oito endereços foram adicionados à cópia temporária: $9061, $8245, $AEDC, $AEEA, $B069, $B376, $C328 e $C9D8.
+
+Resultado do run 39417601965:
+- Idle/título por 600 quadros: 17.865.920 ciclos; 17.865.913 ciclos nativos (100,0%); zero instruções ROM/RAM interpretadas.
+- Entrada roteirizada por 600 quadros: 17.865.925 ciclos; 17.865.918 ciclos nativos (100,0%); zero instruções ROM/RAM interpretadas.
+- Inspeção do executável: cpu6502_interp.c ausente do build.ninja e cpu_interp_step ausente dos símbolos.
+- Geração C: 5 arquivos, 545.655 bytes, 14.397 linhas; código gerado permaneceu temporário e não foi publicado.
+
+**Interpretação limitada:** isso prova execução nativa sem fallback nos dois roteiros testados, não a cobertura integral da ROM, jogabilidade correta em geral ou equivalência com a referência. Nenhum teste diferencial de quadros/estado/áudio foi executado; compatibilidade Xenon/XEX não começou.
+
+Estimativa geral: **12%**, contra 10% anteriormente, somente pelo resultado de execução amostrada sem interpretador. Próxima tarefa é comparar os mesmos inputs e a mesma ROM/configuração entre runner normal com interpretador e build sem interpretador, usando --hash-out por quadro; depois ampliar gameplay e transições. Não gerar XEX nem pedir teste físico.
