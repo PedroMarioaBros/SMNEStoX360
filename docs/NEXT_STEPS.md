@@ -363,12 +363,12 @@ Nenhuma mudança de NAND, firmware ou bootloader.
   Se proprietário quiser continuar e estiver informado do risco,
   guiar SOMENTE etapa 01 inicialmente.
 
-## Próxima ação — atualização de progresso 20/10/2026 (diferencial amostrado aprovado)
+## Próxima ação — atualização 20/10/2026 (6.600 quadros diferenciais aprovados)
 
-**Última evidência:** run [39418368074](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39418368074) terminou success. O runner com o interpretador estruturalmente removido passou nos dois roteiros de 600 quadros e seus hashes --hash-out coincidiram, por quadro, com os do runner de referência com interpretador habilitado. No roteiro roteirizado, a referência executou 1.145.069 ciclos de ROM no interpretador (6,4%), enquanto o experimento executou 100% dos ciclos nativamente. No idle, a referência interpretou 17.152 ciclos ROM (0,1%).
+**Última evidência:** [run 39418927424](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39418927424) passou a matriz ampliada. Idle 600, input curto 600, movimento/pulo 1.800 e input longo 3.600 quadros passaram sem interpretador e atingiram 100,0% de ciclos nativos. Os quatro arquivos --hash-out coincidiram quadro a quadro contra o runner de referência com interpretador: 6.600 quadros comparados ao todo.
 
 ### Próxima tarefa técnica
-1. Expandir a matriz de teste: pelo menos 1.800 quadros e depois 3.600 quadros, com variações determinísticas de Start, direita, pulo e períodos sem entrada. Confirmar que o roteiro de gameplay realmente percorre estado do jogo, não apenas título/loading.
-2. Para cada input, construir/executar referência e build sem interpretador com a mesma ROM e salvar --hash-out. Comparar as linhas por quadro; divergência ou NATIVE_COVERAGE_MISS bloqueia a aprovação.
-3. Os oito seeds atuais ficam somente no arquivo TOML temporário gerado durante CI. Não copiá-los automaticamente para a configuração versionada como solução final; a descoberta genérica de dispatcher computado permanece trabalho em aberto.
-4. Depois da cobertura determinística mais ampla, avaliar comparação de PCM/áudio e só então a viabilidade de adaptação de plataforma. Xenon/PowerPC, XEX e validação física seguem em 0%. Não emitir XEX nem pedir teste físico. PR #20 permanece aberto; PR #19 sem merge.
+1. Analisar genericamente o dispatcher indireto em $8E16 e a origem dos alvos dinâmicos, para diminuir a dependência de quinze seeds temporários. Manter o trap fail-fast e os quatro roteiros como regressão.
+2. Aumentar variedade de estados reais e confirmar, por capturas de quadro/telemetria quando disponível, que cada script cobre gameplay e transições relevantes, não apenas repete estados de título/loop. Novos caminhos sem código nativo seguem bloqueados.
+3. Comparar a exportação PCM/WAV (ou hashes de amostras PCM) entre runner nativo e referência; --hash-out cobre trace, memória/pixels, CPU e hardware interno, mas não substitui essa comparação de waveform.
+4. Nenhum XEX ou teste físico nesta etapa. O port Xenon/PowerPC continua 0%; não mesclar PR #20 até revisão arquitetural, e PR #19 do tradutor próprio permanece sem merge enquanto a avaliação prossegue.
