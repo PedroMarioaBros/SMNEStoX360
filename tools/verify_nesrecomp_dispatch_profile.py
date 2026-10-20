@@ -96,11 +96,23 @@ def main() -> int:
         "native": sum("native" in v for v in observed.values()),
         "interpreter": sum("interpreter" in v for v in observed.values()),
     }
+    selectors_by_callsite: dict[int, set[int]] = {}
+    for callsite, selector, _entry, _target in observed:
+        selectors_by_callsite.setdefault(callsite, set()).add(selector)
+    unobserved = sorted(raw_callsites - callsites)
     print(f"[DISPATCH_ROM_VERIFY] sha256={digest} mapper={mapper} prg_bytes={prg_size}")
     print(f"[DISPATCH_ROM_VERIFY] raw_jsr_8e04_candidates={len(raw_callsites)} observed_callsites={len(callsites)}")
     print(f"[DISPATCH_ROM_VERIFY] unique_callsite_selector_entries={len(observed)} unique_ROM_targets={len(targets)}")
     print(f"[DISPATCH_ROM_VERIFY] observed_sources native={source_counts['native']} interpreter={source_counts['interpreter']}")
     print("[DISPATCH_ROM_VERIFY] callsite bytes and selected table words: PASS")
+    print(f"[DISPATCH_ROM_VERIFY] unobserved_raw_candidates={len(unobserved)}")
+    for callsite in sorted(raw_callsites):
+        selectors = selectors_by_callsite.get(callsite, set())
+        status = "observed" if selectors else "not-observed"
+        selector_text = ",".join(str(value) for value in sorted(selectors)) or "none"
+        off = callsite - 0x8000
+        context = prg[off:off + 7].hex(" ").upper()
+        print(f"[DISPATCH_ROM_CALLSITE] addr=${callsite:04X} status={status} observed_selectors={selector_text} bytes={context}")
     for callsite, selector, entry, target in sorted(observed):
         source_list = ",".join(sorted(observed[(callsite, selector, entry, target)]))
         print(f"[DISPATCH_ROM_ENTRY] caller=${callsite:04X} selector={selector} entry=${entry:04X} target=${target:04X} source={source_list}")
