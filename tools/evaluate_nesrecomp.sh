@@ -185,19 +185,21 @@ for SCENARIO in idle route jump long; do
   LOG="$TMP/reference-profile-$SCENARIO.log"
   echo "=== Reference dispatch profile: scenario=$SCENARIO frames=$FRAMES ==="
   "$REFERENCE" "$ROM" "${ARGS[@]}" > "$LOG" 2>&1
-  cat "$LOG"
+  sed '/^\[INLINE_DISPATCH_PROFILE\]/d' "$LOG"
   grep '^\[INLINE_DISPATCH_PROFILE\]' "$LOG" >> "$TMP/dispatch-profile.log" || true
 done
 if [[ ! -s "$TMP/dispatch-profile.log" ]]; then
   echo "ERROR: reference run did not observe any \\$8E04 inline-dispatch entries." >&2
   exit 21
 fi
-python3 "$ROOT/tools/prepare_nesrecomp_dispatch_seeds.py" "$TMP/runtime-config.toml" "$TMP/dispatch-profile.log"
+sort -u "$TMP/dispatch-profile.log" > "$TMP/dispatch-profile-unique.log"
+echo "Unique computed inline-dispatch records: $(wc -l < "$TMP/dispatch-profile-unique.log" | tr -d ' ')"
+python3 "$ROOT/tools/prepare_nesrecomp_dispatch_seeds.py" "$TMP/runtime-config.toml" "$TMP/dispatch-profile-unique.log"
 
 # Undo profile-only edits to the temporary upstream runner before applying the
 # separate no-interpreter patch. Keep the generic recompiler experiments above.
 git -C "$TMP/nesrecomp" checkout --quiet "$NESRECOMP_COMMIT" -- \
-  runner/cyc/cyc_run.c runner/cyc/cpu6502.h
+  runner/cyc/cyc_run.c runner/cyc/cpu6502.h runner/cyc/cpu6502_interp.c
 python3 "$ROOT/tools/prepare_nesrecomp_interpreterless.py" "$TMP/nesrecomp"
 echo "=== Build native-only runner from profiled dynamic targets ==="
 cmake -S "$TMP/nesrecomp/runner/cyc/project" -B "$TMP/build-native-only" -G Ninja \
