@@ -989,3 +989,15 @@ A identidade do commit que contém uma entrada pode ser consultada no histórico
 - Execução observada: [39210393377](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39210393377), falha no gate de cobertura após a inspeção de símbolos.
 - Percentuais de gates estimados e registrados no checkpoint: entrada ROM 100%; build do gerador 100%; prova de geração C 100%; remoção estrutural do interpretador no experimento 100%; cobertura sem interpretador 35%; runner host reproduzível 10%; equivalência funcional 0%; port Xbox/XEX 0%; validação física 0%; port funcional completo 10%.
 - Próxima ação: ampliar o trap para registrar PC/banco/opcode/origem da transferência, diagnosticar `$9B0E` e corrigir a descoberta genérica de fluxo. Não gerar XEX nem pedir teste físico. Nenhum C gerado foi commitado ou publicado.
+
+
+### S021 — execução nativa sem interpretador em dois roteiros amostrados (20/10/2026)
+
+- Instrumentei o fetch nativo e o trap em tools/prepare_nesrecomp_interpreterless.py. O log de miss registra PC, banco, opcode, última transferência e histórico recente. O miss inicial $9061 veio de JMP indireto ($6C) em $8E16, destino calculado pelo dispatcher inline chamado a partir de código normal. Isso mostra um fluxo computado que a análise estática não descobria automaticamente.
+- Acrescentei tools/prepare_nesrecomp_runtime_seed.py e refatorei tools/evaluate_nesrecomp.sh para uma experiência limitada de cobertura guiada por execução. Cada endereço ROM alcançado e não compilado é adicionado somente à cópia temporária do TOML; limite rígido de 24 seeds.
+- Corrigi a interpretação de endereços hexadecimais (a string 9061 era lida como decimal) e acrescentei o helper aos filtros do workflow.
+- **Run CI com sucesso:** [39417601965](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39417601965), avaliação do PR #20. O runner foi reconstruído sem cpu6502_interp.c e o executável não contém cpu_interp_step.
+- Foram necessários oito seeds temporários: $9061, $8245, $AEDC, $AEEA, $B069, $B376, $C328, $C9D8. O roteiro idle/título de 600 quadros executou 17.865.920 ciclos, 100,0% nativos; o roteiro com entrada roteirizada de 600 quadros executou 17.865.925 ciclos, também 100,0% nativos. Ambos concluíram com zero instruções interpretadas. C gerado permaneceu no diretório temporário e não foi publicado.
+- A passagem cobre **somente os dois roteiros observados**, não todos os caminhos do SMB, nem prova equivalência de quadro/estado/áudio, nem executável Xbox. Auto-seeding é diagnóstico temporário, ainda não um algoritmo genérico de descoberta de fluxo.
+- Progresso geral estimado atualizado de 10% para **12%**. Diferencial de quadros/estado/áudio = 0%; Xbox/XEX = 0%; teste físico = 0%.
+- Próxima tarefa: construir runner de referência com interpretador habilitado e usar a mesma ROM/configuração/inputs para comparar --hash-out por quadro contra o runner sem interpretador. Depois ampliar gameplay/transições. PR #20 aberto, PR #19 sem merge. Nenhum XEX ou teste físico.
