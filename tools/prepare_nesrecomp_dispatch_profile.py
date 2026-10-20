@@ -94,8 +94,6 @@ void cyc_profile_dispatch(uint16_t pc, bool from_interpreter) {
 
 '''
 
-'''
-
     replace_once(
         run_c,
         "/* One dispatch at an instruction boundary: recompiled ROM code, a compiled\n",
