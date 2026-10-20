@@ -201,3 +201,19 @@ Resultado do run 39417601965:
 **Interpretação limitada:** isso prova execução nativa sem fallback nos dois roteiros testados, não a cobertura integral da ROM, jogabilidade correta em geral ou equivalência com a referência. Nenhum teste diferencial de quadros/estado/áudio foi executado; compatibilidade Xenon/XEX não começou.
 
 Estimativa geral: **12%**, contra 10% anteriormente, somente pelo resultado de execução amostrada sem interpretador. Próxima tarefa é comparar os mesmos inputs e a mesma ROM/configuração entre runner normal com interpretador e build sem interpretador, usando --hash-out por quadro; depois ampliar gameplay e transições. Não gerar XEX nem pedir teste físico.
+
+
+## Novo ciclo — equivalência por quadro entre runtime nativo e referência (20/10/2026)
+
+Run [39418368074](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39418368074) terminou **success** e realizou o próximo gate planejado: comparação do runner experimental sem interpretador contra o runner normal com interpretador habilitado.
+
+As duas variantes usaram a ROM canônica. O runner nativo recebeu os oito destinos derivados da cobertura; o runner de referência usou a configuração experimental original, sem esses destinos adicionais, de forma que o caminho de fallback foi exercitado.
+
+**Resultados de --hash-out:**
+- Idle/título, 600 quadros: os hashes por quadro coincidiram em todas as linhas. A referência utilizou 17.152 ciclos ROM interpretados (0,1%); o build nativo executou 17.865.913 dos 17.865.920 ciclos em código nativo (100,0%).
+- Entrada roteirizada, 600 quadros: os hashes por quadro também coincidiram em todas as linhas. A referência utilizou 1.145.069 ciclos ROM interpretados (6,4%); o build nativo executou 17.865.918 dos 17.865.925 ciclos em código nativo (100,0%).
+- Os hashes comparados incluem trace observável, memória/pixels, estado dos registradores CPU e estado interno de hardware. A saída PCM/WAV não teve uma comparação waveform independente nesta etapa.
+- O build sem interpretador permaneceu sem o arquivo cpu6502_interp.c no build.ninja e sem o símbolo cpu_interp_step no executável.
+- A experiência completa exigiu oito seeds temporários em endereços alcançados por JMP indireto compartilhado: $9061, $8245, $AEDC, $AEEA, $B069, $B376, $C328, $C9D8. Esses endereços não foram persistidos no config versionado e o código C não foi publicado.
+
+**Conclusão:** paridade observável comprovada em 1.200 quadros distribuídos em dois roteiros determinísticos; não significa equivalência em todo o gameplay, todas as rotas de despacho ou áudio PCM. Progresso global estimado: **15%**. Próximo passo: ampliar cenários e duração, depois comparar PCM/áudio. Sem XEX/teste físico.
