@@ -112,6 +112,50 @@ cat > "$TMP/native-route.input" <<'INPUT'
 270 RIGHT
 360 -
 INPUT
+cat > "$TMP/native-jump.input" <<'INPUT'
+0 -
+100 START
+102 -
+220 RIGHT+A+B
+280 RIGHT
+360 RIGHT+A
+420 RIGHT
+460 -
+520 A
+521 -
+560 RIGHT+A+B
+700 RIGHT
+760 -
+INPUT
+cat > "$TMP/native-long.input" <<'INPUT'
+0 -
+100 START
+102 -
+220 RIGHT+A+B
+280 RIGHT
+360 RIGHT+A+B
+440 RIGHT+B
+580 -
+700 RIGHT+A
+800 RIGHT
+900 LEFT
+930 -
+1000 RIGHT+A+B
+1150 RIGHT
+1300 B
+1400 RIGHT+A
+1600 RIGHT+B
+1900 RIGHT
+2100 LEFT
+2150 -
+2300 RIGHT+A+B
+2600 RIGHT
+2900 A
+2901 -
+3100 RIGHT+A
+3350 RIGHT+B
+3500 -
+INPUT
 
 MAX_NATIVE_AUTO_SEEDS=24
 AUTO_NATIVE_SEEDS=0
@@ -145,22 +189,22 @@ while true; do
   echo "Runtime inspection: cpu6502_interp.c absent from build.ninja; cpu_interp_step absent from executable symbols."
 
   NEEDS_REBUILD=0
-  for SCENARIO in idle route; do
-    if [[ "$SCENARIO" == "idle" ]]; then
-      LOG="$TMP/native-idle.log"
-      echo "=== Interpreter-free runtime: 600 idle/title frames ==="
-      set +e
-      "$RUNTIME" "$ROM" --frames 600 --miss-log "$TMP/native-idle-miss.log" > "$LOG" 2>&1
-      STATUS=$?
-      set -e
-    else
-      LOG="$TMP/native-route.log"
-      echo "=== Interpreter-free runtime: 600 scripted-input frames ==="
-      set +e
-      "$RUNTIME" "$ROM" --frames 600 --input "$TMP/native-route.input" > "$LOG" 2>&1
-      STATUS=$?
-      set -e
-    fi
+  for SCENARIO in idle route jump long; do
+    INPUT_FILE=""
+    case "$SCENARIO" in
+      idle) FRAMES=600; LOG="$TMP/native-idle.log" ;;
+      route) FRAMES=600; INPUT_FILE="$TMP/native-route.input"; LOG="$TMP/native-route.log" ;;
+      jump) FRAMES=1800; INPUT_FILE="$TMP/native-jump.input"; LOG="$TMP/native-jump.log" ;;
+      long) FRAMES=3600; INPUT_FILE="$TMP/native-long.input"; LOG="$TMP/native-long.log" ;;
+    esac
+    ARGS=(--frames "$FRAMES")
+    if [[ -n "$INPUT_FILE" ]]; then ARGS+=(--input "$INPUT_FILE"); fi
+    if [[ "$SCENARIO" == "idle" ]]; then ARGS+=(--miss-log "$TMP/native-idle-miss.log"); fi
+    echo "=== Interpreter-free runtime: scenario=$SCENARIO frames=$FRAMES ==="
+    set +e
+    "$RUNTIME" "$ROM" "${ARGS[@]}" > "$LOG" 2>&1
+    STATUS=$?
+    set -e
     cat "$LOG"
     if [[ "$STATUS" -eq 0 ]]; then
       echo "Native-only scenario '$SCENARIO' passed."
@@ -217,34 +261,34 @@ if [[ ! -x "$REFERENCE" ]]; then
   exit 15
 fi
 
-echo "=== Differential: idle/title 600 frames ==="
-"$RUNTIME" "$ROM" --frames 600 --hash-out "$TMP/native-idle.hash" \
-  > "$TMP/native-idle-hash.log" 2>&1
-"$REFERENCE" "$ROM" --frames 600 --hash-out "$TMP/reference-idle.hash" \
-  > "$TMP/reference-idle.log" 2>&1
-cat "$TMP/native-idle-hash.log"
-cat "$TMP/reference-idle.log"
-if ! cmp -s "$TMP/native-idle.hash" "$TMP/reference-idle.hash"; then
-  echo "ERROR: per-frame differential mismatch in idle/title scenario." >&2
-  diff -u "$TMP/reference-idle.hash" "$TMP/native-idle.hash" | head -n 40 || true
-  exit 16
-fi
-echo "Differential idle/title hashes match for all 600 frames."
+for SCENARIO in idle route jump long; do
+  INPUT_FILE=""
+  case "$SCENARIO" in
+    idle) FRAMES=600 ;;
+    route) FRAMES=600; INPUT_FILE="$TMP/native-route.input" ;;
+    jump) FRAMES=1800; INPUT_FILE="$TMP/native-jump.input" ;;
+    long) FRAMES=3600; INPUT_FILE="$TMP/native-long.input" ;;
+  esac
+  NATIVE_HASH="$TMP/native-$SCENARIO.hash"
+  REFERENCE_HASH="$TMP/reference-$SCENARIO.hash"
+  NATIVE_LOG="$TMP/native-$SCENARIO-hash.log"
+  REFERENCE_LOG="$TMP/reference-$SCENARIO.log"
+  ARGS=(--frames "$FRAMES")
+  if [[ -n "$INPUT_FILE" ]]; then ARGS+=(--input "$INPUT_FILE"); fi
 
-echo "=== Differential: scripted input 600 frames ==="
-"$RUNTIME" "$ROM" --frames 600 --input "$TMP/native-route.input" \
-  --hash-out "$TMP/native-route.hash" > "$TMP/native-route-hash.log" 2>&1
-"$REFERENCE" "$ROM" --frames 600 --input "$TMP/native-route.input" \
-  --hash-out "$TMP/reference-route.hash" > "$TMP/reference-route.log" 2>&1
-cat "$TMP/native-route-hash.log"
-cat "$TMP/reference-route.log"
-if ! cmp -s "$TMP/native-route.hash" "$TMP/reference-route.hash"; then
-  echo "ERROR: per-frame differential mismatch in scripted-input scenario." >&2
-  diff -u "$TMP/reference-route.hash" "$TMP/native-route.hash" | head -n 40 || true
-  exit 17
-fi
-echo "Differential scripted-input hashes match for all 600 frames."
-echo "Interpreter-free runner matched the interpreter-enabled reference on both sampled scenarios."
+  echo "=== Differential: scenario=$SCENARIO frames=$FRAMES ==="
+  "$RUNTIME" "$ROM" "${ARGS[@]}" --hash-out "$NATIVE_HASH" > "$NATIVE_LOG" 2>&1
+  "$REFERENCE" "$ROM" "${ARGS[@]}" --hash-out "$REFERENCE_HASH" > "$REFERENCE_LOG" 2>&1
+  cat "$NATIVE_LOG"
+  cat "$REFERENCE_LOG"
+  if ! cmp -s "$REFERENCE_HASH" "$NATIVE_HASH"; then
+    echo "ERROR: per-frame differential mismatch in scenario '$SCENARIO'." >&2
+    diff -u "$REFERENCE_HASH" "$NATIVE_HASH" | head -n 40 || true
+    exit 16
+  fi
+  echo "Differential hashes match for every frame in scenario '$SCENARIO' ($FRAMES frames)."
+done
+echo "Interpreter-free runner matched the interpreter-enabled reference across all four deterministic scenarios."
 
 mapfile -t GENERATED_C < <(find "$TMP/run/generated" -type f -name '*.c' -print | sort)
 if [[ "${#GENERATED_C[@]}" -eq 0 ]]; then
