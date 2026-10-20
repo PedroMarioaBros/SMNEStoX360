@@ -58,6 +58,10 @@ para o próximo.
 
 Branch `work/static6502-poc-20261018`: primeiro tradutor estático ROM-específico em `tools/static6502_poc.py`, com seis instruções de $8000-$8009 geradas como C direto e self-test estrito integrado a `tests/run_host_tests.sh`. Evidência/limitações: [POC-001](docs/evidence/STATIC_RECOMPILER_POC_001.md), [checkpoint](docs/WORK_CHECKPOINT.md), [próxima ação](docs/NEXT_STEPS.md). O teste local equivalente passou; aguardar CI da branch para validar exatamente o arquivo publicado. Isto não é descompilação completa nem jogo funcional. Sem XEX/teste físico.
 
+## Última atualização NESRecomp — S022 (20/10/2026)
+
+Run CI [39418368074](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39418368074) passou. O build sem interpretador e o runner de referência com fallback tiveram hashes --hash-out idênticos quadro a quadro em 600 frames idle/título e 600 frames de input roteirizado. A referência usou interpretador ROM em 0,1% e 6,4% dos ciclos desses cenários; o runner experimental foi 100% nativo. Foram necessários oito seeds temporários de despacho indireto, não salvos no TOML. Progresso estimado do port funcional: 15%. Ainda faltam cobrir mais gameplay, comparar PCM/áudio e criar/adaptar o backend Xbox; nenhum XEX ou teste físico nesta etapa. Consulte docs/evidence/NESRECOMP_EVALUATION.md, docs/WORK_CHECKPOINT.md e docs/NEXT_STEPS.md.
+
 ## Estado resumido
 
 **ATUALIZAÇÃO 13/10/2026 — RESULTADO FÍSICO S017:** o proprietário
