@@ -98,10 +98,10 @@ if [[ "$FILTER_SUMMARY_TAIL_COUNT" != "0" ]]; then
 fi
 echo "Data-region experiment: [VECTOR_DATA_REGION] skip was applied; fallback-tail count=0."
 
-# First execute the same deterministic routes with the interpreter-enabled
-# reference and collect every ROM instruction start actually sent to fallback.
-# One profile pass across all routes lets us seed observed dynamic-dispatch
-# targets in a single rebuild instead of rebuilding once per missed PC.
+# Profile only actually selected inline-dispatch destinations in the
+# interpreter-enabled reference. Unlike --miss-log, this records one target at
+# the computed dispatcher boundary, rather than every subsequent interpreter
+# instruction in a block. The target list stays temporary.
 cp "$ROOT/tools/nesrecomp_smb_v026_data_region_experiment.toml" "$TMP/runtime-config.toml"
 cat > "$TMP/native-route.input" <<'INPUT'
 0 -
@@ -156,7 +156,8 @@ cat > "$TMP/native-long.input" <<'INPUT'
 3500 -
 INPUT
 
-echo "=== Build interpreter-enabled reference runner ==="
+echo "=== Instrument interpreter-enabled reference for inline dispatch ==="
+python3 "$ROOT/tools/prepare_nesrecomp_dispatch_profile.py" "$TMP/nesrecomp"
 cmake -S "$TMP/nesrecomp/runner/cyc/project" -B "$TMP/build-reference" -G Ninja \
   -DCMAKE_BUILD_TYPE=Release \
   -DNESRECOMP_ROM="$ROM" \
@@ -170,7 +171,7 @@ if [[ ! -x "$REFERENCE" ]]; then
   exit 15
 fi
 
-rm -f "$TMP/reference-profile.miss-log"
+: > "$TMP/dispatch-profile.log"
 for SCENARIO in idle route jump long; do
   INPUT_FILE=""
   case "$SCENARIO" in
@@ -179,20 +180,26 @@ for SCENARIO in idle route jump long; do
     jump) FRAMES=1800; INPUT_FILE="$TMP/native-jump.input" ;;
     long) FRAMES=3600; INPUT_FILE="$TMP/native-long.input" ;;
   esac
-  ARGS=(--frames "$FRAMES" --miss-log "$TMP/reference-profile.miss-log")
+  ARGS=(--frames "$FRAMES")
   if [[ -n "$INPUT_FILE" ]]; then ARGS+=(--input "$INPUT_FILE"); fi
   LOG="$TMP/reference-profile-$SCENARIO.log"
-  echo "=== Reference profile: scenario=$SCENARIO frames=$FRAMES ==="
+  echo "=== Reference dispatch profile: scenario=$SCENARIO frames=$FRAMES ==="
   "$REFERENCE" "$ROM" "${ARGS[@]}" > "$LOG" 2>&1
   cat "$LOG"
+  grep '^\[INLINE_DISPATCH_PROFILE\]' "$LOG" >> "$TMP/dispatch-profile.log" || true
 done
+if [[ ! -s "$TMP/dispatch-profile.log" ]]; then
+  echo "ERROR: reference run did not observe any $8E04 inline-dispatch entries." >&2
+  exit 21
+fi
+python3 "$ROOT/tools/prepare_nesrecomp_dispatch_seeds.py" "$TMP/runtime-config.toml" "$TMP/dispatch-profile.log"
 
-python3 "$ROOT/tools/prepare_nesrecomp_runtime_seeds.py" \
-  "$TMP/runtime-config.toml" "$TMP/reference-profile.miss-log"
-
-echo "=== Apply interpreter-free fail-closed instrumentation ==="
+# Undo profile-only edits to the temporary upstream runner before applying the
+# separate no-interpreter patch. Keep the generic recompiler experiments above.
+git -C "$TMP/nesrecomp" checkout --quiet "$NESRECOMP_COMMIT" -- \
+  runner/cyc/cyc_run.c runner/cyc/cpu6502.h
 python3 "$ROOT/tools/prepare_nesrecomp_interpreterless.py" "$TMP/nesrecomp"
-echo "Building the native-only runtime once using all ROM fallback PCs observed in the four reference routes."
+echo "=== Build native-only runner from profiled dynamic targets ==="
 cmake -S "$TMP/nesrecomp/runner/cyc/project" -B "$TMP/build-native-only" -G Ninja \
   -DCMAKE_BUILD_TYPE=Release \
   -DNESRECOMP_ROM="$ROM" \
@@ -236,22 +243,15 @@ for SCENARIO in idle route jump long; do
   set -e
   cat "$LOG"
   if [[ "$STATUS" -ne 0 ]]; then
-    echo "ERROR: interpreter-free scenario '$SCENARIO' failed with exit code $STATUS. Any new NATIVE_COVERAGE_MISS is a blocking gap, not auto-seeded here." >&2
+    echo "ERROR: interpreter-free scenario '$SCENARIO' failed with exit code $STATUS. Any new NATIVE_COVERAGE_MISS is a blocking gap." >&2
     exit "$STATUS"
   fi
   echo "Native-only scenario '$SCENARIO' passed."
 done
-echo "Interpreter-free deterministic coverage passed using the profile-derived temporary seed list."
-echo "The profile seeds exist only in $TMP/runtime-config.toml; repository TOML and canonical ROM are unchanged."
+echo "Interpreter-free deterministic coverage passed using profile-observed dispatcher targets."
+echo "These profile targets exist only in $TMP/runtime-config.toml; the repository config and canonical ROM are unchanged."
 
 for SCENARIO in idle route jump long; do
-  INPUT_FILE=""
-  case "$SCENARIO" in
-    idle) FRAMES=600 ;;
-    route) FRAMES=600; INPUT_FILE="$TMP/native-route.input" ;;
-    jump) FRAMES=1800; INPUT_FILE="$TMP/native-jump.input" ;;
-    long) FRAMES=3600; INPUT_FILE="$TMP/native-long.input" ;;
-  esac
   NATIVE_HASH="$TMP/native-$SCENARIO.hash"
   REFERENCE_HASH="$TMP/reference-$SCENARIO.hash"
   NATIVE_WAV="$TMP/native-$SCENARIO.wav"
