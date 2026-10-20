@@ -193,6 +193,7 @@ if [[ ! -s "$TMP/dispatch-profile.log" ]]; then
   exit 21
 fi
 sort -u "$TMP/dispatch-profile.log" > "$TMP/dispatch-profile-unique.log"
+python3 "$ROOT/tools/verify_nesrecomp_dispatch_profile.py" "$ROM" "$TMP/dispatch-profile-unique.log" | tee "$TMP/dispatch-profile-validation.log"
 echo "Unique computed inline-dispatch records: $(wc -l < "$TMP/dispatch-profile-unique.log" | tr -d ' ')"
 python3 "$ROOT/tools/prepare_nesrecomp_dispatch_seeds.py" "$TMP/runtime-config.toml" "$TMP/dispatch-profile-unique.log"
 
