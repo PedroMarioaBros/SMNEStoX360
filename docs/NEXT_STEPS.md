@@ -362,3 +362,9 @@ Nenhuma mudança de NAND, firmware ou bootloader.
   do desbloqueio/loader, pois novo crash é possível.
   Se proprietário quiser continuar e estiver informado do risco,
   guiar SOMENTE etapa 01 inicialmente.
+
+## Próxima ação — atualização de progresso 20/10/2026
+
+A execução mais recente do experimento sem interpretador removeu o arquivo e símbolo do interpretador do build host, mas o gate de cobertura falhou em `pc=$9B0E`, bank 1. Percentuais estimados: ROM/entrada 100%; build do gerador 100%; geração C 100% como prova isolada; remoção estrutural do interpretador no build experimental 100%; cobertura nativa sem interpretador 35%; runner host com execução reproduzível 10%; teste diferencial 0%; port Xbox/XEX 0%; validação física 0%; port funcional completo **10%**.
+
+Próxima ação: melhorar a instrumentação do trap para capturar PC, banco, opcode e origem da transferência, rastrear a causa do endereço `$9B0E` e corrigir a análise genérica de fluxo/despacho. Não continuar a sequência de seeds manuais como solução final. Sem XEX/teste físico.
