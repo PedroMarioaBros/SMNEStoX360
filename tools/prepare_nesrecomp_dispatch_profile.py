@@ -43,7 +43,7 @@ def main() -> int:
         "static inline bool cpu_fetch_rom(uint16_t pc, uint8_t opcode) {\n"
         "    hw_cycle_start(pc, HW_FETCH);",
         "static inline bool cpu_fetch_rom(uint16_t pc, uint8_t opcode) {\n"
-        "    cyc_profile_dispatch(pc, false);\n"
+        "    if (pc == 0x8E04) cyc_profile_dispatch(pc, false);\n"
         "    hw_cycle_start(pc, HW_FETCH);",
     )
     replace_once(
@@ -55,7 +55,12 @@ def main() -> int:
 /* Evaluation-only profiler for SMB_v026's inline-argument tail dispatcher.
  * At $8E04, the JSR return address is on the 6502 stack and A selects a word
  * in the inline table. This works whether the dispatcher itself came from
- * compiled code or the interpreter. */
+ * compiled code or the interpreter. Emit each (callsite, selector) only once. */
+typedef struct { uint16_t callsite; uint8_t selector; } CycProfileSeen;
+#define CYC_PROFILE_MAX_DISPATCHES 512
+static CycProfileSeen cyc_profile_seen[CYC_PROFILE_MAX_DISPATCHES];
+static unsigned cyc_profile_seen_count;
+
 void cyc_profile_dispatch(uint16_t pc, bool from_interpreter) {
     if (pc != 0x8E04) return;
     const uint8_t *ram = cyc_cpu_ram();
@@ -64,6 +69,15 @@ void cyc_profile_dispatch(uint16_t pc, bool from_interpreter) {
                               ((uint16_t)ram[0x100u + ((sp + 2u) & 0xFFu)] << 8));
     uint16_t callsite = (uint16_t)(ret - 2u);
     uint8_t selector = cpu.a;
+    for (unsigned i = 0; i < cyc_profile_seen_count; ++i) {
+        if (cyc_profile_seen[i].callsite == callsite &&
+            cyc_profile_seen[i].selector == selector) return;
+    }
+    if (cyc_profile_seen_count >= CYC_PROFILE_MAX_DISPATCHES) {
+        fprintf(stderr, "[INLINE_DISPATCH_PROFILE_ERROR] observed callsite/selector cap exceeded\\n");
+        return;
+    }
+    cyc_profile_seen[cyc_profile_seen_count++] = (CycProfileSeen){callsite, selector};
     uint32_t entry = (uint32_t)ret + 1u + (uint32_t)selector * 2u;
     uint16_t target = 0xFFFFu;
     if (entry < 0xFFFFu && hw_prg_is_rom((uint16_t)entry) &&
@@ -73,10 +87,12 @@ void cyc_profile_dispatch(uint16_t pc, bool from_interpreter) {
         target = (uint16_t)(lo | ((uint16_t)hi << 8));
     }
     fprintf(stderr,
-            "[INLINE_DISPATCH_PROFILE] source=%s callsite=$%04X selector=%u table_entry=$%04X decoded_target=$%04X\n",
+            "[INLINE_DISPATCH_PROFILE] source=%s callsite=$%04X selector=%u table_entry=$%04X decoded_target=$%04X\\n",
             from_interpreter ? "interpreter" : "native", callsite, selector,
             entry <= 0xFFFFu ? (unsigned)entry : 0xFFFFu, target);
 }
+
+'''
 
 '''
 
@@ -89,7 +105,7 @@ void cyc_profile_dispatch(uint16_t pc, bool from_interpreter) {
     replace_once(
         interp_file,
         "void cpu_interp_step(void) {\n    uint16_t pc = cpu.pc;",
-        "void cpu_interp_step(void) {\n    cyc_profile_dispatch(cpu.pc, true);\n    uint16_t pc = cpu.pc;",
+        "void cpu_interp_step(void) {\n    if (cpu.pc == 0x8E04) cyc_profile_dispatch(cpu.pc, true);\n    uint16_t pc = cpu.pc;",
     )
 
     header = cpu_h.read_text(encoding="utf-8")
