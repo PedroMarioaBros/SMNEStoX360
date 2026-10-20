@@ -271,14 +271,16 @@ for SCENARIO in idle route jump long; do
   esac
   NATIVE_HASH="$TMP/native-$SCENARIO.hash"
   REFERENCE_HASH="$TMP/reference-$SCENARIO.hash"
+  NATIVE_WAV="$TMP/native-$SCENARIO.wav"
+  REFERENCE_WAV="$TMP/reference-$SCENARIO.wav"
   NATIVE_LOG="$TMP/native-$SCENARIO-hash.log"
   REFERENCE_LOG="$TMP/reference-$SCENARIO.log"
   ARGS=(--frames "$FRAMES")
   if [[ -n "$INPUT_FILE" ]]; then ARGS+=(--input "$INPUT_FILE"); fi
 
   echo "=== Differential: scenario=$SCENARIO frames=$FRAMES ==="
-  "$RUNTIME" "$ROM" "${ARGS[@]}" --hash-out "$NATIVE_HASH" > "$NATIVE_LOG" 2>&1
-  "$REFERENCE" "$ROM" "${ARGS[@]}" --hash-out "$REFERENCE_HASH" > "$REFERENCE_LOG" 2>&1
+  "$RUNTIME" "$ROM" "${ARGS[@]}" --hash-out "$NATIVE_HASH" --wav-out "$NATIVE_WAV" > "$NATIVE_LOG" 2>&1
+  "$REFERENCE" "$ROM" "${ARGS[@]}" --hash-out "$REFERENCE_HASH" --wav-out "$REFERENCE_WAV" > "$REFERENCE_LOG" 2>&1
   cat "$NATIVE_LOG"
   cat "$REFERENCE_LOG"
   if ! cmp -s "$REFERENCE_HASH" "$NATIVE_HASH"; then
@@ -287,6 +289,40 @@ for SCENARIO in idle route jump long; do
     exit 16
   fi
   echo "Differential hashes match for every frame in scenario '$SCENARIO' ($FRAMES frames)."
+
+  # --hash-out deliberately does not represent the exported waveform. Enable
+  # audio in both runners and compare the actual 48 kHz mono PCM payload byte
+  # for byte, while also checking WAV shape/sample count.
+  python3 - "$NATIVE_WAV" "$REFERENCE_WAV" "$SCENARIO" <<'PY'
+import hashlib
+import sys
+import wave
+
+native_path, reference_path, scenario = sys.argv[1:]
+def read_wav(path):
+    with wave.open(path, "rb") as wf:
+        params = (wf.getnchannels(), wf.getsampwidth(), wf.getframerate(), wf.getnframes(), wf.getcomptype())
+        frames = wf.readframes(wf.getnframes())
+    return params, frames
+
+native_params, native_pcm = read_wav(native_path)
+reference_params, reference_pcm = read_wav(reference_path)
+print(f"[AUDIO_WAV] scenario={scenario} native_params={native_params} reference_params={reference_params}")
+print(f"[AUDIO_PCM_SHA256] native={hashlib.sha256(native_pcm).hexdigest()} reference={hashlib.sha256(reference_pcm).hexdigest()}")
+if native_params != reference_params:
+    print(f"ERROR: WAV metadata differs in scenario {scenario}", file=sys.stderr)
+    raise SystemExit(18)
+if len(native_pcm) != len(reference_pcm):
+    print(f"ERROR: PCM byte count differs in scenario {scenario}: {len(native_pcm)} vs {len(reference_pcm)}", file=sys.stderr)
+    raise SystemExit(19)
+if native_pcm != reference_pcm:
+    first = next(i for i, (a, b) in enumerate(zip(native_pcm, reference_pcm)) if a != b)
+    sample_index = first // 2
+    sample_diffs = sum(native_pcm[i:i+2] != reference_pcm[i:i+2] for i in range(0, len(native_pcm), 2))
+    print(f"ERROR: PCM differs in scenario {scenario}; first_byte={first} first_sample={sample_index} differing_samples={sample_diffs}", file=sys.stderr)
+    raise SystemExit(20)
+print(f"[AUDIO_PCM_MATCH] scenario={scenario} samples={native_params[3]} rate={native_params[2]} mono_16bit=true")
+PY
 done
 echo "Interpreter-free runner matched the interpreter-enabled reference across all four deterministic scenarios."
 
