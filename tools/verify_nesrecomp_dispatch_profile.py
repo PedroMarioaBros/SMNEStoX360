@@ -111,8 +111,16 @@ def main() -> int:
         status = "observed" if selectors else "not-observed"
         selector_text = ",".join(str(value) for value in sorted(selectors)) or "none"
         off = callsite - 0x8000
-        context = prg[off:off + 7].hex(" ").upper()
-        print(f"[DISPATCH_ROM_CALLSITE] addr=${callsite:04X} status={status} observed_selectors={selector_text} bytes={context}")
+        context_start = max(0, off - 4)
+        context_end = min(len(prg), off + 3 + 16)
+        context = prg[context_start:context_end].hex(" ").upper()
+        words = []
+        for selector in range(8):
+            entry = callsite + 3 + selector * 2
+            words.append(f"${read_prg_word(entry):04X}" if entry < 0xFFFF else "n/a")
+        preview = ",".join(words)
+        before = 0x8000 + context_start
+        print(f"[DISPATCH_ROM_CALLSITE] addr=${callsite:04X} status={status} observed_selectors={selector_text} table_preview_first8={preview} context_start=${before:04X} bytes={context}")
     for callsite, selector, entry, target in sorted(observed):
         source_list = ",".join(sorted(observed[(callsite, selector, entry, target)]))
         print(f"[DISPATCH_ROM_ENTRY] caller=${callsite:04X} selector={selector} entry=${entry:04X} target=${target:04X} source={source_list}")
