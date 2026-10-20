@@ -73,7 +73,7 @@ void cyc_profile_dispatch(uint16_t pc, bool from_interpreter) {
         target = (uint16_t)(lo | ((uint16_t)hi << 8));
     }
     fprintf(stderr,
-            "[INLINE_DISPATCH_PROFILE] source=%s callsite=$%04X selector=%u table_entry=$%04X decoded_target=$%04X\\n",
+            "[INLINE_DISPATCH_PROFILE] source=%s callsite=$%04X selector=%u table_entry=$%04X decoded_target=$%04X\n",
             from_interpreter ? "interpreter" : "native", callsite, selector,
             entry <= 0xFFFFu ? (unsigned)entry : 0xFFFFu, target);
 }
