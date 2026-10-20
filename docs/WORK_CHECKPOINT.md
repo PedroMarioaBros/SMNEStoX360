@@ -1059,27 +1059,30 @@ Somente semântica de hardware, nunca substituição do gameplay:
 Antes de finalizar a próxima sessão, atualizar este checkpoint com medidas
 novas e limites reais e confirmar commits no GitHub.
 
-## Atualização de progresso — ciclo 20/10/2026 (diferencial por quadro aprovado em roteiros amostrados)
+## Atualização de progresso — ciclo 20/10/2026 (matriz estendida e diferencial por quadro)
 
-**CI principal:** [39418368074](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39418368074) — **success**.
+**CI validada:** [39418927424](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39418927424) — success.
 
-- ROM canônica/reprodutibilidade, build do gerador e prova isolada de geração C: 100%.
-- Remoção estrutural do interpretador no build experimental: confirmada; cpu6502_interp.c não aparece no build Ninja do runner e cpu_interp_step está ausente dos símbolos do executável nativo.
-- Execução nativa sem interpretador: passou nos roteiros idle/título e input roteirizado, 600 quadros cada, depois de oito seeds temporários obtidos por cobertura guiada por execução.
-- **Novo resultado importante:** --hash-out do runner sem interpretador foi comparado linha a linha com o runner de referência que mantém o interpretador. Hashes de trace, memória/pixels, CPU e estado de hardware coincidiram em todos os 600 quadros do roteiro idle/título e em todos os 600 quadros do roteiro roteirizado.
-- No runner de referência, o fallback foi realmente utilizado: 17.152 ciclos ROM interpretados (0,1%) no roteiro idle/título e 1.145.069 ciclos ROM interpretados (6,4%) no roteiro roteirizado. O build sem interpretador fez 100,0% dos ciclos nativamente nos mesmos roteiros, com igualdade dos hashes por quadro. Isso compara execução amostrada, mas não é uma validação separada do waveform PCM/áudio exportado.
-- Os oito seeds ($9061, $8245, $AEDC, $AEEA, $B069, $B376, $C328, $C9D8) existem somente na cópia temporária de configuração. O TOML versionado e a ROM canônica ficaram intactos.
+- Runner experimental sem interpretador: arquivo cpu6502_interp.c ausente do build.ninja; símbolo cpu_interp_step ausente.
+- Matriz estendida passou sem NATIVE_COVERAGE_MISS após **15 seeds derivados por execução, todos apenas na configuração temporária**. Oito primeiros cobriram os dois roteiros curtos; mais sete foram necessários com a rota de gameplay mais longa.
+- Quatro cenários sem interpretador passaram, todos com 100,0% de ciclos nativos:
+  - idle/título, 600 quadros: 17.865.920 ciclos, 17.865.913 nativos.
+  - input de rota curto, 600 quadros: 17.865.925 ciclos, 17.865.918 nativos.
+  - variações de movimento/pulo, 1.800 quadros: 53.602.527 ciclos, 53.602.520 nativos.
+  - input estendido, 3.600 quadros: 107.207.435 ciclos, 107.207.428 nativos.
+- **Diferencial aprovado em 6.600 quadros totais:** hashes --hash-out coincidiram em cada quadro entre o build sem interpretador e o runner de referência com interpretador habilitado nos quatro cenários. A referência utilizou fallback ROM de 17.152 ciclos (0,1%) no idle, 1.145.069 (6,4%) na rota curta, 4.788.327 (8,9%) na variação de pulo e 8.937.607 (8,3%) na rota longa. Isso é uma comparação de trace, memória/pixels, registradores CPU e estado de hardware; não é uma comparação independente de PCM/WAV.
+- Geração C permaneceu temporária: 5 arquivos, 545.655 bytes, 14.397 linhas; nada foi publicado.
 
-**Percentuais por gates (estimativas):**
-- Entrada ROM e build/geração estática: 100% como provas isoladas.
-- Remoção estrutural do interpretador experimental: 100%.
-- Execução nativa sem miss e hashes equivalentes nos dois roteiros de 600 quadros: 100% nesses roteiros, não na ROM inteira.
-- Cobertura geral de todos os caminhos/estados: em aberto.
-- Diferencial de trace, memória/pixels, CPU e estado de hardware: 100% nos dois roteiros amostrados; comparação de PCM e cenários amplos ainda pendentes.
-- Port Xenon/PowerPC e XEX final: 0%; validação física: 0%.
-- **Progresso global estimado do port funcional: 15%.**
+**Percentuais de progresso estimados:**
+- ROM canônica e geração C isolada: 100%.
+- Remoção estrutural do interpretador do build experimental: 100%.
+- Execução nativa sem miss nos quatro roteiros testados: 100% nesses roteiros; não representa cobertura total do jogo.
+- Equivalência de hash por quadro: 100% nos 6.600 quadros dos quatro roteiros; PCM exportado e matriz ampla ainda pendentes.
+- Cobertura de todos os caminhos/estados: em aberto.
+- Backend Xbox 360/Xenon/PowerPC e XEX final: 0%; validação física: 0%.
+- **Progresso global estimado do port funcional: 18%.**
 
-A equivalência de 1.200 quadros nos dois roteiros é evidência real e melhora a confiança na recompilação estática NESRecomp, mas não valida todo o jogo nem fecha os alvos do dispatcher em todos os contextos. Seeds automáticos continuam temporários; o algoritmo genérico de descoberta de alvos computados ainda não foi estabelecido.
+Não transformar os 15 seeds em configuração final sem análise: eles foram derivados de execução, não por prova de exaustividade estática. A avaliação demonstra que destinos capturados podem ser recompilados sem alterar os hashes desses cenários, mas não fecha todos os destinos computados possíveis da ROM nem demonstra jogabilidade integral.
 
-### Próximo passo
-Ampliar a matriz determinística de execução e comparação: roteiro mais longo, inputs de pulo/avanço em combinações diferentes e transições de gameplay. Manter comparação de hashes por quadro e trap fail-fast no build sem interpretador. Não gerar XEX nem solicitar teste físico.
+### Próxima etapa
+Investigar generalização da descoberta do dispatcher e aumentar cobertura de estado, mantendo os quatro roteiros como regressão diferencial automatizada. Acrescentar teste independente de exportação PCM/WAV, sem alterar ROM ou gameplay. Não gerar XEX nem solicitar teste físico.
