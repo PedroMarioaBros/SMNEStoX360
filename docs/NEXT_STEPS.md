@@ -363,12 +363,13 @@ Nenhuma mudança de NAND, firmware ou bootloader.
   Se proprietário quiser continuar e estiver informado do risco,
   guiar SOMENTE etapa 01 inicialmente.
 
-## Próxima ação — atualização 20/10/2026 (6.600 quadros diferenciais aprovados)
+## Próxima ação — análise dos callsites inline ainda não exercitados
 
-**Última evidência:** [run 39418927424](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39418927424) passou a matriz ampliada. Idle 600, input curto 600, movimento/pulo 1.800 e input longo 3.600 quadros passaram sem interpretador e atingiram 100,0% de ciclos nativos. Os quatro arquivos --hash-out coincidiram quadro a quadro contra o runner de referência com interpretador: 6.600 quadros comparados ao todo.
+**Última evidência:** [run 39432801245](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39432801245) — success. Foram validados 57 pares callsite/seletor e 47 destinos diretamente contra a ROM. Quatro roteiros passaram sem interpretador; hashes por quadro iguais em 6.600 quadros e PCM/WAV idêntico byte a byte.
 
-### Próxima tarefa técnica
-1. Analisar genericamente o dispatcher indireto em $8E16 e a origem dos alvos dinâmicos, para diminuir a dependência de quinze seeds temporários. Manter o trap fail-fast e os quatro roteiros como regressão.
-2. Aumentar variedade de estados reais e confirmar, por capturas de quadro/telemetria quando disponível, que cada script cobre gameplay e transições relevantes, não apenas repete estados de título/loop. Novos caminhos sem código nativo seguem bloqueados.
-3. Comparar a exportação PCM/WAV (ou hashes de amostras PCM) entre runner nativo e referência; --hash-out cobre trace, memória/pixels, CPU e hardware interno, mas não substitui essa comparação de waveform.
-4. Nenhum XEX ou teste físico nesta etapa. O port Xenon/PowerPC continua 0%; não mesclar PR #20 até revisão arquitetural, e PR #19 do tradutor próprio permanece sem merge enquanto a avaliação prossegue.
+### Tarefa ativa
+1. Estender `tools/verify_nesrecomp_dispatch_profile.py` para imprimir os 18 candidatos brutos `JSR $8E04`, separar os 12 callsites exercitados e os seis não observados, e registrar os bytes/tabelas inline adjacentes.
+2. Para cada candidato não exercitado, examinar os dados do PRG e determinar possíveis seletores/tabelas antes de criar inputs. Não assumir que sequências adjacentes sejam código.
+3. Adicionar cenários determinísticos de gameplay para cobrir os caminhos confirmados, mantendo os quatro roteiros atuais como regressão.
+4. Gates obrigatórios: ROM/hash preservados, nenhuma falha `NATIVE_COVERAGE_MISS`, hashes `--hash-out` iguais por quadro, PCM/WAV igual byte a byte. Seeds derivados de perfil continuam temporários até revisão.
+5. Sem build Xenon/PowerPC, XEX ou teste físico. PR #20 permanece aberto e PR #19 sem merge.
