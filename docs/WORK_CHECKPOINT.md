@@ -1058,3 +1058,23 @@ Somente semântica de hardware, nunca substituição do gameplay:
 
 Antes de finalizar a próxima sessão, atualizar este checkpoint com medidas
 novas e limites reais e confirmar commits no GitHub.
+
+## Atualização de progresso — ciclo 20/10/2026
+
+**Resumo percentual atual (estimativas por gates, não por linhas de código):**
+- Entrada ROM canônica/reprodutibilidade: **100%**.
+- Build do gerador NESRecomp no host CI: **100%**.
+- Prova de geração C: **100%** (isso NÃO significa jogo completo).
+- Remoção estrutural do interpretador no runtime experimental: **100% demonstrado para o build host experimental**.
+- Cobertura sem interpretador: **35%**; o trap encontrou PC não compilado `$9B0E`, bank 1.
+- Runner host integrado e jogo executando de forma reproduzível: **10%**.
+- Teste diferencial de gameplay/quadros/áudio: **0%**.
+- Port Xbox 360/Xenon/PowerPC e XEX final: **0%**.
+- Validação física: **0% nesta etapa**.
+- **Progresso geral do port funcional: 10%** (estimativa conservadora; não existe ainda um jogo nativo comprovadamente funcional).
+
+### Último resultado observado
+O run [39210393377](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39210393377) confirmou que o build host experimental não inclui `cpu6502_interp.c` nem o símbolo `cpu_interp_step`, mas falhou no teste fail-fast por `NATIVE_COVERAGE_MISS pc=$9B0E bank=1`. A análise configurada chegou a 4.849 instruções, porém ainda há um destino real não coberto. Não gerar XEX nem solicitar teste físico.
+
+### Próximo passo
+Investigar genericamente o fluxo que chega a `$9B0E`, registrando PC, banco, opcode e origem da transferência, em vez de continuar adicionando seeds específicos manualmente. Manter o tradutor próprio pausado até decidir com evidência se o framework pode atender ao requisito sem interpretador.
