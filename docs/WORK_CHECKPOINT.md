@@ -1059,25 +1059,27 @@ Somente semântica de hardware, nunca substituição do gameplay:
 Antes de finalizar a próxima sessão, atualizar este checkpoint com medidas
 novas e limites reais e confirmar commits no GitHub.
 
-## Atualização de progresso — ciclo 20/10/2026 (execução nativa amostrada)
+## Atualização de progresso — ciclo 20/10/2026 (diferencial por quadro aprovado em roteiros amostrados)
 
-**Novo run de evidência:** [39417601965](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39417601965) — **success**.
+**CI principal:** [39418368074](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39418368074) — **success**.
 
 - ROM canônica/reprodutibilidade, build do gerador e prova isolada de geração C: 100%.
-- Remoção estrutural do interpretador no runtime experimental: 100% comprovada para esse build (cpu6502_interp.c ausente do build; cpu_interp_step ausente dos símbolos).
-- Execução nativa sem interpretador: **passou em dois roteiros amostrados de 600 quadros**: idle/título e entrada roteirizada. Ambos reportaram 100,0% dos ciclos nativos e zero instruções interpretadas nos cenários finais.
-- A CI adicionou **8 seeds de destino** somente a uma cópia temporária da configuração, guiada por misses reais do dispatcher indireto JMP ($6C) em $8E16. Alvos: $9061, $8245, $AEDC, $AEEA, $B069, $B376, $C328, $C9D8. Esses seeds não foram persistidos no repo.
-- Cobertura integral, equivalência de quadros/estado/áudio, Xbox/XEX e hardware permanecem não validados.
+- Remoção estrutural do interpretador no build experimental: confirmada; cpu6502_interp.c não aparece no build Ninja do runner e cpu_interp_step está ausente dos símbolos do executável nativo.
+- Execução nativa sem interpretador: passou nos roteiros idle/título e input roteirizado, 600 quadros cada, depois de oito seeds temporários obtidos por cobertura guiada por execução.
+- **Novo resultado importante:** --hash-out do runner sem interpretador foi comparado linha a linha com o runner de referência que mantém o interpretador. Hashes de trace, memória/pixels, CPU e estado de hardware coincidiram em todos os 600 quadros do roteiro idle/título e em todos os 600 quadros do roteiro roteirizado.
+- No runner de referência, o fallback foi realmente utilizado: 17.152 ciclos ROM interpretados (0,1%) no roteiro idle/título e 1.145.069 ciclos ROM interpretados (6,4%) no roteiro roteirizado. O build sem interpretador fez 100,0% dos ciclos nativamente nos mesmos roteiros, com igualdade dos hashes por quadro. Isso compara execução amostrada, mas não é uma validação separada do waveform PCM/áudio exportado.
+- Os oito seeds ($9061, $8245, $AEDC, $AEEA, $B069, $B376, $C328, $C9D8) existem somente na cópia temporária de configuração. O TOML versionado e a ROM canônica ficaram intactos.
 
 **Percentuais por gates (estimativas):**
-- Entrada canônica: 100%; build do gerador e prova de geração C: 100%.
+- Entrada ROM e build/geração estática: 100% como provas isoladas.
 - Remoção estrutural do interpretador experimental: 100%.
-- Execução nativa sem miss nos dois roteiros de 600 quadros: 100% **somente nesses roteiros**; cobertura global em aberto.
-- Execução host reproduzível: 20%; comparação diferencial de quadro/estado/áudio: 0%.
+- Execução nativa sem miss e hashes equivalentes nos dois roteiros de 600 quadros: 100% nesses roteiros, não na ROM inteira.
+- Cobertura geral de todos os caminhos/estados: em aberto.
+- Diferencial de trace, memória/pixels, CPU e estado de hardware: 100% nos dois roteiros amostrados; comparação de PCM e cenários amplos ainda pendentes.
 - Port Xenon/PowerPC e XEX final: 0%; validação física: 0%.
-- **Progresso global estimado do port funcional: 12%.**
+- **Progresso global estimado do port funcional: 15%.**
 
-O resultado não transforma seeds temporários em descoberta genérica de fluxo: endereços são derivados de execução e podem existir outros destinos não observados. Não há ainda prova de equivalência funcional. PR #20 permanece aberto/não mesclado e PR #19 continua pausado. Não gerar XEX nem solicitar teste físico.
+A equivalência de 1.200 quadros nos dois roteiros é evidência real e melhora a confiança na recompilação estática NESRecomp, mas não valida todo o jogo nem fecha os alvos do dispatcher em todos os contextos. Seeds automáticos continuam temporários; o algoritmo genérico de descoberta de alvos computados ainda não foi estabelecido.
 
 ### Próximo passo
-Construir um runner de referência com interpretador habilitado para a mesma ROM, configuração e inputs; comparar hashes de memória/quadro por frame contra o build sem interpretador. Depois ampliar os roteiros para gameplay mais longo e transições, mantendo novos misses como falhas bloqueantes.
+Ampliar a matriz determinística de execução e comparação: roteiro mais longo, inputs de pulo/avanço em combinações diferentes e transições de gameplay. Manter comparação de hashes por quadro e trap fail-fast no build sem interpretador. Não gerar XEX nem solicitar teste físico.
