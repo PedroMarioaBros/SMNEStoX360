@@ -15,7 +15,7 @@ from pathlib import Path
 
 MAX_PROFILE_TARGETS = 256
 LINE = re.compile(
-    r"^\[INLINE_DISPATCH_PROFILE\] callsite=\$([0-9A-Fa-f]{4}) "
+    r"^\[INLINE_DISPATCH_PROFILE\] (?:source=(?:native|interpreter) )?callsite=\$([0-9A-Fa-f]{4}) "
     r"selector=(\d+) table_entry=\$([0-9A-Fa-f]{4}) "
     r"decoded_target=\$([0-9A-Fa-f]{4})$"
 )
