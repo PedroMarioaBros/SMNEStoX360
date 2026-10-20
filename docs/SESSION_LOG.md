@@ -1001,3 +1001,15 @@ A identidade do commit que contém uma entrada pode ser consultada no histórico
 - A passagem cobre **somente os dois roteiros observados**, não todos os caminhos do SMB, nem prova equivalência de quadro/estado/áudio, nem executável Xbox. Auto-seeding é diagnóstico temporário, ainda não um algoritmo genérico de descoberta de fluxo.
 - Progresso geral estimado atualizado de 10% para **12%**. Diferencial de quadros/estado/áudio = 0%; Xbox/XEX = 0%; teste físico = 0%.
 - Próxima tarefa: construir runner de referência com interpretador habilitado e usar a mesma ROM/configuração/inputs para comparar --hash-out por quadro contra o runner sem interpretador. Depois ampliar gameplay/transições. PR #20 aberto, PR #19 sem merge. Nenhum XEX ou teste físico.
+
+
+### S022 — comparação diferencial aprovada por quadro (20/10/2026)
+
+- O evaluator agora também constrói um runner de referência com interpretador habilitado, usando a mesma ROM canônica e o config experimental versionado sem os oito seeds descobertos durante execução. A cópia do upstream utilizada para a referência tem a fonte original do dispatcher/interpreter restaurada; as mudanças do gerador usadas para estudar os alvos ficam no compilador temporário.
+- **Run bem-sucedido:** [39418368074](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39418368074).
+- Comparação com --hash-out, por quadro, coincidiu em todos os 600 quadros idle/título e todos os 600 quadros com input roteirizado. As hashes cobrem trace observável, memória/pixels, registradores CPU e estado interno de hardware.
+- A referência realmente utilizou fallback: 17.152 ciclos ROM (0,1%) no roteiro idle e 1.145.069 ciclos ROM (6,4%) no roteiro roteirizado. O build sem interpretador fez 100,0% dos ciclos nativamente nos mesmos roteiros. Isso constitui evidência de que os destinos descobertos podem ser recompilados sem mudar o resultado observável nesses cenários.
+- O auto-seeding adicionou oito PCs somente ao TOML temporário; a configuração do repositório não recebeu esses endereços. Os C gerados continuaram no diretório temporário e não foram publicados.
+- Limite: são 1.200 quadros em apenas dois inputs, não cobertura da ROM inteira. A saída PCM exportada não foi comparada separadamente, o gameplay mais longo não foi validado, e Xenon/XEX/hardware continuam sem progresso nesta etapa.
+- Progresso geral estimado passou de 12% para **15%** pela evidência de equivalência por quadro nos roteiros amostrados.
+- Próxima tarefa: expandir inputs/quadros para percorrer mais gameplay, comparar --hash-out em cada variante e manter o trap fail-fast. Em seguida comparar PCM/áudio. Sem XEX e sem teste físico. PR #20 aberto e PR #19 sem merge.
