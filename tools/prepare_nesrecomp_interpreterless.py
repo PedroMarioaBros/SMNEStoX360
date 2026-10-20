@@ -163,9 +163,9 @@ static void cyc_diag_dump_miss(uint16_t pc) {
     )
     replace_once(
         run_file,
-        "            cpu_interp_step();\\n",
-        "            cyc_diag_dump_miss(pc);\\n"
-        "            exit(86);\\n",
+        "            cpu_interp_step();\n",
+        "            cyc_diag_dump_miss(pc);\n"
+        "            exit(86);\n",
     )
 
     cmake_source = cmake_file.read_text(encoding="utf-8")
