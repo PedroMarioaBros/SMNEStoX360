@@ -1013,3 +1013,15 @@ A identidade do commit que contém uma entrada pode ser consultada no histórico
 - Limite: são 1.200 quadros em apenas dois inputs, não cobertura da ROM inteira. A saída PCM exportada não foi comparada separadamente, o gameplay mais longo não foi validado, e Xenon/XEX/hardware continuam sem progresso nesta etapa.
 - Progresso geral estimado passou de 12% para **15%** pela evidência de equivalência por quadro nos roteiros amostrados.
 - Próxima tarefa: expandir inputs/quadros para percorrer mais gameplay, comparar --hash-out em cada variante e manter o trap fail-fast. Em seguida comparar PCM/áudio. Sem XEX e sem teste físico. PR #20 aberto e PR #19 sem merge.
+
+
+### S023 — matriz ampliada e equivalência por quadro (20/10/2026)
+
+- Atualizei tools/evaluate_nesrecomp.sh para incluir dois novos roteiros temporários: movimento/pulo por 1.800 quadros e input estendido por 3.600 quadros, além dos dois roteiros originais de 600 quadros. O loop fail-fast volta a construir/rodar ao observar um destino ROM novo, com limite de 24 seeds em cópia temporária do TOML.
+- **CI success:** [39418927424](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39418927424).
+- Foram necessárias 15 seeds temporárias no total: $9061, $8245, $AEDC, $AEEA, $B069, $B376, $C328, $C9D8, $BC85, $B245, $B269, $91CD, $C2F1, $B36D, $860D. Nenhuma foi adicionada ao config versionado.
+- O runner sem interpretador passou nos quatro cenários a 100,0% nativo: 600 quadros idle, 600 rota curta, 1.800 movimento/pulo e 3.600 rota longa. Contagens de ciclos: 17.865.920; 17.865.925; 53.602.527; 107.207.435 (respectivamente).
+- O runner de referência usou fallback ROM nestes cenários (17.152; 1.145.069; 4.788.327; 8.937.607 ciclos ROM interpretados, respectivamente). Apesar disso, os hashes --hash-out coincidiram por quadro entre referência e runner sem interpretador nos quatro cenários, total de **6.600 quadros**.
+- Os hashes abrangem trace/memória/pixels/CPU/estado interno de hardware. Não houve comparação independente do PCM/WAV final, nem prova de cobertura de todos os estados/rotas da ROM. Código gerado continua temporário e não publicado.
+- Percentual global estimado: **18%**. A etapa de Xbox/XEX e validação física permanece em 0%.
+- Próximo passo: análise genérica do dispatcher indireto $8E16 para reduzir seeds temporários, manter os quatro testes diferenciais como regressão e comparar PCM/WAV independente. Sem XEX/teste físico. PR #20 segue aberto e PR #19 sem merge.
