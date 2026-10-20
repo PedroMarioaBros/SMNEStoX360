@@ -151,3 +151,34 @@ completed successfully on the evaluation branch, confirming the upstream build
 and generation test. The earlier run [39186469481](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39186469481)
 contains the full generation metrics below. The latest run at the time of this
 update also passed after removing unnecessary apt installation from the workflow.
+
+## Ciclo de trabalho — remoção de interpretador e teste de cobertura (20/10/2026)
+
+O experimento avançou além da geração C:
+
+- A análise configurada passou a gerar **4.849 instruções** no relatório do backend cycle, sem candidato de cauda interpretada. A configuração experimental anota destinos de despacho inline encontrados no PRG e a região de vetor/tabela IRQ como dados; esses seeds são hipóteses de análise, não uma configuração final aprovada.
+- O harness adaptou somente a cópia temporária do upstream para separar a tabela de metadados de comprimento de opcode do arquivo do interpretador e excluí-lo do runtime host experimental.
+- A inspeção de build confirmou `cpu6502_interp.c` ausente do `build.ninja` e `cpu_interp_step` ausente dos símbolos do executável. Portanto, a remoção do arquivo/símbolo foi demonstrada para esse build experimental.
+- **O teste fail-fast não passou:** execução do runner parou em `[NATIVE_COVERAGE_MISS] pc=$9B0E bank=1`. Isso significa que a análise estática ainda não cobriu pelo menos um endereço realmente alcançado no cenário de inicialização/teste; não se pode declarar o jogo executável sem interpretador. As tentativas seguintes encontraram outros destinos descobertos de despacho inline, mostrando que simplesmente adicionar seeds manualmente ainda não fecha a cobertura.
+- Run mais recente consultado: [39210393377](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39210393377), falha esperada no gate de cobertura, com o interpretador ausente do binário. O log registra a falha de cobertura em `$9B0E`. Nenhum C gerado foi publicado.
+
+### Porcentagens de progresso — estimativas por gate (20/10/2026)
+
+| Frente | Progresso | Evidência/critério |
+|---|---:|---|
+| ROM canônica e reprodutibilidade da entrada | 100% | SHA-256/40.976 bytes verificados pelo harness |
+| Construção do recompilador genérico no host CI | 100% | upstream pinado compila |
+| Geração estática C a partir da ROM | 100% da prova de geração | milhares de instruções e arquivos C temporários; não é jogo validado |
+| Remoção do interpretador no runtime experimental | 100% da prova estrutural do build atual | arquivo/símbolo ausentes; cobertura ainda falha |
+| Cobertura de fluxo sem interpretador | 35% | já há diagnóstico e trap fail-fast, mas o cenário alcança `$9B0E` sem código nativo |
+| Runner host integrado + execução reproduzível do jogo | 10% | build/instrumentação inicial; execução interrompida pela falha de cobertura |
+| Equivalência funcional (estado/quadros/áudio vs. referência) | 0% | nenhum teste diferencial completo |
+| Port para Xbox 360/Xenon/PowerPC e XEX final | 0% | não iniciado/aprovado |
+| Validação física no Xbox 360 | 0% nesta etapa | nenhum XEX novo; não solicitar teste físico ainda |
+| **Projeto completo: port funcional, sem interpretador e validado** | **10%** | ainda não existe jogo nativo funcional comprovado |
+
+Esses percentuais são estimativas de marcos, não uma medição de linhas de código. O número geral permanece baixo porque a parte difícil é a cobertura e fidelidade de runtime, não gerar C. Não somar as frentes como se tivessem o mesmo peso.
+
+### Próxima ação única
+
+Parar de adicionar destinos manualmente em sequência. Instrumentar o trap para registrar PC, banco, opcode e origem da última transferência de controle; depois rastrear por que `$9B0E` é alcançado e melhorar a descoberta genérica de fluxo/despacho inline. Reexecutar a cobertura host até não existir `NATIVE_COVERAGE_MISS` em cenários determinísticos. Só então avançar para comparação de quadros/estado. Sem XEX e sem hardware.
