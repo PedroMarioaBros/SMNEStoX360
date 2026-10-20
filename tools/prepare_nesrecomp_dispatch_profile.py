@@ -36,14 +36,14 @@ def main() -> int:
         "extern Cpu6502 cpu;\n",
         "extern Cpu6502 cpu;\n"
         "/* Evaluation-only observed dynamic control-flow target recorder. */\n"
-        "void cyc_profile_instruction(uint16_t pc, uint8_t opcode);\n",
+        "void cyc_profile_dispatch(uint16_t pc, bool from_interpreter);\n",
     )
     replace_once(
         cpu_h,
         "static inline bool cpu_fetch_rom(uint16_t pc, uint8_t opcode) {\n"
         "    hw_cycle_start(pc, HW_FETCH);",
         "static inline bool cpu_fetch_rom(uint16_t pc, uint8_t opcode) {\n"
-        "    cyc_profile_instruction(pc, opcode);\n"
+        "    cyc_profile_dispatch(pc, false);\n"
         "    hw_cycle_start(pc, HW_FETCH);",
     )
     replace_once(
@@ -53,47 +53,54 @@ def main() -> int:
     )
     hook = r'''
 /* Evaluation-only profiler for SMB_v026's inline-argument tail dispatcher.
- * 6502 JSR pushes its last operand address; the first inline target word is
- * therefore return_address + 1. A is the zero-based word selector. */
-static bool cyc_profile_have_last;
-static uint16_t cyc_profile_last_pc;
-static uint8_t cyc_profile_last_opcode;
-
-void cyc_profile_instruction(uint16_t pc, uint8_t opcode) {
-    if (pc == 0x8E04 && cyc_profile_have_last && cyc_profile_last_opcode == 0x20) {
-        uint16_t callsite = cyc_profile_last_pc;
-        uint8_t selector = cpu.a;
-        uint32_t entry = (uint32_t)callsite + 3u + (uint32_t)selector * 2u;
-        uint16_t target = 0xFFFFu;
-        if (entry < 0xFFFFu && hw_prg_is_rom((uint16_t)entry) &&
-            hw_prg_is_rom((uint16_t)(entry + 1u))) {
-            uint8_t lo = hw_cart_prg_read((uint16_t)entry);
-            uint8_t hi = hw_cart_prg_read((uint16_t)(entry + 1u));
-            target = (uint16_t)(lo | ((uint16_t)hi << 8));
-        }
-        fprintf(stderr,
-                "[INLINE_DISPATCH_PROFILE] callsite=$%04X selector=%u table_entry=$%04X decoded_target=$%04X\n",
-                callsite, selector, entry <= 0xFFFFu ? (unsigned)entry : 0xFFFFu, target);
+ * At $8E04, the JSR return address is on the 6502 stack and A selects a word
+ * in the inline table. This works whether the dispatcher itself came from
+ * compiled code or the interpreter. */
+void cyc_profile_dispatch(uint16_t pc, bool from_interpreter) {
+    if (pc != 0x8E04) return;
+    const uint8_t *ram = cyc_cpu_ram();
+    uint8_t sp = cpu.s;
+    uint16_t ret = (uint16_t)(ram[0x100u + ((sp + 1u) & 0xFFu)] |
+                              ((uint16_t)ram[0x100u + ((sp + 2u) & 0xFFu)] << 8));
+    uint16_t callsite = (uint16_t)(ret - 2u);
+    uint8_t selector = cpu.a;
+    uint32_t entry = (uint32_t)ret + 1u + (uint32_t)selector * 2u;
+    uint16_t target = 0xFFFFu;
+    if (entry < 0xFFFFu && hw_prg_is_rom((uint16_t)entry) &&
+        hw_prg_is_rom((uint16_t)(entry + 1u))) {
+        uint8_t lo = hw_cart_prg_read((uint16_t)entry);
+        uint8_t hi = hw_cart_prg_read((uint16_t)(entry + 1u));
+        target = (uint16_t)(lo | ((uint16_t)hi << 8));
     }
-    cyc_profile_last_pc = pc;
-    cyc_profile_last_opcode = opcode;
-    cyc_profile_have_last = true;
+    fprintf(stderr,
+            "[INLINE_DISPATCH_PROFILE] source=%s callsite=$%04X selector=%u table_entry=$%04X decoded_target=$%04X\\n",
+            from_interpreter ? "interpreter" : "native", callsite, selector,
+            entry <= 0xFFFFu ? (unsigned)entry : 0xFFFFu, target);
 }
 
 '''
+
     replace_once(
         run_c,
         "/* One dispatch at an instruction boundary: recompiled ROM code, a compiled\n",
         hook + "/* One dispatch at an instruction boundary: recompiled ROM code, a compiled\n",
     )
+    interp_file = cyc / "cpu6502_interp.c"
+    replace_once(
+        interp_file,
+        "void cpu_interp_step(void) {\n    uint16_t pc = cpu.pc;",
+        "void cpu_interp_step(void) {\n    cyc_profile_dispatch(cpu.pc, true);\n    uint16_t pc = cpu.pc;",
+    )
 
     header = cpu_h.read_text(encoding="utf-8")
     source = run_c.read_text(encoding="utf-8")
-    if "cyc_profile_instruction(pc, opcode);" not in header:
+    if "cyc_profile_dispatch(pc, false);" not in header:
         raise SystemExit("ERROR: profile hook is not installed in native opcode fetch")
     if "[INLINE_DISPATCH_PROFILE]" not in source or "decoded_target=$%04X" not in source:
         raise SystemExit("ERROR: dynamic dispatch target reporting is missing")
-    print("Applied temporary inline-dispatch profile hook to interpreter-enabled runner.")
+    if "cyc_profile_dispatch(cpu.pc, true);" not in interp_file.read_text(encoding="utf-8"):
+        raise SystemExit("ERROR: profile hook was not installed in interpreter fetch")
+    print("Applied temporary inline-dispatch profile hook to native fetch and interpreter steps.")
     print("Each observed $8E04 entry reports caller, selector, inline table word, and decoded target.")
     return 0
 
