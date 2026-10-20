@@ -1059,22 +1059,25 @@ Somente semântica de hardware, nunca substituição do gameplay:
 Antes de finalizar a próxima sessão, atualizar este checkpoint com medidas
 novas e limites reais e confirmar commits no GitHub.
 
-## Atualização de progresso — ciclo 20/10/2026
+## Atualização de progresso — ciclo 20/10/2026 (execução nativa amostrada)
 
-**Resumo percentual atual (estimativas por gates, não por linhas de código):**
-- Entrada ROM canônica/reprodutibilidade: **100%**.
-- Build do gerador NESRecomp no host CI: **100%**.
-- Prova de geração C: **100%** (isso NÃO significa jogo completo).
-- Remoção estrutural do interpretador no runtime experimental: **100% demonstrado para o build host experimental**.
-- Cobertura sem interpretador: **35%**; o trap encontrou PC não compilado `$9B0E`, bank 1.
-- Runner host integrado e jogo executando de forma reproduzível: **10%**.
-- Teste diferencial de gameplay/quadros/áudio: **0%**.
-- Port Xbox 360/Xenon/PowerPC e XEX final: **0%**.
-- Validação física: **0% nesta etapa**.
-- **Progresso geral do port funcional: 10%** (estimativa conservadora; não existe ainda um jogo nativo comprovadamente funcional).
+**Novo run de evidência:** [39417601965](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39417601965) — **success**.
 
-### Último resultado observado
-O run [39210393377](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39210393377) confirmou que o build host experimental não inclui `cpu6502_interp.c` nem o símbolo `cpu_interp_step`, mas falhou no teste fail-fast por `NATIVE_COVERAGE_MISS pc=$9B0E bank=1`. A análise configurada chegou a 4.849 instruções, porém ainda há um destino real não coberto. Não gerar XEX nem solicitar teste físico.
+- ROM canônica/reprodutibilidade, build do gerador e prova isolada de geração C: 100%.
+- Remoção estrutural do interpretador no runtime experimental: 100% comprovada para esse build (cpu6502_interp.c ausente do build; cpu_interp_step ausente dos símbolos).
+- Execução nativa sem interpretador: **passou em dois roteiros amostrados de 600 quadros**: idle/título e entrada roteirizada. Ambos reportaram 100,0% dos ciclos nativos e zero instruções interpretadas nos cenários finais.
+- A CI adicionou **8 seeds de destino** somente a uma cópia temporária da configuração, guiada por misses reais do dispatcher indireto JMP ($6C) em $8E16. Alvos: $9061, $8245, $AEDC, $AEEA, $B069, $B376, $C328, $C9D8. Esses seeds não foram persistidos no repo.
+- Cobertura integral, equivalência de quadros/estado/áudio, Xbox/XEX e hardware permanecem não validados.
+
+**Percentuais por gates (estimativas):**
+- Entrada canônica: 100%; build do gerador e prova de geração C: 100%.
+- Remoção estrutural do interpretador experimental: 100%.
+- Execução nativa sem miss nos dois roteiros de 600 quadros: 100% **somente nesses roteiros**; cobertura global em aberto.
+- Execução host reproduzível: 20%; comparação diferencial de quadro/estado/áudio: 0%.
+- Port Xenon/PowerPC e XEX final: 0%; validação física: 0%.
+- **Progresso global estimado do port funcional: 12%.**
+
+O resultado não transforma seeds temporários em descoberta genérica de fluxo: endereços são derivados de execução e podem existir outros destinos não observados. Não há ainda prova de equivalência funcional. PR #20 permanece aberto/não mesclado e PR #19 continua pausado. Não gerar XEX nem solicitar teste físico.
 
 ### Próximo passo
-Investigar genericamente o fluxo que chega a `$9B0E`, registrando PC, banco, opcode e origem da transferência, em vez de continuar adicionando seeds específicos manualmente. Manter o tradutor próprio pausado até decidir com evidência se o framework pode atender ao requisito sem interpretador.
+Construir um runner de referência com interpretador habilitado para a mesma ROM, configuração e inputs; comparar hashes de memória/quadro por frame contra o build sem interpretador. Depois ampliar os roteiros para gameplay mais longo e transições, mantendo novos misses como falhas bloqueantes.
