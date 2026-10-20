@@ -1025,3 +1025,15 @@ A identidade do commit que contém uma entrada pode ser consultada no histórico
 - Os hashes abrangem trace/memória/pixels/CPU/estado interno de hardware. Não houve comparação independente do PCM/WAV final, nem prova de cobertura de todos os estados/rotas da ROM. Código gerado continua temporário e não publicado.
 - Percentual global estimado: **18%**. A etapa de Xbox/XEX e validação física permanece em 0%.
 - Próximo passo: análise genérica do dispatcher indireto $8E16 para reduzir seeds temporários, manter os quatro testes diferenciais como regressão e comparar PCM/WAV independente. Sem XEX/teste físico. PR #20 segue aberto e PR #19 sem merge.
+
+
+### S025 — profile verificado contra o PRG e paridade PCM aprovada (20/10/2026)
+
+- CI **success**: [39432801245](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39432801245).
+- Rejeitada a tentativa de transformar cada PC do miss-log do interpretador em seed: run [39429365074](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39429365074) mostrou 2.072 entradas, incluindo PCs sequenciais interpretados. Foi substituída por instrumentação da entrada real do dispatcher inline em $8E04.
+- O verificador `tools/verify_nesrecomp_dispatch_profile.py` confirmou bytes JSR e alvos inline no PRG canônico: 18 candidatos brutos, 12 callsites vistos nos roteiros, 57 pares callsite/seletor e 47 destinos únicos; PASS. Relatório: `docs/evidence/INLINE_DISPATCH_PROFILE_20261020.md`.
+- Oito? **Correção:** a configuração temporária recebeu 17 novos seeds (não 8): $8245, $860D, $9061, $9071, $91CD, $AEDC, $AEEA, $B069, $B0E9, $B245, $B269, $B36D, $B376, $BC85, $C2F1, $C328, $C9D8. A lista base no TOML não foi alterada.
+- Runner sem interpretador confirmou ausência de `cpu6502_interp.c` em `build.ninja` e ausência de `cpu_interp_step` nos símbolos. Quatro roteiros passaram 100% nativos: idle 600, rota curta 600, movimento/pulo 1.800, rota longa 3.600 quadros.
+- Hashes `--hash-out` coincidiram por quadro nos 6.600 quadros. PCM/WAV 48 kHz mono 16-bit coincidiu byte a byte em todos os roteiros: idle SHA `2cef570772cd9740096484f400d2119e9f1e04e6ff84f0bedc6b85f1377e108c`; rota curta `74abe61c0278cb3368c448cbaace9138cdbb8e595b05324459ee0a500784d342`; movimento/pulo `b03e2bd423f2456d5b5872d6a6d3263ae4ef16f6f7845e0aa5792158c4629ee9`; rota longa `bf45771e7c88f372c0e19e73fb5468c9c0f92eda9d1b9d258881ce3ff216e67a`.
+- Os seeds continuam somente no TOML temporário. C gerado não foi commitado. Progresso funcional estimado: **20%**; Xenon/XEX e físico 0%.
+- Próxima ação: listar os 18 candidatos JSR e examinar os seis callsites não exercitados, expandindo entradas determinísticas com base no PRG. Sem XEX/teste físico; PR #20 aberto; PR #19 pausado.
