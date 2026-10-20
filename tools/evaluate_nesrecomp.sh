@@ -189,7 +189,7 @@ for SCENARIO in idle route jump long; do
   grep '^\[INLINE_DISPATCH_PROFILE\]' "$LOG" >> "$TMP/dispatch-profile.log" || true
 done
 if [[ ! -s "$TMP/dispatch-profile.log" ]]; then
-  echo "ERROR: reference run did not observe any $8E04 inline-dispatch entries." >&2
+  echo "ERROR: reference run did not observe any \\$8E04 inline-dispatch entries." >&2
   exit 21
 fi
 python3 "$ROOT/tools/prepare_nesrecomp_dispatch_seeds.py" "$TMP/runtime-config.toml" "$TMP/dispatch-profile.log"
