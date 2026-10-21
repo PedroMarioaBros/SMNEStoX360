@@ -1075,3 +1075,14 @@ Evidência detalhada em [INLINE_DISPATCH_PROFILE_20261020.md](evidence/INLINE_DI
 
 ### Próximo passo
 Enumerar os 18 candidatos a `JSR $8E04`, suas tabelas inline e os seis callsites candidatos que não apareceram no perfil. Expandir os roteiros apenas após análise do PRG; manter gates de miss, hash/frame e PCM. PR #20 aberto; PR #19 pausado.
+
+
+## Plano mestre ponderado — revisão 21/10/2026
+
+- Plano de referência: [`docs/PROJECT_PLAN_AND_PROGRESS.md`](PROJECT_PLAN_AND_PROGRESS.md).
+- CI mais recente confirmada: [run 39434891134](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39434891134) — success.
+- Base ponderada do progresso: **22%** (estimativa, não medição de linhas/tempo). A estimativa anterior de 20% era qualitativa; o novo documento declara pesos e contribuições por etapa.
+- Entregáveis já provados: identidade da ROM; geração C experimental; remoção estrutural do interpretador no build experimental; 57 pares de dispatcher verificados contra o PRG; quatro cenários host sem interpretador; 6.600 quadros com hashes iguais e PCM/WAV idêntico byte a byte.
+- Ainda não provados: cobertura integral, arquitetura/licença final aprovada, conformidade integral NES, toolchain Xenon/PowerPC, XEX final, integração Xbox e QA de release.
+- Próxima tarefa: analisar os seis candidatos brutos ainda não observados (`$83A3`, `$921B`, `$9743`, `$C7A8`, `$C987`, `$D2E5`) e decidir quais são alcançáveis/código com base na ROM; criar roteiros determinísticos apenas com justificativa.
+- Nenhum XEX final criado ou teste físico solicitado. PR #20 continua aberto; POC próprio em PR #19 permanece pausado.
