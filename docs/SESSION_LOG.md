@@ -1037,3 +1037,17 @@ A identidade do commit que contém uma entrada pode ser consultada no histórico
 - Hashes `--hash-out` coincidiram por quadro nos 6.600 quadros. PCM/WAV 48 kHz mono 16-bit coincidiu byte a byte em todos os roteiros: idle SHA `2cef570772cd9740096484f400d2119e9f1e04e6ff84f0bedc6b85f1377e108c`; rota curta `74abe61c0278cb3368c448cbaace9138cdbb8e595b05324459ee0a500784d342`; movimento/pulo `b03e2bd423f2456d5b5872d6a6d3263ae4ef16f6f7845e0aa5792158c4629ee9`; rota longa `bf45771e7c88f372c0e19e73fb5468c9c0f92eda9d1b9d258881ce3ff216e67a`.
 - Os seeds continuam somente no TOML temporário. C gerado não foi commitado. Progresso funcional estimado: **20%**; Xenon/XEX e físico 0%.
 - Próxima ação: listar os 18 candidatos JSR e examinar os seis callsites não exercitados, expandindo entradas determinísticas com base no PRG. Sem XEX/teste físico; PR #20 aberto; PR #19 pausado.
+
+
+### S026 — plano mestre profissional e baseline ponderada (21/10/2026)
+
+**Pedido do proprietário:** transparência total sobre etapas, processos, procedimentos e percentual profissional do planejamento.
+
+- Criado `docs/PROJECT_PLAN_AND_PROGRESS.md`, que se torna referência para objetivo final, restrições, oito etapas ponderadas (P1–P8), procedimentos detalhados, gates de aceite, riscos, riscos de licença, formato de report e próximos passos.
+- A tabela de pesos soma 100%. Baseline atual ponderada: **22%** (P1 5,0 + P2 6,0 + P3 3,0 + P4 2,0 + P5 6,0 = 22,0 pontos ponderados). Esta é uma estimativa de engenharia, não linhas de código nem cronograma; a revisão explica a diferença para a antiga estimativa qualitativa de 20%.
+- Links do plano adicionados a `START_HERE.md`, `docs/WORK_CHECKPOINT.md` e `docs/NEXT_STEPS.md`.
+- Estado verificado: CI [39434891134](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39434891134) **success**; PR #20 aberto e não mergeado.
+- Confirmado em logs: 18 candidatos brutos a `JSR $8E04`; 12 callsites observados; seis não observados: `$83A3`, `$921B`, `$9743`, `$C7A8`, `$C987`, `$D2E5`. O verificador mostra contexto de bytes e preview de palavras de tabela; ainda não foi provado que cada candidato seja uma entrada de código alcançável.
+- Evidência já disponível: 57 pares caller/seletor validados contra a ROM; quatro roteiros host sem interpretador; 6.600 quadros com hashes iguais e PCM/WAV idêntico byte a byte.
+- Limites: não há XEX final validado, não há port Xenon/PowerPC demonstrado e não foi solicitado teste físico. Seeds e código C gerado seguem temporários.
+- Próxima ação técnica: análise estática/manual dos seis candidatos e seus contextos; criar cenários adicionais somente quando houver hipótese de caminho alcançável justificável pela ROM; manter os gates de zero miss, hash por quadro e PCM.
