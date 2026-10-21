@@ -6,6 +6,10 @@ de uma conversa anterior. A ROM e os assets estão em assets/canonical/;
 consulte [REPRODUCIBILITY.md](docs/REPRODUCIBILITY.md) para um clone autossuficiente
 em arquivos do projeto.
 
+## Plano mestre e percentual oficial — revisão 21/10/2026
+
+O plano de execução, todas as etapas, procedimentos, gates de aceite, riscos e a planilha de progresso ponderado estão em [PROJECT_PLAN_AND_PROGRESS.md](docs/PROJECT_PLAN_AND_PROGRESS.md). Esse documento é a referência para reportar o progresso sem confundir geração de C ou testes no host com um XEX pronto. Base ponderada inicial nesta revisão: **22%**; nenhuma build final Xbox/XEX foi validada.
+
 ## Prioridade ativa — 19/10/2026
 
 A expansão do tradutor próprio está pausada por ordem do proprietário enquanto
