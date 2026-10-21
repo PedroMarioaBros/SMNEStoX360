@@ -373,3 +373,10 @@ Nenhuma mudança de NAND, firmware ou bootloader.
 3. Adicionar cenários determinísticos de gameplay para cobrir os caminhos confirmados, mantendo os quatro roteiros atuais como regressão.
 4. Gates obrigatórios: ROM/hash preservados, nenhuma falha `NATIVE_COVERAGE_MISS`, hashes `--hash-out` iguais por quadro, PCM/WAV igual byte a byte. Seeds derivados de perfil continuam temporários até revisão.
 5. Sem build Xenon/PowerPC, XEX ou teste físico. PR #20 permanece aberto e PR #19 sem merge.
+
+
+## Planejamento profissional e percentual ponderado — 21/10/2026
+
+Consultar [PROJECT_PLAN_AND_PROGRESS.md](PROJECT_PLAN_AND_PROGRESS.md) antes de escolher a próxima tarefa ou reportar porcentagens. O plano lista etapas P1–P8, pesos, procedimentos, gates e riscos. Base ponderada atual: **22%**; o valor não significa 22% de jogabilidade final e não é uma estimativa de prazo.
+
+**CI confirmada:** [39434891134](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39434891134) — success. A saída do verificador enumerou 18 candidatos brutos a `JSR $8E04`; 12 apareceram nos quatro roteiros, seis não foram observados. Próxima ação: examinar os bytes/contexto/tabelas de `$83A3`, `$921B`, `$9743`, `$C7A8`, `$C987`, `$D2E5` para distinguir tabelas de código alcançável. Só depois definir inputs determinísticos adicionais. Manter gates existentes de zero miss, hash por quadro e PCM/WAV byte a byte. Sem XEX/teste físico nesta etapa.
