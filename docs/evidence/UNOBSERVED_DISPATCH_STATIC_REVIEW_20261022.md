@@ -19,11 +19,24 @@ O alvo desta tarefa são os seis bytes candidatos a `JSR $8E04` que não aparece
 
 ## Interpretação
 
-- Os seis candidatos são **mais consistentes com dispatchers inline reais do que com coincidências em dados**, porque cada um ocorre em contexto de bytes plausivelmente executáveis, seguido por uma sequência de palavras little-endian que apontam para endereços da faixa ROM e termina em uma instrução plausível.
+- Os seis candidatos têm estrutura compatível com dispatchers inline (palavras little-endian que apontam para a faixa ROM e um limite plausível), mas **isso não basta para provar que são código ativo**. A análise do contexto trouxe um alerta importante: cinco candidatos (`$83A3`, `$921B`, `$9743`, `$C7A8`, `$C987`) aparecem após um `JMP` incondicional ou `RTS` no fluxo linear de bytes. Podem ser blocos alternativos alcançáveis por referências não lineares, mas também podem ser bytes não executados; é necessário rastrear referências de entrada. O sexto (`$D2E5`) vem após um branch condicional e sua alcançabilidade depende do estado das flags.
 - As quantidades acima são **limites prováveis da tabela**, inferidos por inspeção dos bytes, não uma prova formal de todos os seletores válidos. Os previews além do limite provável passam a interpretar bytes de código como palavras e não devem ser tratados como entradas.
 - Esta revisão não autoriza adicionar seeds indiscriminadamente. Os seeds existentes continuam temporários e a configuração permanente não foi modificada.
 - A próxima ação é cruzar os seis callsites com o grafo de controle estático e com os caminhos de entrada/estado do jogo; então desenhar cenários determinísticos específicos. Só os cenários que realmente alcançarem os callsites podem ser usados para afirmar cobertura dinâmica.
 - Para cada novo cenário, manter os quatro roteiros atuais como regressão e exigir: ROM/hash intactos; build sem unidade/símbolo do interpretador; zero `NATIVE_COVERAGE_MISS`; hashes de estado/trace iguais por quadro; PCM/WAV idêntico byte a byte. Se um callsite continuar inalcançado, registrar a razão e a incerteza em vez de marcar como coberto.
+
+## Revisão adicional de fluxo linear
+
+A inspeção de contexto revelou que a desassemblagem linear não é suficiente para classificar os callsites:
+
+- `$83A3`: há um `JMP $EEE9` imediatamente antes do bloco candidato.
+- `$921B`: há um `JMP $9264` antes do bloco candidato.
+- `$9743`: o bloco candidato aparece após um `RTS`.
+- `$C7A8`: há um `JMP $C7DB` antes do bloco candidato.
+- `$C987`: há um `JMP $D67A` antes do bloco candidato.
+- `$D2E5`: a execução linear depende de um branch `BCS` anterior; o branch pode saltar por cima do callsite.
+
+Esses terminadores não provam que os bytes seguintes sejam dados: tabelas de função, destinos de branches/jumps ou dispatchers podem criar entradas não lineares. Porém, eles impedem concluir que os candidatos sejam alcançáveis apenas pela proximidade de bytes. **A próxima análise precisa localizar referências de controle que entrem nesses blocos e determinar as condições necessárias**, antes de escolher inputs ou acrescentar seeds.
 
 ## Limites desta entrega
 
