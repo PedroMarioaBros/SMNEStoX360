@@ -24,6 +24,10 @@ TMP="$(mktemp -d "${TMPDIR:-/tmp}/smb-nesrecomp-eval.XXXXXX")"
 cleanup() { rm -rf "$TMP"; }
 trap cleanup EXIT
 
+echo "=== Verify statically identified parent-dispatch paths ==="
+python3 "$ROOT/tools/analyze_unobserved_dispatchers.py" "$ROM"
+echo
+
 echo "=== NESRecomp evaluation ==="
 echo "Repository: $NESRECOMP_REPO"
 echo "Pinned commit: $NESRECOMP_COMMIT"
