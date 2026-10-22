@@ -1051,3 +1051,15 @@ A identidade do commit que contém uma entrada pode ser consultada no histórico
 - Evidência já disponível: 57 pares caller/seletor validados contra a ROM; quatro roteiros host sem interpretador; 6.600 quadros com hashes iguais e PCM/WAV idêntico byte a byte.
 - Limites: não há XEX final validado, não há port Xenon/PowerPC demonstrado e não foi solicitado teste físico. Seeds e código C gerado seguem temporários.
 - Próxima ação técnica: análise estática/manual dos seis candidatos e seus contextos; criar cenários adicionais somente quando houver hipótese de caminho alcançável justificável pela ROM; manter os gates de zero miss, hash por quadro e PCM.
+
+
+### S027 — revisão estática dos seis dispatchers não observados (22/10/2026)
+
+- Continuidade a partir do plano profissional S026. ROM canônica consultada na branch de pesquisa; identidade preservada: 40.976 bytes, SHA-256 `57fb4ee14288853bc0c8a5a629a103e51e87a4ebae1cc699b435060d2690b047`.
+- Revisados os seis candidatos `JSR $8E04` que não apareceram nos quatro roteiros dinâmicos: `$83A3`, `$921B`, `$9743`, `$C7A8`, `$C987`, `$D2E5`. Os bytes em cada endereço correspondem a `20 04 8E`; as palavras inline e a instrução plausível no limite seguinte sugerem, respectivamente, tabelas com 5, 3, 3, 6, 7 e 5 entradas.
+- Nova evidência criada: `docs/evidence/UNOBSERVED_DISPATCH_STATIC_REVIEW_20261022.md`. As conclusões são estáticas e preliminares: não provam que todos os callsites sejam alcançáveis, nem que todos os seletores sejam cobertos.
+- Atualizados `docs/PROJECT_PLAN_AND_PROGRESS.md` e `docs/NEXT_STEPS.md`: o item de inspeção de bytes está concluído; o próximo passo é cruzar os callsites com o grafo de controle/estados e preparar cenários determinísticos justificáveis.
+- Nenhuma ROM, configuração permanente, seed ou código gerado foi alterado. Não foi executada nova CI dinâmica nesta sessão, então a última evidência dinâmica continua sendo run [39434891134](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39434891134), success.
+- Não houve mudança de percentual: **22% ponderado** permanece baseline de engenharia. Análise estática melhora a compreensão do risco, mas não conta como cobertura dinâmica adicional.
+- Sem build Xenon/PowerPC, XEX, integração Xbox ou teste físico. PR #20 continua como avaliação aberta; PR #19 segue sem merge.
+- Próxima ação: criar mapa de fluxo de controle para os seis dispatchers e identificar entradas/estados que possam alcançá-los; só então desenhar testes e executar regressão com zero `NATIVE_COVERAGE_MISS`, hashes por quadro iguais e PCM/WAV byte-idêntico.
