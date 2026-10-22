@@ -80,3 +80,14 @@ A primeira varredura procurou instruções `JMP abs`, `JSR abs` e branches com d
 A melhor próxima tentativa não é prolongar o tempo de jogo sem objetivo nem inserir os seis callsites como seeds arbitrários. A evidência sugere primeiro criar cobertura dirigida para os seletores parentais ainda ausentes: `$8215:2`, `$8215:3`, `$9664:1`, `$C27F:18/20/21/22/23`, `$C88F:16-22` e `$C88F:29`. Para os dois caminhos condicionais, registrar também os valores exigidos de `$0747` e `$0746`. Os roteiros só contarão como cobertura dinâmica quando o profiler observar de fato esses pares callsite/seletor e o runner sem interpretador concluir sem miss.
 
 A análise estática não modificou a ROM, não mudou os seeds permanentes e não executou uma nova CI dinâmica. A última prova dinâmica continua sendo a registrada em `docs/evidence/INLINE_DISPATCH_PROFILE_20261020.md`.
+
+
+## Passagem 3 — decodificação do seletor como estado/tipo de objeto
+
+A inspeção das instruções imediatamente anteriores aos dispatchers parentais identifica o que o acumulador/índice representa. Isso ajuda a desenhar uma rota de gameplay, mas continua sendo evidência estática:
+
+- **Dispatcher `$C27F`:** `LDA $16,X` carrega o tipo do objeto; `CMP #$15 / BCS` escolhe um dos ramos e o ramo abaixo do limite restaura o tipo com `TYA` antes de chamar `$8E04`. Portanto, seletores 18, 20, 21, 22 e 23 correspondem aos IDs de objeto `$12`, `$14`, `$15`, `$16`, `$17`. A função selecionada em `$C7A0` trata esses tipos.
+- **Dispatcher `$C88F`:** `LDY $16,X / CPY #$15 / BCC` deixa A=0 para tipos abaixo de 21; para IDs iguais ou superiores a 21, executa `TYA / SBC #$14` e passa o ID menos 20 ao dispatcher. Assim, seletores 16–22 representam IDs de objeto 36–42 (`$24-$2A`), e seletor 29 representa ID 49 (`$31`). Para o grupo 36–42, o bloco `$C965` chama `$C982` somente quando `$0747 == 0`. Para o tipo 49, `$D2D9` chama o dispatcher local somente quando `$0746 < 5`.
+- Estes IDs dão uma hipótese concreta de cenário: é preciso chegar ao gameplay e fazer esses tipos de objeto nascerem/atualizarem; segurar o direcional por mais quadros não garante que o mapa/estado produza todos eles. Antes de acrescentar mais cenários longos, inspecionar os dados de nível da ROM para ver se esses IDs aparecem em objetos realmente carregados e em que condições.
+
+A tabela estática de caminhos não foi alterada e nenhum novo alvo é marcado como observado dinamicamente por esta análise.
