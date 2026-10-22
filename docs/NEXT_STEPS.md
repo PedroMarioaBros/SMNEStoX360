@@ -368,8 +368,8 @@ Nenhuma mudança de NAND, firmware ou bootloader.
 **Última evidência:** [run 39432801245](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39432801245) — success. Foram validados 57 pares callsite/seletor e 47 destinos diretamente contra a ROM. Quatro roteiros passaram sem interpretador; hashes por quadro iguais em 6.600 quadros e PCM/WAV idêntico byte a byte.
 
 ### Tarefa ativa — revisão estática concluída, cobertura dinâmica pendente
-1. Revisão estática registrada em `docs/evidence/UNOBSERVED_DISPATCH_STATIC_REVIEW_20261022.md`: os seis callsites não observados têm sequências de palavras que sugerem tabelas inline com limites prováveis de 5, 3, 3, 6, 7 e 5 entradas. Isso é hipótese estática forte, não prova de alcançabilidade.
-2. Próximo procedimento: cruzar `$83A3`, `$921B`, `$9743`, `$C7A8`, `$C987`, `$D2E5` com o grafo de controle e as entradas/estados do jogo; definir inputs determinísticos para os caminhos justificáveis.
+1. Revisão estática registrada em `docs/evidence/UNOBSERVED_DISPATCH_STATIC_REVIEW_20261022.md`: limites prováveis das tabelas são 5, 3, 3, 6, 7 e 5 entradas. Cinco candidatos vêm após `JMP`/`RTS` no fluxo linear e o sexto após branch condicional; não presumir que sejam alcançáveis.
+2. Próximo procedimento: localizar referências de controle que entrem em `$83A3`, `$921B`, `$9743`, `$C7A8`, `$C987`, `$D2E5`; determinar condições e estados de entrada antes de definir inputs determinísticos.
 3. Executar cada cenário novo no runner sem interpretador, mantendo os quatro roteiros atuais como regressão. Não semear endereços só porque aparecem em bytes ou em logs.
 4. Gates obrigatórios: ROM/hash preservados, nenhuma falha `NATIVE_COVERAGE_MISS`, hashes `--hash-out` iguais por quadro, PCM/WAV igual byte a byte. Seeds derivados de perfil continuam temporários até revisão.
 5. Sem build Xenon/PowerPC, XEX ou teste físico. PR #20 permanece aberto e PR #19 sem merge.
