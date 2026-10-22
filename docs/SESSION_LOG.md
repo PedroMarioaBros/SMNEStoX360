@@ -1063,3 +1063,6 @@ A identidade do commit que contém uma entrada pode ser consultada no histórico
 - Não houve mudança de percentual: **22% ponderado** permanece baseline de engenharia. Análise estática melhora a compreensão do risco, mas não conta como cobertura dinâmica adicional.
 - Sem build Xenon/PowerPC, XEX, integração Xbox ou teste físico. PR #20 continua como avaliação aberta; PR #19 segue sem merge.
 - Próxima ação: criar mapa de fluxo de controle para os seis dispatchers e identificar entradas/estados que possam alcançá-los; só então desenhar testes e executar regressão com zero `NATIVE_COVERAGE_MISS`, hashes por quadro iguais e PCM/WAV byte-idêntico.
+
+
+**Adendo S027 — cautela de fluxo de controle:** ao conferir os bytes anteriores, identifiquei que cinco candidatos (`$83A3`, `$921B`, `$9743`, `$C7A8`, `$C987`) aparecem após `JMP` incondicional ou `RTS` no fluxo linear; `$D2E5` depende de um branch condicional anterior. Isso não classifica automaticamente os bytes como dados, pois pode haver entradas não lineares, mas significa que a revisão inicial da tabela não prova alcançabilidade. O relatório, o plano e `NEXT_STEPS.md` foram corrigidos para priorizar referências de entrada/condições de alcance antes de criar cenários. Percentual segue **22%**, sem novos testes dinâmicos.
