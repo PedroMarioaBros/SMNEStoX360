@@ -56,3 +56,27 @@ Foi feita uma varredura byte a byte do PRG canônico para procurar padrões de r
 ## Limites desta entrega
 
 Não foi executada nesta revisão uma nova simulação de gameplay nem uma nova CI de runtime; portanto não há novos resultados dinâmicos para declarar. Nenhuma ROM foi modificada. Não houve build Xenon/PowerPC, XEX, integração Xbox ou teste físico. Esta é uma atualização de evidência estática e priorização do próximo experimento.
+
+
+## Passagem 2 — referências cruzadas às tabelas de despacho (22/10/2026)
+
+Ao ampliar a busca para os destinos anteriores aos callsites e para as palavras de todas as tabelas depois de cada `JSR $8E04`, surgiram ligações mais concretas. Isso corrige a conclusão provisória de que a falta de referência direta aos seis callsites significaria falta de entrada: os fluxos chegam primeiro a blocos anteriores aos callsites.
+
+| Callsite não observado | Caminho estático identificado na ROM | Seletor/condição relevante | Estado da prova |
+|---|---|---|---|
+| `$83A3` | A tabela do dispatcher em `$8215` tem seletor 2 → `$838B`; `$838B` executa `JSR $83A0`; o bloco em `$83A0` segue por `LDA $0772` até `$83A3`. A palavra de tabela está em `$821C`. | `$8215`, A = 2 | Ligação estática encontrada; o seletor 2 não apareceu nos quatro perfis atuais. |
+| `$921B` | A tabela em `$8215` tem seletor 3 → `$9218`; o bloco começa com `LDA $0772` e segue ao callsite `$921B`. A palavra está em `$821E`. | `$8215`, A = 3 | Ligação estática encontrada; seletor 3 não observado. |
+| `$9743` | A tabela em `$9664` tem seletor 1 → `$9740`; o bloco em `$9740` executa `LDA $0733` e segue ao callsite `$9743`. A palavra está em `$9669`. | `$9664`, A = 1 | Ligação estática encontrada; seletor 1 não observado. |
+| `$C7A8` | A tabela inline em `$C27F` possui entradas para `$C7A0` nas posições 18, 20, 21, 22 e 23 (`$C2A6`, `$C2AA`, `$C2AC`, `$C2AE`, `$C2B0`). O bloco `$C7A0` segue até `$C7A8`. | `$C27F`, seletor em {18, 20, 21, 22, 23} | Ligações estáticas encontradas; nenhum desses seletores foi observado no perfil anterior. |
+| `$C987` | A tabela em `$C88F` tem seletores 16–22 → `$C965` (entradas `$C8B2-$C8BE`). O fluxo chega ao `JSR $C982` em `$C976` apenas quando `$0747 == 0`; o bloco `$C982` segue até `$C987`. | `$C88F`, seletor 16–22 **e** `$0747 == 0` | Ligação estática condicional; seletores 16–22 não observados. A condição de RAM também não foi provada em teste. |
+| `$D2E5` | A tabela em `$C88F` tem seletor 29 → `$D2D9` (palavra em `$C8CC`). O bloco lê `$0746`, compara com 5 e só passa ao dispatcher em `$D2E5` se a condição `BCS $D311` não for tomada. | `$C88F`, A = 29; depois `$0746 < 5` | Ligação estática condicional; seletor 29 não observado. |
+
+### Correção importante sobre o que significa “referência”
+
+A primeira varredura procurou instruções `JMP abs`, `JSR abs` e branches com destino exatamente igual ao callsite. Isso não detectou os caminhos em que uma tabela inline seleciona um **bloco anterior**, que então cai por fluxo sequencial no callsite. O relatório anterior fica como registro do método inicial e desta limitação; a tabela acima é a análise ampliada.
+
+### Próximo experimento
+
+A melhor próxima tentativa não é prolongar o tempo de jogo sem objetivo nem inserir os seis callsites como seeds arbitrários. A evidência sugere primeiro criar cobertura dirigida para os seletores parentais ainda ausentes: `$8215:2`, `$8215:3`, `$9664:1`, `$C27F:18/20/21/22/23`, `$C88F:16-22` e `$C88F:29`. Para os dois caminhos condicionais, registrar também os valores exigidos de `$0747` e `$0746`. Os roteiros só contarão como cobertura dinâmica quando o profiler observar de fato esses pares callsite/seletor e o runner sem interpretador concluir sem miss.
+
+A análise estática não modificou a ROM, não mudou os seeds permanentes e não executou uma nova CI dinâmica. A última prova dinâmica continua sendo a registrada em `docs/evidence/INLINE_DISPATCH_PROFILE_20261020.md`.
