@@ -1066,3 +1066,20 @@ A identidade do commit que contém uma entrada pode ser consultada no histórico
 
 
 **Adendo S027 — cautela de fluxo de controle:** ao conferir os bytes anteriores, identifiquei que cinco candidatos (`$83A3`, `$921B`, `$9743`, `$C7A8`, `$C987`) aparecem após `JMP` incondicional ou `RTS` no fluxo linear; `$D2E5` depende de um branch condicional anterior. Isso não classifica automaticamente os bytes como dados, pois pode haver entradas não lineares, mas significa que a revisão inicial da tabela não prova alcançabilidade. O relatório, o plano e `NEXT_STEPS.md` foram corrigidos para priorizar referências de entrada/condições de alcance antes de criar cenários. Percentual segue **22%**, sem novos testes dinâmicos.
+
+
+### S028 — referências parentais identificadas e verificador integrado (22/10/2026)
+
+- Ampliei a análise dos seis callsites ainda ausentes dos perfis: em vez de procurar só referência direta ao endereço do `JSR $8E04`, percorri os destinos das tabelas parentais. Os caminhos encontrados foram:
+  - `$8215`, seletor 2 → `$838B` → `JSR $83A0` → `$83A3`;
+  - `$8215`, seletor 3 → `$9218` → `$921B`;
+  - `$9664`, seletor 1 → `$9740` → `$9743`;
+  - `$C27F`, seletores 18, 20–23 → `$C7A0` → `$C7A8`;
+  - `$C88F`, seletores 16–22 → `$C965`; o fluxo só chega a `$C987` quando `$0747 == 0`;
+  - `$C88F`, seletor 29 → `$D2D9`; o fluxo só chega a `$D2E5` quando `$0746 < 5`.
+- Evidência detalhada em `docs/evidence/UNOBSERVED_DISPATCH_STATIC_REVIEW_20261022.md`; o relatório diferencia cada relação estática de prova dinâmica.
+- Criado `tools/analyze_unobserved_dispatchers.py` para validar o SHA/tamanho da ROM, bytes dos callsites, palavras nas tabelas parentais e instruções intermediárias esperadas. A ferramenta não modifica ROM/configuração e não afirma cobertura dinâmica.
+- Integração: `tools/evaluate_nesrecomp.sh` executa o verificador, e o workflow `.github/workflows/nesrecomp-evaluation.yml` agora aciona CI se o script mudar. Commits relevantes: `d8219215803e58de3ad8fd728ee16d7b5376a662` (verificador), `e00a203e7fb62c168a60264c92beb3a57e2d3727` (harness), `3413d6aa9094fc6ed4528d5be3cf52431524880a` (filtro CI).
+- Run iniciado para validar a integração: [39775826447](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39775826447). No momento deste registro, ainda estava `in_progress`; nenhum resultado é antecipado.
+- Ainda não foram acrescentados cenários de gameplay nem seeds permanentes. A próxima tarefa é tentar alcançar dinamicamente os seletores `$8215:2/3`, `$9664:1`, `$C27F:18/20/21/22/23`, `$C88F:16–22/29`, incluindo os dois predicados de RAM.
+- Percentual ponderado segue **22%**: a nova análise e o verificador melhoram a evidência/reprodutibilidade, mas ainda não adicionam cobertura dinâmica. Sem build Xenon/PowerPC, XEX ou teste físico.
