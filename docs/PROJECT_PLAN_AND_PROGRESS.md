@@ -154,12 +154,12 @@ Não contar como progresso concluído: tempo de execução, tentativa sem evidê
 
 ## 7. Próximas ações em ordem
 
-1. **Concluído nesta revisão:** examinar os bytes dos seis candidatos e registrar limites prováveis das tabelas inline. Os seis são mais consistentes com dispatchers reais do que com dados acidentais, mas alcançabilidade dinâmica não foi provada. Ver `docs/evidence/UNOBSERVED_DISPATCH_STATIC_REVIEW_20261022.md`.
-2. **Próximo:** cruzar os seis callsites com o grafo de controle estático e caminhos de entrada/estado; criar roteiros determinísticos adicionais somente para caminhos justificados pela análise da ROM.
+1. **Concluído nesta revisão:** examinar bytes e registrar limites prováveis das tabelas inline. Porém, cinco candidatos estão após `JMP`/`RTS` no fluxo linear e o sexto depende de branch condicional; ainda não sabemos se são blocos alcançáveis ou bytes não executados. Ver `docs/evidence/UNOBSERVED_DISPATCH_STATIC_REVIEW_20261022.md`.
+2. **Próximo:** localizar referências de controle que entrem nos seis blocos, determinar condições/estados de alcance e só então criar roteiros determinísticos adicionais.
 3. Reexecutar os quatro roteiros atuais e todos os novos em runtime sem interpretador; exigir hashes por quadro e PCM/WAV idênticos.
 4. Fazer revisão independente de seeds e de cobertura; registrar caminhos ainda não demonstrados.
 5. Só então consolidar a decisão de arquitetura/licença e prosseguir para a matriz completa de conformidade host.
 6. Depois dos gates host, iniciar o trabalho de toolchain Xenon/PowerPC e executável mínimo.
 7. Integrar o jogo ao Xbox e preparar release somente após os gates anteriores.
 
-**Estado da etapa atual (22/10/2026):** CI [39434891134](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39434891134) é a última CI dinâmica registrada como success. A análise estática dos seis candidatos foi documentada, com limites prováveis de 5, 3, 3, 6, 7 e 5 entradas, respectivamente. Isso não aumenta por si só a cobertura dinâmica nem muda o baseline ponderado de 22%. Próximo passo: construir e validar cenários determinísticos que alcancem os callsites; não produzir XEX nem pedir teste físico nesta fase.
+**Estado da etapa atual (22/10/2026):** CI [39434891134](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39434891134) é a última CI dinâmica registrada como success. A análise estática dos seis candidatos foi documentada, com limites prováveis de 5, 3, 3, 6, 7 e 5 entradas. Revisão do contexto revelou que cinco vêm após `JMP`/`RTS` e um após branch condicional, portanto a alcançabilidade não pode ser inferida por bytes adjacentes. Isso não aumenta a cobertura dinâmica nem muda o baseline ponderado de 22%. Próximo passo: localizar referências de entrada e condições de alcance; não produzir XEX nem pedir teste físico nesta fase.
