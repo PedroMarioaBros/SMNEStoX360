@@ -346,7 +346,7 @@ if native_pcm != reference_pcm:
 print(f"[AUDIO_PCM_MATCH] scenario={scenario} samples={native_params[3]} rate={native_params[2]} mono_16bit=true")
 PY
 done
-echo "Interpreter-free runner matched the interpreter-enabled reference across all four deterministic scenarios."
+echo "Interpreter-free runner matched the interpreter-enabled reference across all six deterministic scenarios."
 
 mapfile -t GENERATED_C < <(find "$TMP/run/generated" -type f -name '*.c' -print | sort)
 if [[ "${#GENERATED_C[@]}" -eq 0 ]]; then
