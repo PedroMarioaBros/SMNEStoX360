@@ -284,3 +284,18 @@ A evidência de equivalência em 6.600 quadros mais PCM byte a byte aumenta a es
 ### Próxima etapa
 
 Enumerar os 18 callsites candidatos e suas tabelas inline, identificar os seis ainda não observados e criar cenários determinísticos para alcançá-los quando a análise do PRG indicar caminhos válidos. Repetir os quatro roteiros atuais como regressão, com gates de cobertura fail-fast, hash por quadro e PCM. Sem XEX/teste físico.
+
+
+## Follow-up — static dispatcher path verification and expanded scenarios (22/10/2026)
+
+A ROM-specific checker, `tools/analyze_unobserved_dispatchers.py`, now verifies the six previously unprofiled dispatcher callsites against the exact canonical ROM, including the destination words in their parent inline tables and the intermediate bytes/conditions. It is invoked by `tools/evaluate_nesrecomp.sh` and included in the workflow path filters.
+
+CI run [39775826447](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39775826447) completed **success** with the checker integrated. The checker validated all six static paths. The then-current four host scenarios also passed in the no-interpreter runner, with 6,600 frames of per-frame hashes matching and PCM/WAV identical byte-for-byte. The report explicitly labels the six target paths as *not yet dynamically observed*.
+
+The evaluator was subsequently expanded with two deterministic exploration scenarios:
+- `extended`: 9,000 frames, periodic running/jump input, intended to explore more of the level and object-state paths;
+- `run-only`: 5,400 frames of running input, intended to exercise a different gameplay/death route.
+
+These scenarios are exploratory rather than guaranteed triggers for the missing selectors. Their acceptance still depends on CI results: the interpreter-enabled profile must record any newly reached parent callsite/selector; then the no-interpreter runner must complete without a coverage miss and pass frame-hash and PCM/WAV parity. No results are claimed for this expanded matrix until its workflow run completes.
+
+The static checker and additional inputs do not change the canonical ROM, do not modify permanent seed/configuration files, and do not produce an Xbox executable. The weighted project estimate remains 22% pending new dynamic evidence.
