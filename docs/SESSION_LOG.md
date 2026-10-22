@@ -1083,3 +1083,13 @@ A identidade do commit que contém uma entrada pode ser consultada no histórico
 - Run iniciado para validar a integração: [39775826447](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39775826447). No momento deste registro, ainda estava `in_progress`; nenhum resultado é antecipado.
 - Ainda não foram acrescentados cenários de gameplay nem seeds permanentes. A próxima tarefa é tentar alcançar dinamicamente os seletores `$8215:2/3`, `$9664:1`, `$C27F:18/20/21/22/23`, `$C88F:16–22/29`, incluindo os dois predicados de RAM.
 - Percentual ponderado segue **22%**: a nova análise e o verificador melhoram a evidência/reprodutibilidade, mas ainda não adicionam cobertura dinâmica. Sem build Xenon/PowerPC, XEX ou teste físico.
+
+
+### S029 — expansão dos cenários de perfil dinâmico (22/10/2026)
+
+- Expandido `tools/evaluate_nesrecomp.sh` de quatro para seis cenários: os quatro originais permanecem; foram adicionados `extended` (9.000 quadros, entradas periódicas de corrida/pulo) e `run-only` (5.400 quadros, corrida sustentada).
+- Os novos roteiros são experimentos de exploração, não garantia de que os seletores pendentes serão alcançados. O harness perfiliza a referência com interpretador; os destinos efetivamente observados são aplicados apenas à configuração TOML temporária para construir o runner fail-closed sem interpretador; depois são exigidos hashes por quadro e PCM/WAV iguais.
+- Atualizado o resumo do script para informar seis cenários. Commits do harness: `11471574928a3eb8bf8a590ef87c74fb8641c62b` (cenários novos) e `54f5d7c3b8d07268ca1a0c6cd8f8d97cd90679c8` (resumo).
+- CI disparada pela PR #20: [run 39777011225](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39777011225). Na última consulta, o job `evaluate` ainda estava `in_progress`; logs completos ainda não estavam disponíveis. Não declarar sucesso/falha até conclusão.
+- Próxima análise deve verificar se a referência observou algum novo par callsite/seletor; especialmente `$8215:2/3`, `$9664:1`, `$C27F:18/20/21/22/23`, `$C88F:16–22/29`. Se os novos roteiros não alcançarem os seletores, registrar isso e ajustar o desenho dos inputs sem semear endereços arbitrários.
+- O gate final dos seis roteiros continua: ROM/hash intactos; runner sem interpretador; zero `NATIVE_COVERAGE_MISS`; hashes por quadro coincidentes; PCM/WAV byte idêntico. Até esses resultados, progresso ponderado continua **22%**. Sem build Xenon/PowerPC, XEX ou teste físico.
