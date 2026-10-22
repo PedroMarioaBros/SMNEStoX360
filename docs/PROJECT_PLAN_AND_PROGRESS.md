@@ -1,6 +1,6 @@
 # Plano mestre do projeto — SMB_v026 → Xbox 360 nativo
 
-**Revisão:** 21/10/2026  
+**Revisão:** 22/10/2026  
 **Branch de trabalho:** `research/nesrecomp-evaluation-20261018`  
 **PR de avaliação:** [#20 — Evaluate NESRecomp against the canonical SMB_v026 ROM](https://github.com/PedroMarioaBros/SMNEStoX360/pull/20)  
 **Última CI validada:** [run 39434891134 — success](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39434891134)
@@ -28,7 +28,7 @@ Critérios obrigatórios:
 - Em um runner experimental, o interpretador foi removido do build: `cpu6502_interp.c` não aparece em `build.ninja`, e o símbolo `cpu_interp_step` não aparece no executável.
 - Um perfil observou 57 combinações únicas de callsite/seletor em 12 dos 18 candidatos brutos a `JSR $8E04`; as chamadas e palavras de tabela observadas foram verificadas contra os bytes da ROM.
 - Quatro roteiros de host passaram sem interpretador, totalizando 6.600 quadros, com hashes de estado/trace iguais por quadro e PCM/WAV idêntico byte a byte.
-- A CI mais recente, run 39434891134, concluiu com success. O relatório da última análise é `docs/evidence/INLINE_DISPATCH_PROFILE_20261020.md`.
+- A CI mais recente, run 39434891134, concluiu com success. O relatório da última análise dinâmica é `docs/evidence/INLINE_DISPATCH_PROFILE_20261020.md`; a revisão estática posterior dos seis candidatos é `docs/evidence/UNOBSERVED_DISPATCH_STATIC_REVIEW_20261022.md`.
 
 ### O que ainda não foi provado
 - Cobertura de todos os caminhos, seletores, estados e fases do jogo.
@@ -154,12 +154,12 @@ Não contar como progresso concluído: tempo de execução, tentativa sem evidê
 
 ## 7. Próximas ações em ordem
 
-1. **Agora:** aproveitar a última CI bem-sucedida e revisar a listagem das seis chamadas não observadas, incluindo preview de bytes/tabela; distinguir dados de código.
-2. Criar roteiros determinísticos adicionais somente para caminhos justificados pela análise da ROM.
+1. **Concluído nesta revisão:** examinar os bytes dos seis candidatos e registrar limites prováveis das tabelas inline. Os seis são mais consistentes com dispatchers reais do que com dados acidentais, mas alcançabilidade dinâmica não foi provada. Ver `docs/evidence/UNOBSERVED_DISPATCH_STATIC_REVIEW_20261022.md`.
+2. **Próximo:** cruzar os seis callsites com o grafo de controle estático e caminhos de entrada/estado; criar roteiros determinísticos adicionais somente para caminhos justificados pela análise da ROM.
 3. Reexecutar os quatro roteiros atuais e todos os novos em runtime sem interpretador; exigir hashes por quadro e PCM/WAV idênticos.
 4. Fazer revisão independente de seeds e de cobertura; registrar caminhos ainda não demonstrados.
 5. Só então consolidar a decisão de arquitetura/licença e prosseguir para a matriz completa de conformidade host.
 6. Depois dos gates host, iniciar o trabalho de toolchain Xenon/PowerPC e executável mínimo.
 7. Integrar o jogo ao Xbox e preparar release somente após os gates anteriores.
 
-**Estado da etapa atual:** CI [39434891134](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39434891134) passou. Os seis candidatos ainda não observados são `$83A3`, `$921B`, `$9743`, `$C7A8`, `$C987`, `$D2E5`. O próximo passo é analisá-los; não produzir XEX nem pedir teste físico nesta fase.
+**Estado da etapa atual (22/10/2026):** CI [39434891134](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39434891134) é a última CI dinâmica registrada como success. A análise estática dos seis candidatos foi documentada, com limites prováveis de 5, 3, 3, 6, 7 e 5 entradas, respectivamente. Isso não aumenta por si só a cobertura dinâmica nem muda o baseline ponderado de 22%. Próximo passo: construir e validar cenários determinísticos que alcancem os callsites; não produzir XEX nem pedir teste físico nesta fase.
