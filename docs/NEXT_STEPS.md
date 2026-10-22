@@ -367,9 +367,12 @@ Nenhuma mudança de NAND, firmware ou bootloader.
 
 **Última evidência:** [run 39432801245](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39432801245) — success. Foram validados 57 pares callsite/seletor e 47 destinos diretamente contra a ROM. Quatro roteiros passaram sem interpretador; hashes por quadro iguais em 6.600 quadros e PCM/WAV idêntico byte a byte.
 
-### Tarefa ativa — revisão estática concluída, cobertura dinâmica pendente
-1. Revisão estática registrada em `docs/evidence/UNOBSERVED_DISPATCH_STATIC_REVIEW_20261022.md`: limites prováveis das tabelas são 5, 3, 3, 6, 7 e 5 entradas. Cinco candidatos vêm após `JMP`/`RTS` no fluxo linear e o sexto após branch condicional; não presumir que sejam alcançáveis.
-2. Próximo procedimento: localizar referências de controle que entrem em `$83A3`, `$921B`, `$9743`, `$C7A8`, `$C987`, `$D2E5`; determinar condições e estados de entrada antes de definir inputs determinísticos.
+### Tarefa ativa — caminhos parentais mapeados; cobertura dinâmica pendente
+1. Relatório `docs/evidence/UNOBSERVED_DISPATCH_STATIC_REVIEW_20261022.md` agora registra o caminho por tabela para todos os seis callsites, incluindo seletores e condições relevantes.
+2. Criado `tools/analyze_unobserved_dispatchers.py`, um verificador ROM-específico que confirma os bytes dos seis callsites, os destinos das tabelas parentais e as instruções intermediárias. O script foi ligado a `tools/evaluate_nesrecomp.sh` e à CI; isso verifica a análise estática, não prova cobertura dinâmica.
+3. Alvos para perfil dirigido: `$8215` seletores 2 e 3; `$9664` seletor 1; `$C27F` seletores 18, 20, 21, 22 e 23; `$C88F` seletores 16–22 e 29. O caminho para `$C987` também exige `$0747 == 0`; o caminho para `$D2E5` exige `$0746 < 5`.
+4. Próximo procedimento: criar cenários determinísticos e perfilá-los no runner de referência; só declarar alvo exercitado se o par callsite/seletor aparecer no log. Depois executar os cenários idênticos sem interpretador e exigir zero `NATIVE_COVERAGE_MISS`, hashes por quadro iguais e PCM/WAV byte a byte.
+5. Seeds derivados continuam temporários. Sem build Xenon/PowerPC, XEX ou teste físico.
 3. Executar cada cenário novo no runner sem interpretador, mantendo os quatro roteiros atuais como regressão. Não semear endereços só porque aparecem em bytes ou em logs.
 4. Gates obrigatórios: ROM/hash preservados, nenhuma falha `NATIVE_COVERAGE_MISS`, hashes `--hash-out` iguais por quadro, PCM/WAV igual byte a byte. Seeds derivados de perfil continuam temporários até revisão.
 5. Sem build Xenon/PowerPC, XEX ou teste físico. PR #20 permanece aberto e PR #19 sem merge.
@@ -379,4 +382,4 @@ Nenhuma mudança de NAND, firmware ou bootloader.
 
 Consultar [PROJECT_PLAN_AND_PROGRESS.md](PROJECT_PLAN_AND_PROGRESS.md) antes de escolher a próxima tarefa ou reportar porcentagens. O plano lista etapas P1–P8, pesos, procedimentos, gates e riscos. Base ponderada atual: **22%**; o valor não significa 22% de jogabilidade final e não é uma estimativa de prazo.
 
-**CI confirmada:** [39434891134](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39434891134) — success. A saída do verificador enumerou 18 candidatos brutos a `JSR $8E04`; 12 apareceram nos quatro roteiros, seis não foram observados. Próxima ação: examinar os bytes/contexto/tabelas de `$83A3`, `$921B`, `$9743`, `$C7A8`, `$C987`, `$D2E5` para distinguir tabelas de código alcançável. Só depois definir inputs determinísticos adicionais. Manter gates existentes de zero miss, hash por quadro e PCM/WAV byte a byte. Sem XEX/teste físico nesta etapa.
+**CI dinâmica anterior:** [39434891134](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39434891134) — success. A nova verificação estática foi adicionada ao harness; o run [39775826447](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39775826447) está em andamento no momento deste registro. Próxima ação: obter cobertura dinâmica dos seletores parentais identificados e exigir os mesmos gates de zero miss, hash por quadro e PCM/WAV byte a byte. Sem XEX/teste físico nesta etapa.
