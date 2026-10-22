@@ -154,12 +154,13 @@ Não contar como progresso concluído: tempo de execução, tentativa sem evidê
 
 ## 7. Próximas ações em ordem
 
-1. **Concluído nesta revisão:** examinar bytes e registrar limites prováveis das tabelas inline. Porém, cinco candidatos estão após `JMP`/`RTS` no fluxo linear e o sexto depende de branch condicional; ainda não sabemos se são blocos alcançáveis ou bytes não executados. Ver `docs/evidence/UNOBSERVED_DISPATCH_STATIC_REVIEW_20261022.md`.
-2. **Próximo:** localizar referências de controle que entrem nos seis blocos, determinar condições/estados de alcance e só então criar roteiros determinísticos adicionais.
-3. Reexecutar os quatro roteiros atuais e todos os novos em runtime sem interpretador; exigir hashes por quadro e PCM/WAV idênticos.
-4. Fazer revisão independente de seeds e de cobertura; registrar caminhos ainda não demonstrados.
-5. Só então consolidar a decisão de arquitetura/licença e prosseguir para a matriz completa de conformidade host.
-6. Depois dos gates host, iniciar o trabalho de toolchain Xenon/PowerPC e executável mínimo.
-7. Integrar o jogo ao Xbox e preparar release somente após os gates anteriores.
+1. **Concluído nesta revisão:** cruzar os seis callsites com as tabelas parentais. O relatório `docs/evidence/UNOBSERVED_DISPATCH_STATIC_REVIEW_20261022.md` registra as entradas e condições: `$8215` seletores 2/3, `$9664` seletor 1, `$C27F` seletores 18/20/21/22/23 e `$C88F` seletores 16–22/29. O caminho `$C987` exige `$0747 == 0`; o caminho `$D2E5` exige `$0746 < 5`.
+2. Criado `tools/analyze_unobserved_dispatchers.py` e integrado ao harness/CI para validar os bytes e destinos de tabela na ROM canônica. Isso verifica a análise estática, não conta como cobertura dinâmica.
+3. **Próximo:** criar cenários de perfil dirigidos para os pares callsite/seletor ainda ausentes. Para `$C987` e `$D2E5`, acompanhar também as condições de RAM registradas.
+4. Reexecutar os quatro roteiros atuais e todos os novos em runtime sem interpretador; exigir zero `NATIVE_COVERAGE_MISS`, hashes por quadro e PCM/WAV idênticos.
+5. Fazer revisão independente de seeds e de cobertura; registrar caminhos ainda não demonstrados.
+6. Só então consolidar a decisão de arquitetura/licença e prosseguir para a matriz completa de conformidade host.
+7. Depois dos gates host, iniciar o trabalho de toolchain Xenon/PowerPC e executável mínimo.
+8. Integrar o jogo ao Xbox e preparar release somente após os gates anteriores.
 
-**Estado da etapa atual (22/10/2026):** CI [39434891134](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39434891134) é a última CI dinâmica registrada como success. A análise estática dos seis candidatos foi documentada, com limites prováveis de 5, 3, 3, 6, 7 e 5 entradas. Revisão do contexto revelou que cinco vêm após `JMP`/`RTS` e um após branch condicional, portanto a alcançabilidade não pode ser inferida por bytes adjacentes. Isso não aumenta a cobertura dinâmica nem muda o baseline ponderado de 22%. Próximo passo: localizar referências de entrada e condições de alcance; não produzir XEX nem pedir teste físico nesta fase.
+**Estado da etapa atual (22/10/2026):** a última CI dinâmica concluída continua sendo [39434891134](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39434891134) — success. Os caminhos estáticos para os seis candidatos foram relacionados a seletores nas tabelas parentais; `tools/analyze_unobserved_dispatchers.py` foi integrado ao harness/CI. A CI [39775826447](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39775826447) estava em andamento no momento deste registro. O baseline ponderado permanece **22%**, pois nenhum caminho adicional foi confirmado dinamicamente. Próximo passo: perfil dirigido dos seletores listados; não produzir XEX nem pedir teste físico nesta fase.
