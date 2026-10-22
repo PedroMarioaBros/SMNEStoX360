@@ -38,6 +38,21 @@ A inspeção de contexto revelou que a desassemblagem linear não é suficiente 
 
 Esses terminadores não provam que os bytes seguintes sejam dados: tabelas de função, destinos de branches/jumps ou dispatchers podem criar entradas não lineares. Porém, eles impedem concluir que os candidatos sejam alcançáveis apenas pela proximidade de bytes. **A próxima análise precisa localizar referências de controle que entrem nesses blocos e determinar as condições necessárias**, antes de escolher inputs ou acrescentar seeds.
 
+## Busca heurística de referências de entrada (passagem 1)
+
+Foi feita uma varredura byte a byte do PRG canônico para procurar padrões de referência direta: `JMP abs` (`$4C`), `JSR abs` (`$20`) cujo operando fosse um dos seis endereços, e os oito branches relativos do 6502 cujo destino calculado coincidisse com um candidato.
+
+| Candidato | JMP/JSR direto encontrado | Branch relativo encontrado | Ocorrências brutas dos dois bytes do endereço |
+|---|---|---|---|
+| `$83A3` | nenhuma | nenhuma | nenhuma |
+| `$921B` | nenhuma | nenhuma | `$A727` |
+| `$9743` | nenhuma | nenhuma | nenhuma |
+| `$C7A8` | nenhuma | nenhuma | nenhuma |
+| `$C987` | nenhuma | nenhuma | `$8822`, `$D0CC` |
+| `$D2E5` | nenhuma | nenhuma | nenhuma |
+
+**Como interpretar:** esta é uma busca de padrões em bytes, não um grafo de controle 6502 validado. Ela pode produzir falsos positivos quando um byte de dados coincide com opcode e falsos negativos quando a entrada é indireta (por exemplo, tabela de ponteiros, salto indireto, retorno/stack ou código que a varredura linear não alinhou). Mesmo assim, o fato de não aparecer referência direta é um sinal útil: não devemos criar seeds nem roteiros para esses candidatos sem antes entender a origem da entrada. O próximo passo técnico é obter um mapa de blocos alcançáveis a partir dos vetores/raízes reconhecidos pelo recompilador e/ou rastrear tabelas de ponteiros relevantes.
+
 ## Limites desta entrega
 
 Não foi executada nesta revisão uma nova simulação de gameplay nem uma nova CI de runtime; portanto não há novos resultados dinâmicos para declarar. Nenhuma ROM foi modificada. Não houve build Xenon/PowerPC, XEX, integração Xbox ou teste físico. Esta é uma atualização de evidência estática e priorização do próximo experimento.
