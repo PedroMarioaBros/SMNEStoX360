@@ -4,6 +4,63 @@ O checkpoint descreve o presente; este diário preserva avanços, falhas e decis
 Cada nova sessão deve acrescentar uma entrada, seguindo CONTINUITY_PROTOCOL.md.
 A identidade do commit que contém uma entrada pode ser consultada no histórico Git.
 
+
+
+## S026 — 23/10/2026, oitavo cenário e avanço de 534 pixels
+
+- Código testado: 7f4d0cae87d6a804c4aa2d8d150fbd1c4ee71ef7. Push CI [39990420329 — SUCCESS](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39990420329); PR CI [39990426882 — SUCCESS](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39990426882).
+- Oito cenários passaram: 28.200 quadros, hashes/trace por quadro iguais, PCM/WAV idêntico byte a byte em todos, zero NATIVE_COVERAGE_MISS; a unidade/símbolo do interpretador permanece ausente.
+- obstacle-phase alcançou mundo-X 1244 (página 4, x=$DC, quadro 1080), comparado ao mundo-X 710 (página 2, x=$C6) anterior: avanço de 534 pixels. Reinicializou nos quadros 1234 e 2926; vidas $08; fase completa não demonstrada.
+- O perfil dinâmico foi de 62 para 64 pares callsite/seletor, 12 callsites e 52 destinos. Pares novos: $9664:8 -> $9B41 e $9664:25 -> $9B01.
+- Contextos $C907:18 mostraram ID bruto $12 ativo (flag=1) nos slots 0, 1 e 2 em vários roteiros. Isso explica seu dispatch de tipo em runtime; $C27F:18 no dispatcher de inicialização continua não observado.
+- Os 16 seletores prioritários seguem sem confirmação.
+- Progresso ponderado mudou de 22,0% para 22,4%: P3 foi recalibrado de 15% para 16%, P5 de 60% para 62%, por dois pares novos e uma rota mais longa com paridade host. P6–P8 permanecem em 0%; sem build Xenon, XEX ou teste físico.
+- Próximo passo: registrar coordenadas em maior resolução só na página >= 3 ou game_task=$0B, localizar o primeiro quadro de bloqueio em mundo-X 1244 e ajustar o timing de salto. Manter os oito cenários como regressão.
+
+
+## S025 — 23/10/2026, correção de perfil e teste de salto por fase
+
+- HEAD validado: `3650b2c17148ca47ef2d8181b96725ba1215377f`; CIs [39987103779 — SUCCESS](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39987103779) e [39987112324 — SUCCESS](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39987112324).
+- O commit intermediário `bfe2096` falhou porque o profiler imprimia `\\n` literal, fundindo eventos numa linha. O extrator identificou 37 pares em vez de 62 e o runner sem interpretador detectou miss `$9061` após `$8234:2`. O commit `3650b2c` corrigiu os terminadores; o extrator voltou a 62 pares / 12 callsites / 50 destinos, e os sete cenários regressivos passaram.
+- A CI corrigida validou sete cenários / 24.600 quadros, zero misses, hashes/trace por quadro iguais e PCM/WAV idêntico byte a byte. O interpretador continua fora do build experimental.
+- Foram coletados 420 registros contextuais. `$C27F` viu selectors 0/2/4/5/6/14 com IDs 00/02/04/05/06/0E; `$C88F` viu 0/26 e ID `$12` ativo no caminho genérico selector 0, não no callsite de inicialização `$C27F:18`.
+- O novo commit adiciona telemetria em `$C907` e cenário `obstacle-phase`: pulso nos frames 675/750 e depois intervalo 75, com 28 frames `RIGHT+A+B` e em seguida `RIGHT+B`. É hipótese a validar; CI nova pendente. Progresso ponderado segue 22%, sem XEX ou teste físico.
+
+
+## S024 — 23/10/2026, semântica dos seletores e perfil contextual
+
+- HEAD de entrada: `38abad83e59d81d853a53d8237bc1a0b15e86d38`. CIs push/PR do commit anterior passaram: [39924745832](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39924745832), [39924751591](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39924751591).
+- Cruzada a estrutura estática contra a listagem pública de disassembly do SMB NES em https://www.6502disassembly.com/nes-smb/SuperMarioBros.html; os bytes/tabelas relevantes também são verificados pela ferramenta `tools/analyze_unobserved_dispatchers.py` contra a ROM canônica.
+- Semântica identificada: `$8215` despacha `OperMode` (seletor 2 vitória, 3 Game Over); `$C88F` usa ID bruto menos `$14` nos tipos altos, com seletores 16–22 = IDs `$24–$2A` (plataformas grandes), seletor 29 = ID `$31` (bandeira); `$9664:1` é `AreaStyleObject`. Esses alvos não são todos cobertos por um roteiro da primeira fase.
+- Os sete cenários não mostraram os IDs de plataforma/bandeira. IDs presentes nos slots incluem `$02/$05/$06/$0E/$12/$2E`; a presença de `$12` em RAM não prova que `$C27F` tenha sido executado com seletor 18. O perfil permanece em 62 pares / 12 callsites / 50 destinos.
+- Acrescentada telemetria temporária `[DISPATCH_CONTEXT]` que registra contextos únicos por modo/tarefa/área e informações de slot (ID bruto, flag e classe de estado), mais buckets dos timers. Não altera estado/ciclos e não adiciona seeds.
+- O commit desta entrada ainda precisa de CI. Progresso global mantido em **22%**; nenhum XEX ou teste de console. Próxima ação: analisar os logs contextuais e escolher cenário legítimo para alcançar objetos/plataformas/bandeira, sem alegar cobertura não observada.
+
+
+## S023 — 23/10/2026, CI da telemetria filtrada aprovada
+
+- HEAD de entrada: `32c22083f0e936ff5284134c624b4aeefdc96c24`, branch `research/nesrecomp-evaluation-20261018`.
+- CIs do mesmo commit completaram SUCCESS: push [39923036457](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39923036457) e PR [39923040038](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39923040038).
+- `tools/prepare_nesrecomp_dispatch_profile.py` passou a reduzir a saída de snapshots repetidos sem modificar estado, barramento ou ciclos: gatilhos por mudanças discretas, periodicidade de 60 frames e mudança de `$0747` quando chega a `$05–$00`.
+- A saída de CI diminuiu de 2.315.428 para 431.490 bytes (~81% menos). O perfil de dispatch permanece em 62 pares únicos / 12 callsites / 50 destinos; os 16 seletores prioritários continuam ausentes.
+- Os sete cenários mantiveram PASS, 24.600 quadros comparados, zero `NATIVE_COVERAGE_MISS`, hashes por quadro iguais e PCM/WAV igual byte a byte. `cpu6502_interp.c` ficou fora do build experimental e `cpu_interp_step` ausente do executável de teste.
+- Nos estados de queda, `$0747=$30` é observado no `game_task=$06` e volta a `$00` quando a tarefa volta a zero; nenhum dos 16 seletores pendentes foi alcançado. O cenário `obstacle` permanece bloqueado na página 2/`x=$C6` e reinicia.
+- Correção de documentação/cabeçalho do harness: o sumário dizia “all six deterministic scenarios” apesar de executar sete; esta sessão corrige a contagem textual para sete.
+- Progresso ponderado permanece **22%**. Sem XEX, build Xenon/PowerPC ou teste físico.
+- Próximo comando após a CI deste commit: manter a regressão dos sete cenários e instrumentar a avaliação dinâmica de `$8215:2/3`, `$9664:1`, `$C27F:18/20/21/22/23` e `$C88F:16–22/29`, incluindo as condições associadas.
+
+
+## S022 — 23/10/2026, cenário obstacle e revisão da telemetria
+
+- HEAD de entrada: `3c64fcad12e36d380b6972365c3a77ad129fe3dc`, branch `research/nesrecomp-evaluation-20261018`.
+- CIs do commit confirmadas como success: push [39921081582](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39921081582) e PR [39921086708](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39921086708).
+- Sete cenários passaram no runner sem interpretador: idle 600, route 600, jump 1.800, long 3.600, extended 9.000, run-only 5.400 e obstacle 3.600. Total: 24.600 quadros com hashes/trace por quadro idênticos à referência; PCM/WAV idêntico nos sete. Zero `NATIVE_COVERAGE_MISS`; `cpu6502_interp.c` fora do build e símbolo `cpu_interp_step` ausente.
+- A sequência `obstacle` não superou o bloqueio: máxima posição página 2/`$C6` no quadro 775; queda/reinicialização nos quadros 985, 1763 e 3087. Vidas permaneceram `$08`; nenhum fim de fase ou Game Over foi provado.
+- O perfil de dispatch continuou em 62 pares callsite/seletor, 12 callsites e 50 destinos. Permanecem sem perfil os seletores `$8215:2/3`, `$9664:1`, `$C27F:18/20/21/22/23` e `$C88F:16/17/18/19/20/21/22/29`.
+- Os snapshots mostram `$0746=$00`; `$0747` tem comportamento de contagem regressiva nos estados de queda `game_task=$0B`. Como o valor mudava por quadro e disparava telemetria ruidosa, a alteração incluída no commit atual limita o log genérico às mudanças discretas e a cada 60 quadros, mantendo o registro das mudanças de `$0747` nos valores `$00–$05` para observar a condição zero de `$C987`.
+- O script de telemetria modificado ainda não foi validado pela CI do commit desta entrada; não apresentar a alteração como aprovada antes do resultado verde.
+- Progresso global permanece **22%**. Nenhum XEX/build Xenon ou teste físico produzido/solicitado. Próximo comando após a CI: analisar os logs de condição e seguir com o perfil seletivo dos seis candidatos `$83A3`, `$921B`, `$9743`, `$C7A8`, `$C987`, `$D2E5`.
+
 ## S001 — 06/10/2026, execução canônica no Work
 
 - HEAD recebido: b8de2f29f36316f386a3ff4c54f91a8c76c08b0f.
@@ -920,3 +977,196 @@ A identidade do commit que contém uma entrada pode ser consultada no histórico
 - PR [#18](https://github.com/PedroMarioaBros/SMNEStoX360/pull/18) aprovada pelo próprio CI de host e integrada por squash em `d0822da58767ec8ee078752694e6d679445089dd`.
 - CI do HEAD completo da PR: [run 39183794667](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39183794667), `completed/success`, head `386774b5aa05b79a24c38a92fb4b2911f45e5965`. O run de host associado ao commit que continha o tradutor e o self-test também passou: `39183681786`.
 - O resultado é somente validação host de uma POC de seis instruções; nenhum XEX ou teste Xbox foi feito. Próxima ação registrada em NEXT_STEPS: expandir para blocos básicos/branches e comparar estado contra o runtime de referência.
+
+## Avaliação NESRecomp — 18/10/2026
+
+- O proprietário autorizou pausar a expansão do tradutor estático próprio e
+  testar a viabilidade do NESRecomp genérico com a ROM canônica exata.
+- Consultada a documentação upstream: https://github.com/mstan/nesrecomp .
+  Ela descreve tradução estática 6502→C, backend de ciclos, runner NES e mapper
+  0 suportado. Também documenta um interpretador de fallback, que é incompatível
+  com o requisito final se for executado no produto.
+- Revisada a licença upstream `PolyForm Noncommercial 1.0.0`: pesquisa e hobby
+  pessoal não comercial são permitidos; uso comercial não está concedido.
+  Não vendorizamos nem copiamos código upstream nesta etapa.
+- Criados `tools/evaluate_nesrecomp.sh`, workflow CI e
+  `docs/evidence/NESRECOMP_EVALUATION.md`. O script verifica SHA-256, baixa um
+  commit upstream fixo, compila o gerador e tenta gerar C em diretório temporário.
+- Pin: `a39d9cdbec0ac98b1430ddb53747b5ed8f8cac87`.
+- Tentativa local de `git clone https://github.com/mstan/nesrecomp.git` falhou
+  por DNS: `Could not resolve host: github.com`. Não houve build nem geração
+  local; o workflow Actions deverá fornecer a evidência automatizada.
+- Código C gerado não é commitado nem enviado como artifact nesta fase. Não foi
+  adotado o port SMB de terceiros e não foi gerado XEX nem realizado teste físico.
+- A PR #19 da POC própria fica aberta e sem merge enquanto a avaliação estiver
+  pendente. Próxima ação: verificar o resultado real do workflow, corrigir erros
+  do harness e registrar cobertura/limitações antes de decidir a arquitetura.
+
+- Primeira CI falhou imediatamente porque o workflow chamou um script Bash com `sh` (`set: Illegal option -o pipefail`). Corrigido o workflow para invocar `bash`; isso é falha do harness, não do NESRecomp. A avaliação precisa rodar novamente.
+
+- CI de avaliação concluiu success: [run 39186504796](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39186504796); métricas completas no [run 39186469481](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39186469481).
+- NESRecomp compilou no runner Linux e reconheceu a ROM canônica: 2×16 KiB PRG, mapper 0, NMI `$8082`, RESET `$8000`, IRQ `$FFF0`.
+- Resultado de geração cycle-accurate: 1.305 instruções compiladas; 1 ficou para interpretador por cruzar fronteira de banco 4 KiB ou `$FFFF`; 5 arquivos C, 545.655 bytes, 14.397 linhas. Saída ficou em temp e não foi commitada.
+- Conclusão: geração estática substancial para a ROM exata é viável. Ainda não é aceitável como arquitetura final enquanto existir fallback interpretado. Próxima ação: localizar o alvo que sobrou, tentar cobri-lo estaticamente, depois compilar e comparar o runner host. Sem XEX e sem teste físico.
+
+### Próximo ciclo — diagnóstico do tail do NESRecomp (19/10/2026)
+
+- O run mais recente da PR #20, [39186568820](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39186568820), concluiu `success` no commit de avaliação. A geração e a verificação da ROM continuam reproduzíveis.
+- Inspecionada a lógica do backend cycle no pin upstream: o contador `tails` mede posições visitadas (`seen`) mas não compiladas (`!is_insn`), quando a instrução não cabe no slot de 4 KiB. O log atual não revela o endereço individual.
+- A ROM canônica contém bytes `DE 42 E2` em CPU `$9FFF`; `DE` é DEC absoluto,X de 3 bytes e atravessaria o slot. Esse é o candidato mais forte para o único tail, mas ainda não é prova de que seja a entrada visitada pelo analisador. Não afirmar endereço confirmado até adicionar diagnóstico temporário ao build do CI.
+- Comentário de continuidade deixado na PR #20 (comentário ID 6260695162): próxima alteração proposta imprime apenas bank/slot/endereço/opcode/comprimento para cada `seen && !is_insn`, sem guardar nem publicar C gerado. O diagnóstico deve acontecer na cópia temporária do upstream e manter o pin fixo.
+- Próximo gate: confirmar o endereço com instrumentação, verificar se existe forma genérica de compilá-lo estaticamente sem manter fallback; depois compilar runner host e executar testes determinísticos. Nenhum XEX ou teste físico.
+
+
+### S023 — NESRecomp tail diagnostic confirmed (19/10/2026)
+
+- Added `tools/nesrecomp-tail-diagnostic.patch`, a minimal temporary patch applied only to the pinned upstream checkout under the CI temp directory. It prints only bank, slot, address, opcode and length for `seen && !is_insn` entries; generated C remains temporary, not uploaded/committed.
+- Harness `tools/evaluate_nesrecomp.sh` now applies the patch and checks that diagnostic-record count equals NESRecomp's reported interpreter-tail count.
+- First diagnostic CI attempt failed because the first patch hunk had no surrounding context; this was a harness/patch-format issue, not a NESRecomp generation failure. The patch was corrected to include context and rerun.
+- Successful diagnostic run: [39207665461](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39207665461), head `33c694c163d4586a50c84e1d9d2387ad2878e218`, status success. It reported exactly one tail: bank 7, slot 7, CPU `$FFFF`, opcode `$FF`, length 3. Count matched the compiler summary; output metrics stayed 5 C files / 545,655 bytes / 14,397 lines.
+- Confirmed input context: PRG vector bytes at `$FFFA-$FFFF` are `82 80 00 80 F0 FF`; IRQ vector `$FFFE-$FFFF` equals `$FFF0`. Cycle generator seeds NMI/RESET/IRQ vectors; its decoder path from the IRQ-vector seed eventually reaches `$FFFF`, where a three-byte instruction would wrap. This strongly suggests false code discovery into vector/table bytes; it is not proof of a gameplay-reachable instruction.
+- Correction to the previous log hypothesis: `$9FFF` was not the fallback; confirmed diagnostic target is `$FFFF`.
+- Next gate: investigate a generic/configurable way to prevent the bogus IRQ-vector target from being decoded as code; verify the title's actual IRQ usage before disabling/excluding that path; then determine how to build a runtime with no 6502 interpreter at all, compile/run the generic runner on host, and compare deterministic states/frames to the independent reference. No XEX, no hardware test, no third-party SMB port adoption.
+
+
+### S024 — teste controlado de anotação data_region (19/10/2026)
+
+- Adicionado patch experimental `tools/nesrecomp-data-region-vector.patch`: no checkout temporário do pin upstream, a geração cycle-accurate consulta `GameConfig.data_regions` antes de adicionar um alvo de vetor como seed. A configuração `tools/nesrecomp_smb_v026_data_region_experiment.toml` marca bank 7, intervalo `$FFF0-$FFFE`, como dados. Isso complementa o patch de telemetria; não copia/vendoriza o upstream.
+- O primeiro CI do novo patch falhou por contagem incorreta de linhas em hunk unificado (tentativas #47–50). Corrigido o cabeçalho do segundo hunk; não era falha de geração nem da ROM.
+- Run bem-sucedido [39208412755](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39208412755), head `99861548e12e5f255c6fbb4f345a0649bfb73c16`: baseline no upstream pinado mais telemetria encontrou 1 tail em `$FFFF` (1.305 instruções compiladas); experimento com `data_region` imprimiu `[VECTOR_DATA_REGION] vector=$FFFE target=$FFF0 bank=7 skipped`, compilou 1.298 instruções e reportou 0 tails. Código C gerado em ambos os runs ficou no temp e não foi publicado.
+- Interpretação: a anotação explícita pode remover da análise o falso caminho iniciado pelo vetor IRQ $FFF0, quando o ciclo é adaptado para respeitar `data_regions`. O pin upstream sem patch não respeita essa anotação na seed dos vetores. Isso não prova que IRQ nunca aconteça, nem que o runtime final possa ficar sem fallback/interpreter sem falha. A faixa é uma hipótese específica da ROM e não deve ser considerada configuração final aprovada.
+- Próximos gates: confirmar a utilização/inibição de IRQ no caminho real da ROM; tornar qualquer destino não compilado um trap de cobertura (não um interpretador); provar por inspeção do binário que o interpretador 6502 foi removido do runtime; só então compilar/executar o runner host com cenários determinísticos e comparar estado/quadro. Sem XEX e sem teste físico.
+
+## S020 — 20/10/2026, teste de runtime sem interpretador e porcentagens
+
+- Continuação da avaliação NESRecomp na branch `research/nesrecomp-evaluation-20261018`; o tradutor próprio permanece pausado e PR #19 sem merge.
+- Foram adicionados experimentos temporários ao harness para: atravessar instruções entre slots de ROM fixos; distinguir despacho inline tipo tail-jump de chamadas com retorno; excluir a unidade de tradução do interpretador e manter apenas a tabela de metadados necessária; executar o runner com trap fail-fast em qualquer PC sem código nativo.
+- A geração configurada reportou 4.849 instruções. A inspeção estrutural confirmou `cpu6502_interp.c` ausente de `build.ninja` e `cpu_interp_step` ausente dos símbolos do executável experimental.
+- **Falha real de cobertura:** o runner parou em `[NATIVE_COVERAGE_MISS] pc=$9B0E bank=1`. Portanto, a remoção estrutural do interpretador foi demonstrada no build experimental, mas o cenário ainda não pode continuar com todo o fluxo compilado nativamente. Seeds manuais para alvos de despacho inline não fecharam a cobertura e não devem virar a solução final.
+- Execução observada: [39210393377](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39210393377), falha no gate de cobertura após a inspeção de símbolos.
+- Percentuais de gates estimados e registrados no checkpoint: entrada ROM 100%; build do gerador 100%; prova de geração C 100%; remoção estrutural do interpretador no experimento 100%; cobertura sem interpretador 35%; runner host reproduzível 10%; equivalência funcional 0%; port Xbox/XEX 0%; validação física 0%; port funcional completo 10%.
+- Próxima ação: ampliar o trap para registrar PC/banco/opcode/origem da transferência, diagnosticar `$9B0E` e corrigir a descoberta genérica de fluxo. Não gerar XEX nem pedir teste físico. Nenhum C gerado foi commitado ou publicado.
+
+
+### S021 — execução nativa sem interpretador em dois roteiros amostrados (20/10/2026)
+
+- Instrumentei o fetch nativo e o trap em tools/prepare_nesrecomp_interpreterless.py. O log de miss registra PC, banco, opcode, última transferência e histórico recente. O miss inicial $9061 veio de JMP indireto ($6C) em $8E16, destino calculado pelo dispatcher inline chamado a partir de código normal. Isso mostra um fluxo computado que a análise estática não descobria automaticamente.
+- Acrescentei tools/prepare_nesrecomp_runtime_seed.py e refatorei tools/evaluate_nesrecomp.sh para uma experiência limitada de cobertura guiada por execução. Cada endereço ROM alcançado e não compilado é adicionado somente à cópia temporária do TOML; limite rígido de 24 seeds.
+- Corrigi a interpretação de endereços hexadecimais (a string 9061 era lida como decimal) e acrescentei o helper aos filtros do workflow.
+- **Run CI com sucesso:** [39417601965](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39417601965), avaliação do PR #20. O runner foi reconstruído sem cpu6502_interp.c e o executável não contém cpu_interp_step.
+- Foram necessários oito seeds temporários: $9061, $8245, $AEDC, $AEEA, $B069, $B376, $C328, $C9D8. O roteiro idle/título de 600 quadros executou 17.865.920 ciclos, 100,0% nativos; o roteiro com entrada roteirizada de 600 quadros executou 17.865.925 ciclos, também 100,0% nativos. Ambos concluíram com zero instruções interpretadas. C gerado permaneceu no diretório temporário e não foi publicado.
+- A passagem cobre **somente os dois roteiros observados**, não todos os caminhos do SMB, nem prova equivalência de quadro/estado/áudio, nem executável Xbox. Auto-seeding é diagnóstico temporário, ainda não um algoritmo genérico de descoberta de fluxo.
+- Progresso geral estimado atualizado de 10% para **12%**. Diferencial de quadros/estado/áudio = 0%; Xbox/XEX = 0%; teste físico = 0%.
+- Próxima tarefa: construir runner de referência com interpretador habilitado e usar a mesma ROM/configuração/inputs para comparar --hash-out por quadro contra o runner sem interpretador. Depois ampliar gameplay/transições. PR #20 aberto, PR #19 sem merge. Nenhum XEX ou teste físico.
+
+
+### S022 — comparação diferencial aprovada por quadro (20/10/2026)
+
+- O evaluator agora também constrói um runner de referência com interpretador habilitado, usando a mesma ROM canônica e o config experimental versionado sem os oito seeds descobertos durante execução. A cópia do upstream utilizada para a referência tem a fonte original do dispatcher/interpreter restaurada; as mudanças do gerador usadas para estudar os alvos ficam no compilador temporário.
+- **Run bem-sucedido:** [39418368074](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39418368074).
+- Comparação com --hash-out, por quadro, coincidiu em todos os 600 quadros idle/título e todos os 600 quadros com input roteirizado. As hashes cobrem trace observável, memória/pixels, registradores CPU e estado interno de hardware.
+- A referência realmente utilizou fallback: 17.152 ciclos ROM (0,1%) no roteiro idle e 1.145.069 ciclos ROM (6,4%) no roteiro roteirizado. O build sem interpretador fez 100,0% dos ciclos nativamente nos mesmos roteiros. Isso constitui evidência de que os destinos descobertos podem ser recompilados sem mudar o resultado observável nesses cenários.
+- O auto-seeding adicionou oito PCs somente ao TOML temporário; a configuração do repositório não recebeu esses endereços. Os C gerados continuaram no diretório temporário e não foram publicados.
+- Limite: são 1.200 quadros em apenas dois inputs, não cobertura da ROM inteira. A saída PCM exportada não foi comparada separadamente, o gameplay mais longo não foi validado, e Xenon/XEX/hardware continuam sem progresso nesta etapa.
+- Progresso geral estimado passou de 12% para **15%** pela evidência de equivalência por quadro nos roteiros amostrados.
+- Próxima tarefa: expandir inputs/quadros para percorrer mais gameplay, comparar --hash-out em cada variante e manter o trap fail-fast. Em seguida comparar PCM/áudio. Sem XEX e sem teste físico. PR #20 aberto e PR #19 sem merge.
+
+
+### S023 — matriz ampliada e equivalência por quadro (20/10/2026)
+
+- Atualizei tools/evaluate_nesrecomp.sh para incluir dois novos roteiros temporários: movimento/pulo por 1.800 quadros e input estendido por 3.600 quadros, além dos dois roteiros originais de 600 quadros. O loop fail-fast volta a construir/rodar ao observar um destino ROM novo, com limite de 24 seeds em cópia temporária do TOML.
+- **CI success:** [39418927424](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39418927424).
+- Foram necessárias 15 seeds temporárias no total: $9061, $8245, $AEDC, $AEEA, $B069, $B376, $C328, $C9D8, $BC85, $B245, $B269, $91CD, $C2F1, $B36D, $860D. Nenhuma foi adicionada ao config versionado.
+- O runner sem interpretador passou nos quatro cenários a 100,0% nativo: 600 quadros idle, 600 rota curta, 1.800 movimento/pulo e 3.600 rota longa. Contagens de ciclos: 17.865.920; 17.865.925; 53.602.527; 107.207.435 (respectivamente).
+- O runner de referência usou fallback ROM nestes cenários (17.152; 1.145.069; 4.788.327; 8.937.607 ciclos ROM interpretados, respectivamente). Apesar disso, os hashes --hash-out coincidiram por quadro entre referência e runner sem interpretador nos quatro cenários, total de **6.600 quadros**.
+- Os hashes abrangem trace/memória/pixels/CPU/estado interno de hardware. Não houve comparação independente do PCM/WAV final, nem prova de cobertura de todos os estados/rotas da ROM. Código gerado continua temporário e não publicado.
+- Percentual global estimado: **18%**. A etapa de Xbox/XEX e validação física permanece em 0%.
+- Próximo passo: análise genérica do dispatcher indireto $8E16 para reduzir seeds temporários, manter os quatro testes diferenciais como regressão e comparar PCM/WAV independente. Sem XEX/teste físico. PR #20 segue aberto e PR #19 sem merge.
+
+
+### S025 — profile verificado contra o PRG e paridade PCM aprovada (20/10/2026)
+
+- CI **success**: [39432801245](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39432801245).
+- Rejeitada a tentativa de transformar cada PC do miss-log do interpretador em seed: run [39429365074](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39429365074) mostrou 2.072 entradas, incluindo PCs sequenciais interpretados. Foi substituída por instrumentação da entrada real do dispatcher inline em $8E04.
+- O verificador `tools/verify_nesrecomp_dispatch_profile.py` confirmou bytes JSR e alvos inline no PRG canônico: 18 candidatos brutos, 12 callsites vistos nos roteiros, 57 pares callsite/seletor e 47 destinos únicos; PASS. Relatório: `docs/evidence/INLINE_DISPATCH_PROFILE_20261020.md`.
+- Oito? **Correção:** a configuração temporária recebeu 17 novos seeds (não 8): $8245, $860D, $9061, $9071, $91CD, $AEDC, $AEEA, $B069, $B0E9, $B245, $B269, $B36D, $B376, $BC85, $C2F1, $C328, $C9D8. A lista base no TOML não foi alterada.
+- Runner sem interpretador confirmou ausência de `cpu6502_interp.c` em `build.ninja` e ausência de `cpu_interp_step` nos símbolos. Quatro roteiros passaram 100% nativos: idle 600, rota curta 600, movimento/pulo 1.800, rota longa 3.600 quadros.
+- Hashes `--hash-out` coincidiram por quadro nos 6.600 quadros. PCM/WAV 48 kHz mono 16-bit coincidiu byte a byte em todos os roteiros: idle SHA `2cef570772cd9740096484f400d2119e9f1e04e6ff84f0bedc6b85f1377e108c`; rota curta `74abe61c0278cb3368c448cbaace9138cdbb8e595b05324459ee0a500784d342`; movimento/pulo `b03e2bd423f2456d5b5872d6a6d3263ae4ef16f6f7845e0aa5792158c4629ee9`; rota longa `bf45771e7c88f372c0e19e73fb5468c9c0f92eda9d1b9d258881ce3ff216e67a`.
+- Os seeds continuam somente no TOML temporário. C gerado não foi commitado. Progresso funcional estimado: **20%**; Xenon/XEX e físico 0%.
+- Próxima ação: listar os 18 candidatos JSR e examinar os seis callsites não exercitados, expandindo entradas determinísticas com base no PRG. Sem XEX/teste físico; PR #20 aberto; PR #19 pausado.
+
+
+### S026 — plano mestre profissional e baseline ponderada (21/10/2026)
+
+**Pedido do proprietário:** transparência total sobre etapas, processos, procedimentos e percentual profissional do planejamento.
+
+- Criado `docs/PROJECT_PLAN_AND_PROGRESS.md`, que se torna referência para objetivo final, restrições, oito etapas ponderadas (P1–P8), procedimentos detalhados, gates de aceite, riscos, riscos de licença, formato de report e próximos passos.
+- A tabela de pesos soma 100%. Baseline atual ponderada: **22%** (P1 5,0 + P2 6,0 + P3 3,0 + P4 2,0 + P5 6,0 = 22,0 pontos ponderados). Esta é uma estimativa de engenharia, não linhas de código nem cronograma; a revisão explica a diferença para a antiga estimativa qualitativa de 20%.
+- Links do plano adicionados a `START_HERE.md`, `docs/WORK_CHECKPOINT.md` e `docs/NEXT_STEPS.md`.
+- Estado verificado: CI [39434891134](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39434891134) **success**; PR #20 aberto e não mergeado.
+- Confirmado em logs: 18 candidatos brutos a `JSR $8E04`; 12 callsites observados; seis não observados: `$83A3`, `$921B`, `$9743`, `$C7A8`, `$C987`, `$D2E5`. O verificador mostra contexto de bytes e preview de palavras de tabela; ainda não foi provado que cada candidato seja uma entrada de código alcançável.
+- Evidência já disponível: 57 pares caller/seletor validados contra a ROM; quatro roteiros host sem interpretador; 6.600 quadros com hashes iguais e PCM/WAV idêntico byte a byte.
+- Limites: não há XEX final validado, não há port Xenon/PowerPC demonstrado e não foi solicitado teste físico. Seeds e código C gerado seguem temporários.
+- Próxima ação técnica: análise estática/manual dos seis candidatos e seus contextos; criar cenários adicionais somente quando houver hipótese de caminho alcançável justificável pela ROM; manter os gates de zero miss, hash por quadro e PCM.
+
+
+### S027 — revisão estática dos seis dispatchers não observados (22/10/2026)
+
+- Continuidade a partir do plano profissional S026. ROM canônica consultada na branch de pesquisa; identidade preservada: 40.976 bytes, SHA-256 `57fb4ee14288853bc0c8a5a629a103e51e87a4ebae1cc699b435060d2690b047`.
+- Revisados os seis candidatos `JSR $8E04` que não apareceram nos quatro roteiros dinâmicos: `$83A3`, `$921B`, `$9743`, `$C7A8`, `$C987`, `$D2E5`. Os bytes em cada endereço correspondem a `20 04 8E`; as palavras inline e a instrução plausível no limite seguinte sugerem, respectivamente, tabelas com 5, 3, 3, 6, 7 e 5 entradas.
+- Nova evidência criada: `docs/evidence/UNOBSERVED_DISPATCH_STATIC_REVIEW_20261022.md`. As conclusões são estáticas e preliminares: não provam que todos os callsites sejam alcançáveis, nem que todos os seletores sejam cobertos.
+- Atualizados `docs/PROJECT_PLAN_AND_PROGRESS.md` e `docs/NEXT_STEPS.md`: o item de inspeção de bytes está concluído; o próximo passo é cruzar os callsites com o grafo de controle/estados e preparar cenários determinísticos justificáveis.
+- Nenhuma ROM, configuração permanente, seed ou código gerado foi alterado. Não foi executada nova CI dinâmica nesta sessão, então a última evidência dinâmica continua sendo run [39434891134](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39434891134), success.
+- Não houve mudança de percentual: **22% ponderado** permanece baseline de engenharia. Análise estática melhora a compreensão do risco, mas não conta como cobertura dinâmica adicional.
+- Sem build Xenon/PowerPC, XEX, integração Xbox ou teste físico. PR #20 continua como avaliação aberta; PR #19 segue sem merge.
+- Próxima ação: criar mapa de fluxo de controle para os seis dispatchers e identificar entradas/estados que possam alcançá-los; só então desenhar testes e executar regressão com zero `NATIVE_COVERAGE_MISS`, hashes por quadro iguais e PCM/WAV byte-idêntico.
+
+
+**Adendo S027 — cautela de fluxo de controle:** ao conferir os bytes anteriores, identifiquei que cinco candidatos (`$83A3`, `$921B`, `$9743`, `$C7A8`, `$C987`) aparecem após `JMP` incondicional ou `RTS` no fluxo linear; `$D2E5` depende de um branch condicional anterior. Isso não classifica automaticamente os bytes como dados, pois pode haver entradas não lineares, mas significa que a revisão inicial da tabela não prova alcançabilidade. O relatório, o plano e `NEXT_STEPS.md` foram corrigidos para priorizar referências de entrada/condições de alcance antes de criar cenários. Percentual segue **22%**, sem novos testes dinâmicos.
+
+
+### S028 — referências parentais identificadas e verificador integrado (22/10/2026)
+
+- Ampliei a análise dos seis callsites ainda ausentes dos perfis: em vez de procurar só referência direta ao endereço do `JSR $8E04`, percorri os destinos das tabelas parentais. Os caminhos encontrados foram:
+  - `$8215`, seletor 2 → `$838B` → `JSR $83A0` → `$83A3`;
+  - `$8215`, seletor 3 → `$9218` → `$921B`;
+  - `$9664`, seletor 1 → `$9740` → `$9743`;
+  - `$C27F`, seletores 18, 20–23 → `$C7A0` → `$C7A8`;
+  - `$C88F`, seletores 16–22 → `$C965`; o fluxo só chega a `$C987` quando `$0747 == 0`;
+  - `$C88F`, seletor 29 → `$D2D9`; o fluxo só chega a `$D2E5` quando `$0746 < 5`.
+- Evidência detalhada em `docs/evidence/UNOBSERVED_DISPATCH_STATIC_REVIEW_20261022.md`; o relatório diferencia cada relação estática de prova dinâmica.
+- Criado `tools/analyze_unobserved_dispatchers.py` para validar o SHA/tamanho da ROM, bytes dos callsites, palavras nas tabelas parentais e instruções intermediárias esperadas. A ferramenta não modifica ROM/configuração e não afirma cobertura dinâmica.
+- Integração: `tools/evaluate_nesrecomp.sh` executa o verificador, e o workflow `.github/workflows/nesrecomp-evaluation.yml` agora aciona CI se o script mudar. Commits relevantes: `d8219215803e58de3ad8fd728ee16d7b5376a662` (verificador), `e00a203e7fb62c168a60264c92beb3a57e2d3727` (harness), `3413d6aa9094fc6ed4528d5be3cf52431524880a` (filtro CI).
+- Run iniciado para validar a integração: [39775826447](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39775826447). No momento deste registro, ainda estava `in_progress`; nenhum resultado é antecipado.
+- Ainda não foram acrescentados cenários de gameplay nem seeds permanentes. A próxima tarefa é tentar alcançar dinamicamente os seletores `$8215:2/3`, `$9664:1`, `$C27F:18/20/21/22/23`, `$C88F:16–22/29`, incluindo os dois predicados de RAM.
+- Percentual ponderado segue **22%**: a nova análise e o verificador melhoram a evidência/reprodutibilidade, mas ainda não adicionam cobertura dinâmica. Sem build Xenon/PowerPC, XEX ou teste físico.
+
+
+### S029 — expansão dos cenários de perfil dinâmico (22/10/2026)
+
+- Expandido `tools/evaluate_nesrecomp.sh` de quatro para seis cenários: os quatro originais permanecem; foram adicionados `extended` (9.000 quadros, entradas periódicas de corrida/pulo) e `run-only` (5.400 quadros, corrida sustentada).
+- Os novos roteiros são experimentos de exploração, não garantia de que os seletores pendentes serão alcançados. O harness perfiliza a referência com interpretador; os destinos efetivamente observados são aplicados apenas à configuração TOML temporária para construir o runner fail-closed sem interpretador; depois são exigidos hashes por quadro e PCM/WAV iguais.
+- Atualizado o resumo do script para informar seis cenários. Commits do harness: `11471574928a3eb8bf8a590ef87c74fb8641c62b` (cenários novos) e `54f5d7c3b8d07268ca1a0c6cd8f8d97cd90679c8` (resumo).
+- CI disparada pela PR #20: [run 39777011225](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39777011225). Na última consulta, o job `evaluate` ainda estava `in_progress`; logs completos ainda não estavam disponíveis. Não declarar sucesso/falha até conclusão.
+- Próxima análise deve verificar se a referência observou algum novo par callsite/seletor; especialmente `$8215:2/3`, `$9664:1`, `$C27F:18/20/21/22/23`, `$C88F:16–22/29`. Se os novos roteiros não alcançarem os seletores, registrar isso e ajustar o desenho dos inputs sem semear endereços arbitrários.
+- O gate final dos seis roteiros continua: ROM/hash intactos; runner sem interpretador; zero `NATIVE_COVERAGE_MISS`; hashes por quadro coincidentes; PCM/WAV byte idêntico. Até esses resultados, progresso ponderado continua **22%**. Sem build Xenon/PowerPC, XEX ou teste físico.
+
+## 23/10/2026 — revisão da CI ampliada e próximo experimento dirigido
+
+- Estado no início do ciclo: branch `research/nesrecomp-evaluation-20261018`, commit `6e94f561f7274f0368929e1c73b0e1c22e0863d0`, PR #20 aberta; PR #19 pausada.
+- Inspecionei os logs reais de [CI 39778074358](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39778074358), que terminou `success`.
+- A CI cobriu seis roteiros: idle 600, route 600, jump 1.800, long 3.600, extended 9.000, run-only 5.400 = **21.000 quadros**. Em todos, o runtime temporário sem interpretador chegou ao fim, rodou com 100% de ciclos nativos, e hashes por quadro e PCM/WAV coincidiram com a referência.
+- O perfil produziu 62 pares únicos (callsite,seletor), 12 callsites e 50 destinos. Os seletores da análise estática ainda não foram atingidos: `$8215:2/3`, `$9664:1`, `$C27F:18/20/21/22/23`, `$C88F:16–22/29`. Os roteiros mais longos não bastaram; usar observabilidade de estado antes de definir novas rotas.
+- Percentual ponderado permanece **22%**: amostra diferencial maior, porém nenhum alvo de cobertura pendente ganhou confirmação dinâmica e o port Xenon/PowerPC/XEX não começou.
+- Próximo experimento: modificar o profiler temporário para emitir snapshots `[SMB_STATE]` da RAM nos limites de frame. O código da instrumentação está nesta atualização e ainda precisa ser validado pela próxima CI.
+- Depois, construir cenários por estado/objeto; só contar um par após observá-lo na referência, seguido de regressão sem interpretador com miss=0, hashes iguais e PCM/WAV idêntico.
+- Nenhum XEX foi gerado, nenhum teste físico foi solicitado; ROM intacta, C gerado não publicado.
+
+## 23/10/2026 — snapshots de gameplay aprovados; teste de salto antecipado preparado
+
+- CI [39919520366](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39919520366) terminou `success` no commit `b78b93cd0e1f810e6ea79e4cbedc86f315e01b12`.
+- A instrumentação temporária `[SMB_STATE]` compilou e emitiu snapshots; os seis cenários/21.000 quadros mantiveram paridade de hash por quadro e PCM/WAV byte a byte, runtime sem interpretador e 100% de ciclos nativos.
+- O perfil de estado mostrou modo de jogo `$01`, progressão até página 2 / x≈`$D2`, depois `game_task=$06` e reinicialização. O campo vidas permaneceu `$08`; não há vitória nem Game Over demonstrado.
+- IDs em `$0016-$001B` observados: `$02,$05,$06,$0E,$12,$18,$2E`. O ID `$12` em RAM não ocasionou o seletor 18 em `$C27F`; não confundir presença de dados com prova de execução do caminho.
+- Próxima mudança: incluir `$0746/$0747` nos snapshots para avaliar condições dos caminhos `$D2E5/$C987`, e testar cenário `obstacle` com saltos de 28 frames iniciados cedo, seguido de 32 frames de RIGHT+B. Os seis roteiros anteriores ficam como regressão.
+- Percentual ponderado fica em **22%**. Sem XEX novo, teste físico, alteração da ROM ou publicação do C gerado.

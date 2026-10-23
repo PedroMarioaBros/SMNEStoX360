@@ -45,3 +45,17 @@
     retestar nem emitir novo XEX automaticamente.
 
 14. POC de recompilação estática em andamento: execute `python3 tools/static6502_poc.py --self-test` e `sh tests/run_host_tests.sh`. A ferramenta deve rejeitar opcodes ainda não suportados; não ampliar cobertura sem testes de flags/endereçamento e comparação diferencial. A evidência atual cobre apenas seis instruções lineares do reset e não autoriza alegar recompilação integral ou gerar XEX.
+
+14. **Avaliação NESRecomp (18/10/2026):** a pedido do proprietário, pausar a
+    expansão do tradutor próprio até avaliar `tools/evaluate_nesrecomp.sh` e
+    `docs/evidence/NESRECOMP_EVALUATION.md`. Usar a ROM canônica e o commit
+    upstream fixado pelo harness. Não copiar, incorporar ou versionar código ou jogo de
+    terceiros sem revisão de licença; não usar o port SMB de terceiros como base.
+    A licença upstream consultada é PolyForm Noncommercial 1.0.0.
+15. A documentação NESRecomp descreve um interpretador de fallback. O objetivo
+    final proíbe esse fallback no runtime; cobertura estática completa e ausência
+    de execução interpretada precisam ser demonstradas antes de considerar
+    adoção. Geração de C, CI verde ou build host não provam XEX nem jogabilidade.
+16. Não versionar nem publicar o código gerado por este primeiro harness. A
+    avaliação guarda-o em diretório temporário e registra apenas métricas/logs
+    necessários. Não gerar XEX nem solicitar teste físico nesta fase.

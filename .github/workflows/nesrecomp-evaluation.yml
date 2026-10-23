@@ -1,0 +1,54 @@
+name: NESRecomp canonical ROM evaluation
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'assets/canonical/SMB_v026.nes'
+      - 'tools/evaluate_nesrecomp.sh'
+      - 'tools/analyze_unobserved_dispatchers.py'
+      - 'tools/prepare_nesrecomp_interpreterless.py'
+      - 'tools/prepare_nesrecomp_runtime_seed.py'
+      - 'tools/prepare_nesrecomp_runtime_seeds.py'
+      - 'tools/prepare_nesrecomp_dispatch_profile.py'
+      - 'tools/prepare_nesrecomp_dispatch_seeds.py'
+      - 'tools/verify_nesrecomp_dispatch_profile.py'
+      - 'tools/prepare_nesrecomp_fixed_slot_crossing.py'
+      - 'tools/prepare_nesrecomp_inline_jmp.py'
+      - 'tools/nesrecomp-tail-diagnostic.patch'
+      - 'tools/nesrecomp-data-region-vector.patch'
+      - 'tools/nesrecomp_smb_v026_data_region_experiment.toml'
+      - 'docs/evidence/NESRECOMP_EVALUATION.md'
+      - '.github/workflows/nesrecomp-evaluation.yml'
+  pull_request:
+    paths:
+      - 'assets/canonical/SMB_v026.nes'
+      - 'tools/evaluate_nesrecomp.sh'
+      - 'tools/analyze_unobserved_dispatchers.py'
+      - 'tools/prepare_nesrecomp_interpreterless.py'
+      - 'tools/prepare_nesrecomp_runtime_seed.py'
+      - 'tools/prepare_nesrecomp_runtime_seeds.py'
+      - 'tools/prepare_nesrecomp_dispatch_profile.py'
+      - 'tools/prepare_nesrecomp_dispatch_seeds.py'
+      - 'tools/verify_nesrecomp_dispatch_profile.py'
+      - 'tools/prepare_nesrecomp_fixed_slot_crossing.py'
+      - 'tools/prepare_nesrecomp_inline_jmp.py'
+      - 'tools/nesrecomp-tail-diagnostic.patch'
+      - 'tools/nesrecomp-data-region-vector.patch'
+      - 'tools/nesrecomp_smb_v026_data_region_experiment.toml'
+      - 'docs/evidence/NESRECOMP_EVALUATION.md'
+      - '.github/workflows/nesrecomp-evaluation.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  evaluate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check preinstalled native build dependencies
+        run: git --version && cmake --version && ninja --version && cc --version
+      - name: Verify canonical ROM and generate C with pinned NESRecomp
+        run: bash tools/evaluate_nesrecomp.sh

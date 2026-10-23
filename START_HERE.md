@@ -6,6 +6,18 @@ de uma conversa anterior. A ROM e os assets estão em assets/canonical/;
 consulte [REPRODUCIBILITY.md](docs/REPRODUCIBILITY.md) para um clone autossuficiente
 em arquivos do projeto.
 
+## Plano mestre e percentual oficial — revisão 21/10/2026
+
+O plano de execução, todas as etapas, procedimentos, gates de aceite, riscos e a planilha de progresso ponderado estão em [PROJECT_PLAN_AND_PROGRESS.md](docs/PROJECT_PLAN_AND_PROGRESS.md). Esse documento é a referência para reportar o progresso sem confundir geração de C ou testes no host com um XEX pronto. Base ponderada inicial nesta revisão: **22%**; nenhuma build final Xbox/XEX foi validada.
+
+## Prioridade ativa — 19/10/2026
+
+A expansão do tradutor próprio está pausada por ordem do proprietário enquanto
+se avalia o NESRecomp genérico com a ROM canônica. Leia primeiro
+[plano/evidência NESRecomp](docs/evidence/NESRECOMP_EVALUATION.md) e confira o
+workflow [NESRecomp canonical ROM evaluation](.github/workflows/nesrecomp-evaluation.yml).
+O diagnóstico e o experimento de região de dados passaram em [run 39208412755](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39208412755): baseline mostra um tail em `$FFFF` a partir do vetor IRQ `$FFF0`; com um patch temporário para honrar `[[data_region]]`, o alvo `$FFF0` é pulado e o relatório cai para 1.298 instruções compiladas e zero tails. Isso ainda não prova que IRQ nunca será chamado, nem que o runtime possa ser ligado sem interpretador. Próximo gate: verificar uso de IRQ, remover totalmente o interpretador e executar testes host/diferenciais. Não declarar arquitetura concluída; não adotar o port SMB de terceiros; não gerar XEX nem solicitar teste físico nesta etapa. A PR #19 permanece aberta sem merge durante a avaliação.
+
 ## Ordem obrigatória de leitura
 
 1. [AGENTS.md](AGENTS.md): regras permanentes. 
@@ -49,6 +61,10 @@ para o próximo.
 ## Último avanço verificado — S021 / POC-001 (18/10/2026)
 
 Branch `work/static6502-poc-20261018`: primeiro tradutor estático ROM-específico em `tools/static6502_poc.py`, com seis instruções de $8000-$8009 geradas como C direto e self-test estrito integrado a `tests/run_host_tests.sh`. Evidência/limitações: [POC-001](docs/evidence/STATIC_RECOMPILER_POC_001.md), [checkpoint](docs/WORK_CHECKPOINT.md), [próxima ação](docs/NEXT_STEPS.md). O teste local equivalente passou; aguardar CI da branch para validar exatamente o arquivo publicado. Isto não é descompilação completa nem jogo funcional. Sem XEX/teste físico.
+
+## Última atualização NESRecomp — S025 (20/10/2026)
+
+Run [39432801245](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39432801245) passou. A ROM canônica confirmou 18 candidatos brutos `JSR $8E04`; 12 callsites foram exercitados, com 57 pares caller/seletor e 47 destinos de tabela verificados diretamente contra o PRG. O runtime sem interpretador passou os quatro roteiros (600/600/1800/3600 quadros), com hashes por quadro iguais em 6.600 quadros e PCM/WAV byte a byte idêntico. Foram necessários 17 seeds somente na configuração temporária. Progresso funcional estimado: 20%; cobertura integral ainda aberta; Xenon/XEX e físico em 0%. Próximo passo: analisar os seis callsites candidatos não observados. Veja [relatório de perfil](docs/evidence/INLINE_DISPATCH_PROFILE_20261020.md) e NEXT_STEPS.
 
 ## Estado resumido
 
