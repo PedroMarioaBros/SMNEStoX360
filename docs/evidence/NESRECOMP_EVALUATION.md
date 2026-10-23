@@ -345,3 +345,16 @@ CI [39919520366](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/399
 Snapshots show that existing scripted inputs enter gameplay but repeatedly reach around player page 2 / X=$D2, stall or fall, enter game subtask `$06`, and reset the stage. Lives stayed at `$08`; neither level completion nor Game Over was demonstrated. Values in object-ID slots `$0016-$001B` included `$02, $05, $06, $0E, $12, $18, $2E`. Although `$12` appeared in those RAM slots, the profiler did not observe `$C27F` selector 18. The contents of an object-ID slot therefore do not by themselves prove a dispatch branch executed.
 
 The next evaluation update adds `$0746` and `$0747` to telemetry to inspect the conditions for `$D2E5` and `$C987`. It also adds a separate `obstacle` route alternating 28-frame RIGHT+A+B phases and 32-frame RIGHT+B phases starting after gameplay entry. Existing six routes remain unchanged as regression. Treat the experiment as pending until CI and per-frame/PCM differential checks pass. No XEX or console test.
+
+
+## Semantic mapping and next contextual profile (23/10/2026)
+
+The public SMB NES disassembly listing (https://www.6502disassembly.com/nes-smb/SuperMarioBros.html) clarifies why the remaining selectors are not all expected from repetitive movement inputs in the first area. The canonical-ROM checker in this repository validates the corresponding dispatcher bytes and table entries; the external listing is used for semantic labels, not as the product source.
+
+- `$8215` dispatches `OperMode`: selector 2 enters victory mode, selector 3 enters Game Over. Neither is established by the current test scenarios.
+- `$C88F` dispatches enemy/object runtime handlers. Selectors 16–22 map to raw object IDs `$24–$2A` (large platforms); selector 29 maps to ID `$31` (star flag object). These IDs were not present in the seven scenario profiles, which all start in the same early gameplay area.
+- `$9664:1` belongs to `AreaStyleObject`, a level-object parser handler, not an enemy type.
+- `$C27F:18` remains a discrepancy to explain: snapshots contained ID `$12`, but the dispatch profile still lacks the matching initialization call. A slot snapshot alone is not proof that the initialization dispatcher ran with the same selector.
+
+The follow-up commit adds temporary `[DISPATCH_CONTEXT]` records, deduplicated by callsite/selector and compact slot/task conditions. It captures raw enemy/object ID, slot X, enemy flag/state class, game mode/subtask, world/area, area style/type, and condition timer values at `$8215`, `$9664`, `$C27F`, and `$C88F`. This observational logging is intended to clarify the `$12` discrepancy and to avoid attempting selectors for objects that have not been loaded in the tested scene. CI for this new profiler is pending.
+

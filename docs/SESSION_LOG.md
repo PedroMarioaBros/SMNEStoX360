@@ -6,6 +6,16 @@ A identidade do commit que contém uma entrada pode ser consultada no histórico
 
 
 
+## S024 — 23/10/2026, semântica dos seletores e perfil contextual
+
+- HEAD de entrada: `38abad83e59d81d853a53d8237bc1a0b15e86d38`. CIs push/PR do commit anterior passaram: [39924745832](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39924745832), [39924751591](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39924751591).
+- Cruzada a estrutura estática contra a listagem pública de disassembly do SMB NES em https://www.6502disassembly.com/nes-smb/SuperMarioBros.html; os bytes/tabelas relevantes também são verificados pela ferramenta `tools/analyze_unobserved_dispatchers.py` contra a ROM canônica.
+- Semântica identificada: `$8215` despacha `OperMode` (seletor 2 vitória, 3 Game Over); `$C88F` usa ID bruto menos `$14` nos tipos altos, com seletores 16–22 = IDs `$24–$2A` (plataformas grandes), seletor 29 = ID `$31` (bandeira); `$9664:1` é `AreaStyleObject`. Esses alvos não são todos cobertos por um roteiro da primeira fase.
+- Os sete cenários não mostraram os IDs de plataforma/bandeira. IDs presentes nos slots incluem `$02/$05/$06/$0E/$12/$2E`; a presença de `$12` em RAM não prova que `$C27F` tenha sido executado com seletor 18. O perfil permanece em 62 pares / 12 callsites / 50 destinos.
+- Acrescentada telemetria temporária `[DISPATCH_CONTEXT]` que registra contextos únicos por modo/tarefa/área e informações de slot (ID bruto, flag e classe de estado), mais buckets dos timers. Não altera estado/ciclos e não adiciona seeds.
+- O commit desta entrada ainda precisa de CI. Progresso global mantido em **22%**; nenhum XEX ou teste de console. Próxima ação: analisar os logs contextuais e escolher cenário legítimo para alcançar objetos/plataformas/bandeira, sem alegar cobertura não observada.
+
+
 ## S023 — 23/10/2026, CI da telemetria filtrada aprovada
 
 - HEAD de entrada: `32c22083f0e936ff5284134c624b4aeefdc96c24`, branch `research/nesrecomp-evaluation-20261018`.

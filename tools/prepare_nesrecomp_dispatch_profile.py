@@ -61,6 +61,67 @@ typedef struct { uint16_t callsite; uint8_t selector; } CycProfileSeen;
 static CycProfileSeen cyc_profile_seen[CYC_PROFILE_MAX_DISPATCHES];
 static unsigned cyc_profile_seen_count;
 
+/* Targeted context profiler for the four still-unobserved dispatcher families.
+ * It records a compact set of unique execution contexts only; it never changes
+ * CPU state, RAM, timing, bus activity or the selected dispatcher target. */
+typedef struct {
+    uint16_t callsite;
+    uint8_t selector, slot_x, slot_id, enemy_flag_active, enemy_state_class;
+    uint8_t timer_active, starflag_below5, oper_mode, mode_task, world, area;
+    uint8_t area_style, area_type;
+} CycProfileContextSeen;
+#define CYC_PROFILE_MAX_CONTEXTS 256
+static CycProfileContextSeen cyc_profile_context_seen[CYC_PROFILE_MAX_CONTEXTS];
+static unsigned cyc_profile_context_seen_count;
+
+static void cyc_profile_context(uint16_t callsite, uint8_t selector, const uint8_t *ram) {
+    if (callsite != 0x8215 && callsite != 0x9664 &&
+        callsite != 0xC27F && callsite != 0xC88F) return;
+
+    uint8_t slot_x = 0xFF, slot_id = 0xFF, enemy_flag_active = 0, enemy_state_class = 0;
+    if (callsite == 0xC27F || callsite == 0xC88F) {
+        if (cpu.x < 6u) {
+            slot_x = cpu.x;
+            slot_id = ram[0x16u + cpu.x];
+            enemy_flag_active = (uint8_t)(ram[0x0Fu + cpu.x] != 0u);
+            enemy_state_class = (uint8_t)(ram[0x1Eu + cpu.x] & 0xE0u);
+        }
+    }
+
+    CycProfileContextSeen context = {
+        callsite, selector, slot_x, slot_id, enemy_flag_active, enemy_state_class,
+        (uint8_t)(ram[0x0747] != 0u), (uint8_t)(ram[0x0746] < 5u),
+        ram[0x0770], ram[0x0772], ram[0x075F], ram[0x075C],
+        ram[0x0733], ram[0x074E]
+    };
+    for (unsigned i = 0; i < cyc_profile_context_seen_count; ++i) {
+        const CycProfileContextSeen *seen = &cyc_profile_context_seen[i];
+        if (seen->callsite == context.callsite && seen->selector == context.selector &&
+            seen->slot_x == context.slot_x && seen->slot_id == context.slot_id &&
+            seen->enemy_flag_active == context.enemy_flag_active &&
+            seen->enemy_state_class == context.enemy_state_class &&
+            seen->timer_active == context.timer_active &&
+            seen->starflag_below5 == context.starflag_below5 &&
+            seen->oper_mode == context.oper_mode && seen->mode_task == context.mode_task &&
+            seen->world == context.world && seen->area == context.area &&
+            seen->area_style == context.area_style && seen->area_type == context.area_type) return;
+    }
+    if (cyc_profile_context_seen_count >= CYC_PROFILE_MAX_CONTEXTS) {
+        fprintf(stderr, "[DISPATCH_CONTEXT_ERROR] context cap exceeded\\n");
+        return;
+    }
+    cyc_profile_context_seen[cyc_profile_context_seen_count++] = context;
+    fprintf(stderr,
+        "[DISPATCH_CONTEXT] frame=%u callsite=$%04X selector=%u slot_x=$%02X "
+        "enemy_id=$%02X enemy_flag_active=%u enemy_state_class=$%02X "
+        "timer0747=$%02X starflag0746=$%02X oper_mode=$%02X mode_task=$%02X "
+        "world=$%02X area=$%02X area_style=$%02X area_type=$%02X\\n",
+        cyc_profile_state_frame, context.callsite, context.selector,
+        context.slot_x, context.slot_id, context.enemy_flag_active,
+        context.enemy_state_class, ram[0x0747], ram[0x0746], context.oper_mode,
+        context.mode_task, context.world, context.area, context.area_style, context.area_type);
+}
+
 void cyc_profile_dispatch(uint16_t pc, bool from_interpreter) {
     if (pc != 0x8E04) return;
     const uint8_t *ram = cyc_cpu_ram();
@@ -69,6 +130,7 @@ void cyc_profile_dispatch(uint16_t pc, bool from_interpreter) {
                               ((uint16_t)ram[0x100u + ((sp + 2u) & 0xFFu)] << 8));
     uint16_t callsite = (uint16_t)(ret - 2u);
     uint8_t selector = cpu.a;
+    cyc_profile_context(callsite, selector, ram);
     for (unsigned i = 0; i < cyc_profile_seen_count; ++i) {
         if (cyc_profile_seen[i].callsite == callsite &&
             cyc_profile_seen[i].selector == selector) return;
@@ -173,12 +235,15 @@ void cyc_profile_state_tick(void) {
         raise SystemExit("ERROR: dynamic dispatch target reporting is missing")
     if "[SMB_STATE]" not in source or "cyc_profile_state_tick();" not in source:
         raise SystemExit("ERROR: SMB state telemetry is missing")
+    if "[DISPATCH_CONTEXT]" not in source or "cyc_profile_context(callsite, selector, ram);" not in source:
+        raise SystemExit("ERROR: targeted dispatcher context profiling is missing")
     if "counter_condition_changed" not in source or "state[16] <= 5u" not in source:
         raise SystemExit("ERROR: low-value $0747 condition sampling is missing")
     if "cyc_profile_dispatch(cpu.pc, true);" not in interp_file.read_text(encoding="utf-8"):
         raise SystemExit("ERROR: profile hook was not installed in interpreter fetch")
     print("Applied temporary inline-dispatch profile hook to native fetch and interpreter steps.")
     print("Each observed $8E04 entry reports caller, selector, inline table word, and decoded target.")
+    print("Reference profiling emits compact [DISPATCH_CONTEXT] records for mode/area/enemy-init/enemy-run dispatchers.")
     print("Reference profiling emits [SMB_STATE] on discrete-state changes, every 60 frames, and when RAM[$0747] changes at values <= 5.")
     return 0
 

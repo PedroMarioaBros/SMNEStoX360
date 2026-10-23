@@ -91,3 +91,36 @@ A inspeção das instruções imediatamente anteriores aos dispatchers parentais
 - Estes IDs dão uma hipótese concreta de cenário: é preciso chegar ao gameplay e fazer esses tipos de objeto nascerem/atualizarem; segurar o direcional por mais quadros não garante que o mapa/estado produza todos eles. Antes de acrescentar mais cenários longos, inspecionar os dados de nível da ROM para ver se esses IDs aparecem em objetos realmente carregados e em que condições.
 
 A tabela estática de caminhos não foi alterada e nenhum novo alvo é marcado como observado dinamicamente por esta análise.
+
+
+## Passagem 4 — semântica dos seletores e telemetria contextual (23/10/2026)
+
+A listagem pública de disassembly do SMB NES (https://www.6502disassembly.com/nes-smb/SuperMarioBros.html)
+esclarece que os seletores pendentes pertencem a fases/contextos diferentes; não são todos
+alcançáveis apenas repetindo corrida e salto no início do mundo 1.
+
+- **`$8215` — `OperModeExecutionTree`:** o acumulador seleciona o modo principal:
+  `0` título, `1` jogo, `2` vitória, `3` Game Over. Os modos `2/3` são transições
+  terminais; a ausência deles num roteiro que não conclui uma fase nem demonstra
+  Game Over não deve ser interpretada como falha de cobertura do núcleo de movimento.
+- **`$C27F` — `InitEnemyRoutines`:** os seletores `18` e `20–23` vão para
+  `InitEnemyFrenzy` pela tabela. O fato de `$12` aparecer num slot de `Enemy_ID`
+  não comprova que o callsite de inicialização tenha sido executado com esse seletor:
+  o perfil anterior registrou apenas `$C27F:5`. A nova instrumentação contextual deve
+  correlacionar selector, X/slot, ID bruto, `Enemy_Flag` e classe de `Enemy_State`.
+- **`$C88F` — `RunEnemyObjectsCore`:** para IDs abaixo de `$15`, o dispatcher usa
+  selector `0`; para IDs maiores, usa `Enemy_ID - $14`. Assim, selectors `16–22`
+  significam objetos `$24–$2A`, que a tabela encaminha para `RunLargePlatform`;
+  selector `29` significa objeto `$31`, encaminhado para `RunStarFlagObj`.
+  Nenhum desses IDs `$24–$2A/$31` apareceu nos slots monitorados em nossos sete roteiros.
+  Portanto, a próxima tentativa precisa produzir um estado/nível que realmente carregue
+  plataformas grandes ou o objeto de bandeira, não somente aumentar a duração da corrida.
+- **`$9664` — dispatcher de objetos da área:** selector `1` encaminha para
+  `AreaStyleObject`; trata-se do parser de objetos do cenário, não do tipo de inimigo.
+  A instrumentação nova registra contexto do modo/área, estilo e tipo de área sempre
+  que um dos quatro dispatchers parentais é chamado.
+
+O commit que adiciona `[DISPATCH_CONTEXT]` conserva os testes anteriores; o perfil
+contém apenas combinações de contexto únicas para não reintroduzir o volume excessivo
+de logs. **A nova telemetria ainda depende de CI**. A ROM não é editada e nenhum seed
+de execução é adicionado por esta análise.

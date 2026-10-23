@@ -1,17 +1,17 @@
-# CHECKPOINT ATUAL — telemetria reduzida validada; cobertura de dispatch pendente (23/10/2026)
+# CHECKPOINT ATUAL — semântica dos dispatchers esclarecida; contexto dinâmico pendente (23/10/2026)
 
 **Branch:** `research/nesrecomp-evaluation-20261018`  
 **PR ativa:** [#20](https://github.com/PedroMarioaBros/SMNEStoX360/pull/20)  
-**Última rodada validada:** push [39923036457 — SUCCESS](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39923036457) e PR [39923040038 — SUCCESS](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39923040038), commit `32c22083f0e936ff5284134c624b4aeefdc96c24`.
+**Última rodada validada:** push [39924745832 — SUCCESS](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39924745832) e PR [39924751591 — SUCCESS](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39924751591), commit `38abad83e59d81d853a53d8237bc1a0b15e86d38`.
 
-- Sete cenários passaram no runner temporário sem interpretador: **24.600 quadros**, zero `NATIVE_COVERAGE_MISS`, hashes/trace por quadro iguais à referência e sete PCM/WAV idênticos byte a byte. `cpu6502_interp.c` ficou fora de `build.ninja`; `cpu_interp_step` está ausente dos símbolos do runner experimental.
-- A telemetria filtrada foi validada. O log de CI caiu de 2.315.428 para 431.490 bytes (~81% menor); a amostragem preserva mudanças discretas, periodicidade de 60 frames e mudanças de `$0747` quando o byte chega a `$05–$00`.
-- Nos ciclos de queda observados, `$0747=$30` aparece com `game_task=$06`; no estado seguinte, `$0747=$00` e `game_task=$00`. Isso não prova que a condição de `$C987` seja alcançada durante o despacho dos tipos 36–42.
-- `obstacle` chegou no máximo à página 2, `x=$C6` (quadro 775); caiu/reinicializou nos quadros 985, 1763 e 3087. Vidas permaneceram `$08`; não foi demonstrado fim de fase ou Game Over.
-- Perfil permanece em 62 pares únicos, 12 callsites e 50 destinos. Os 16 seletores em `$8215`, `$9664`, `$C27F` e `$C88F` ainda não foram alcançados dinamicamente.
-- Progresso global ponderado **22%**. ROM canônica intacta; C gerado apenas em diretório temporário. Nenhum build Xenon/PowerPC, XEX ou teste físico.
+- Sete roteiros aprovados: **24.600 quadros**, hashes por quadro iguais, PCM/WAV idêntico byte a byte, zero `NATIVE_COVERAGE_MISS`, sem a unidade/símbolo do interpretador no runner temporário.
+- A telemetria filtrada reduziu o log em aproximadamente 81%.
+- A referência de disassembly esclarece os callsites: `$8215:2/3` significam vitória/Game Over; `$C88F:16–22` são objetos `$24–$2A` (plataformas grandes); `$C88F:29` é objeto `$31` (bandeira); `$9664:1` é o parser de `AreaStyleObject`.
+- Os sete roteiros não carregaram IDs `$24–$2A` nem `$31`; todos começam na área 0. O ID `$12` aparece em slots RAM, mas ainda não há registro do par `$C27F:18` correspondente à rotina de inicialização.
+- Próxima alteração: `[DISPATCH_CONTEXT]` registra contextos únicos de modo/área e slots de objeto nos quatro callsites. **A CI dessa instrumentação está pendente**; ela não adiciona seeds e não altera a ROM.
+- Progresso ponderado **22%**. Sem build Xenon/PowerPC, XEX ou teste físico.
 
-**Próximo gate:** instrumentar os dispatchers parentais e as condições reais, sem inserir seeds arbitrários. Só contar um caminho como coberto quando o par callsite/seletor aparecer efetivamente nos logs.
+**Próximo gate:** validar a instrumentação e decidir, a partir dos contextos reais, o roteiro legítimo de nível/cena para plataformas/bandeira. Não classificar os 16 seletores como alcançáveis no primeiro nível sem evidência.
 
 ---
 

@@ -1,22 +1,18 @@
-# PRIORIDADE ATUAL — perfilar seletores ausentes com telemetria validada (23/10/2026)
+# PRIORIDADE ATUAL — correlacionar seletores e tipo de objeto (23/10/2026)
 
-**Última CI aprovada:** commit `32c22083f0e936ff5284134c624b4aeefdc96c24`; push [39923036457 — SUCCESS](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39923036457) e PR [39923040038 — SUCCESS](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39923040038). A PR #20 segue aberta; PR #19 continua pausada.
+**Última CI aprovada:** commit `38abad83e59d81d853a53d8237bc1a0b15e86d38`; push [39924745832 — SUCCESS](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39924745832) e PR [39924751591 — SUCCESS](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39924751591).
 
-## Resultado confirmado da última rodada
+## Estado validado
 
-Sete cenários passaram no runner temporário sem interpretador: idle 600, route 600, jump 1.800, long 3.600, extended 9.000, run-only 5.400 e obstacle 3.600 — **24.600 quadros no total**. Nenhum `NATIVE_COVERAGE_MISS`; todos os hashes de estado/trace por quadro coincidiram com a referência, e PCM/WAV bateu byte a byte nos sete cenários. A inspeção estrutural voltou a confirmar `cpu6502_interp.c` ausente de `build.ninja` e `cpu_interp_step` ausente dos símbolos do runner experimental. É paridade somente nos roteiros amostrados; não prova cobertura integral ou compatibilidade Xenon/Xbox.
+A regressão de sete cenários continua aprovada: **24.600 quadros**, hashes de estado/trace iguais, PCM/WAV idêntico byte a byte, zero `NATIVE_COVERAGE_MISS`, e o runner de teste permanece sem unidade/símbolo de interpretador. O perfil tem 62 pares únicos callsite/seletor em 12 callsites, 50 destinos. A telemetria filtrada gera ~81% menos dados do que a primeira versão.
 
-A telemetria reduzida também passou na CI. O log caiu de 2.315.428 para **431.490 bytes** (aproximadamente 81% menor), sem alterar o comportamento do jogo ou os gates do harness. O estado agora é emitido quando campos discretos mudam, a cada 60 quadros, e quando `$0747` muda até `$05`. Nos roteiros de queda, o valor foi observado em `$30` perto de `game_task=$06`, e em seguida volta a `$00` na reinicialização (`game_task=$00`). Isso não comprova a condição `$0747==0` dentro do processamento dos tipos atendidos por `$C88F`; o perfil continua sem atingir seletores prioritários.
+O cruzamento semântico mostrou que os seletores ausentes pertencem a rotas diferentes: `$8215:2/3` são modos vitória/Game Over; `$C88F:16–22` são objetos/plataformas `$24–$2A`; `$C88F:29` é o objeto bandeira `$31`; `$9664:1` pertence ao parser de objetos da área. Os sete roteiros iniciam na área 0 e nenhum carregou os IDs de plataforma/bandeira. Os valores de `$12` observados em RAM não bastam para dizer que a rotina de inicialização de objeto em `$C27F` foi chamada com selector 18.
 
-O cenário `obstacle` continua sem superar o bloqueio: máximo página 2, `x=$C6` no quadro 775; queda/reinicialização nos quadros 985, 1763 e 3087. Vidas permaneceram `$08`, sem fim de fase nem Game Over demonstrado. O perfil mantém 62 pares únicos callsite/seletor, 12 callsites e 50 destinos. Permanecem sem observação dinâmica:
-- `$8215`: seletores 2/3;
-- `$9664`: seletor 1;
-- `$C27F`: seletores 18 e 20–23;
-- `$C88F`: seletores 16–22 e 29.
+## Próxima experiência
 
-## Próxima ação técnica
+Acrescentei uma telemetria `[DISPATCH_CONTEXT]` temporária para registrar, sem alterar estado ou ciclos, o contexto único dos dispatchers `$8215`, `$9664`, `$C27F` e `$C88F`: modo/tarefa, área/estilo, X/slot, ID bruto, flag e classe de estado do objeto, além das condições timer. O objetivo é descobrir se e quando o ID $12 atravessa de fato o callsite de inicialização, e distinguir eventos reais de rotina dos valores vistos em snapshots.
 
-Instrumentar de modo seletivo os dispatchers parentais e suas condições reais, em vez de simplesmente prolongar o teste ou inserir callsites como seeds arbitrários. Os seis candidatos estáticos são `$83A3`, `$921B`, `$9743`, `$C7A8`, `$C987` e `$D2E5`; suas rotas permanecem hipóteses estáticas até aparecer o par callsite/seletor nos logs. Manter os sete cenários como regressão, exigir zero misses, hashes por quadro iguais e PCM/WAV byte a byte. Progresso ponderado **22%**; ROM canônica intacta, C gerado temporário; sem XEX, build Xenon/PowerPC ou teste físico.
+**A alteração depende da CI do próximo commit.** Se passar, a próxima tarefa será desenhar um cenário válido de nível que contenha plataformas grandes ou a bandeira, antes de reivindicar qualquer um dos 16 seletores. Não inserir seeds arbitrários e não prolongar gameplay sem hipótese. Progresso ponderado **22%**; ROM intacta; sem XEX, build Xenon/PowerPC ou teste físico.
 
 ---
 

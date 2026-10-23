@@ -3,7 +3,7 @@
 **Revisão:** 23/10/2026  
 **Branch de trabalho:** `research/nesrecomp-evaluation-20261018`  
 **PR de avaliação:** [#20 — Evaluate NESRecomp against the canonical SMB_v026 ROM](https://github.com/PedroMarioaBros/SMNEStoX360/pull/20)  
-**Últimas CIs validadas:** [push 39923036457 — success](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39923036457) e [PR 39923040038 — success](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39923040038), commit `32c22083f0e936ff5284134c624b4aeefdc96c24`.
+**Últimas CIs validadas:** [push 39924745832 — success](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39924745832) e [PR 39924751591 — success](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39924751591), commit `38abad83e59d81d853a53d8237bc1a0b15e86d38`.
 
 Este é o plano de referência para comunicar andamento, decisões, dependências e critérios de aceite. Percentuais são estimativas de conclusão de entregáveis, ponderadas por importância para o produto final; não representam linhas de código, tempo gasto ou garantia de prazo.
 
@@ -29,7 +29,7 @@ Critérios obrigatórios:
 - A instrumentação de estado foi primeiro aprovada em [39919520366](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39919520366). A telemetria filtrada foi então validada nos dois CIs do commit `32c2208`: [push 39923036457](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39923036457) e [PR 39923040038](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39923040038).
 - Sete roteiros passaram sem interpretador, totalizando 24.600 quadros, com hashes de estado/trace iguais por quadro e PCM/WAV idêntico byte a byte em todos os cenários. Não houve `NATIVE_COVERAGE_MISS`; `cpu6502_interp.c` ficou fora do build e `cpu_interp_step` ausente do executável experimental.
 - O cenário `obstacle` atingiu no máximo página 2, `x=$C6`, e reinicializou após a queda; não resolveu o bloqueio. O perfil continua em 62 pares únicos (callsite/seletor), 12 callsites e 50 destinos. Os 16 seletores prioritários continuam sem confirmação dinâmica. Nenhuma fase concluída nem Game Over foi demonstrado.
-- O log caiu de 2.315.428 para 431.490 bytes (≈81% menor). `$0746` permaneceu `$00`; `$0747` foi observado em `$30` quando a tarefa chegava a `$06`, depois voltando a `$00` na reinicialização. Isso não provou `$0747==0` no caminho de objetos de `$C88F`; os seletores faltantes continuam pendentes.
+- O log caiu de 2.315.428 para 431.490 bytes (≈81% menor). O cruzamento da tabela de `$C88F` mostra seletores 16–22 como IDs de objeto `$24–$2A` (plataformas grandes), e seletor 29 como ID `$31` (bandeira). Os sete cenários não carregaram nenhum desses IDs; os modos vitória/Game Over em `$8215` também não foram observados. A nova instrumentação contextual para correlacionar os slots e os callsites ainda aguarda CI.
 
 ### O que ainda não foi provado
 - Cobertura de todos os caminhos, seletores, estados e fases do jogo.
