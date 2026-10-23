@@ -1,18 +1,18 @@
-# PRIORIDADE ATUAL — correlacionar seletores e tipo de objeto (23/10/2026)
+# PRIORIDADE ATUAL — validar salto por fase e correlacionar o tipo de objeto (23/10/2026)
 
-**Última CI aprovada:** commit `38abad83e59d81d853a53d8237bc1a0b15e86d38`; push [39924745832 — SUCCESS](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39924745832) e PR [39924751591 — SUCCESS](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39924751591).
+**Últimas CIs aprovadas:** commit `3650b2c17148ca47ef2d8181b96725ba1215377f`; push [39987103779 — SUCCESS](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39987103779) e PR [39987112324 — SUCCESS](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39987112324).
 
-## Estado validado
+O perfil contextual corrigido passou. A versão anterior imprimia `\\n` literal, fundindo eventos numa linha; o coletor reconheceu só 37 pares e o runner sem interpretador falhou em `$9061` via `$8234:2`. Com a quebra de linha corrigida, o profiler recuperou **62 pares**, 12 callsites e 50 destinos; os sete cenários voltaram a passar: **24.600 quadros**, hashes/trace iguais por quadro, PCM/WAV byte a byte idêntico, zero `NATIVE_COVERAGE_MISS`, sem unidade nem símbolo do interpretador.
 
-A regressão de sete cenários continua aprovada: **24.600 quadros**, hashes de estado/trace iguais, PCM/WAV idêntico byte a byte, zero `NATIVE_COVERAGE_MISS`, e o runner de teste permanece sem unidade/símbolo de interpretador. O perfil tem 62 pares únicos callsite/seletor em 12 callsites, 50 destinos. A telemetria filtrada gera ~81% menos dados do que a primeira versão.
+A instrumentação emitiu 420 registros de contexto sem erro. `$C27F` viu selectors `0,2,4,5,6,14` (IDs `$00,$02,$04,$05,$06,$0E`); `$C88F` viu selectors `0,26` e ID `$12` ativo sob selector 0. Isso não confirma `$C27F:18`. O novo perfil inclui `$C907` para correlacionar o slot e o ID com o despacho de tipo interno.
 
-O cruzamento semântico mostrou que os seletores ausentes pertencem a rotas diferentes: `$8215:2/3` são modos vitória/Game Over; `$C88F:16–22` são objetos/plataformas `$24–$2A`; `$C88F:29` é o objeto bandeira `$31`; `$9664:1` pertence ao parser de objetos da área. Os sete roteiros iniciam na área 0 e nenhum carregou os IDs de plataforma/bandeira. Os valores de `$12` observados em RAM não bastam para dizer que a rotina de inicialização de objeto em `$C27F` foi chamada com selector 18.
+Os 16 seletores prioritários continuam sem cobertura confirmada: `$8215:2/3`, `$9664:1`, `$C27F:18/20/21/22/23` e `$C88F:16–22/29`. O teste `obstacle` alcança página 2/`x=$C6` e entra na rotina de queda; o pulso em frame 750 pode ter chegado antes de a animação anterior terminar.
 
-## Próxima experiência
+## Próximo experimento
 
-Acrescentei uma telemetria `[DISPATCH_CONTEXT]` temporária para registrar, sem alterar estado ou ciclos, o contexto único dos dispatchers `$8215`, `$9664`, `$C27F` e `$C88F`: modo/tarefa, área/estilo, X/slot, ID bruto, flag e classe de estado do objeto, além das condições timer. O objetivo é descobrir se e quando o ID $12 atravessa de fato o callsite de inicialização, e distinguir eventos reais de rotina dos valores vistos em snapshots.
+Adicionei `obstacle-phase`: tenta salto no frame 675, outro no 750 e depois espaça pulsos em 75 frames (28 frames `RIGHT+A+B`, seguidos de `RIGHT+B`). É uma hipótese a validar, não um resultado. Os sete cenários anteriores permanecem como regressão; o oitavo rodará no mesmo harness de referência, runner sem interpretador e diferencial de hashes/áudio.
 
-**A alteração depende da CI do próximo commit.** Se passar, a próxima tarefa será desenhar um cenário válido de nível que contenha plataformas grandes ou a bandeira, antes de reivindicar qualquer um dos 16 seletores. Não inserir seeds arbitrários e não prolongar gameplay sem hipótese. Progresso ponderado **22%**; ROM intacta; sem XEX, build Xenon/PowerPC ou teste físico.
+**CI da nova alteração pendente.** Progresso ponderado **22%**. ROM intacta, C gerado temporário; sem build Xenon/PowerPC, XEX ou teste físico.
 
 ---
 

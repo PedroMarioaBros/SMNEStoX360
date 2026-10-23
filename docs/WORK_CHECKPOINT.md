@@ -1,17 +1,16 @@
-# CHECKPOINT ATUAL — semântica dos dispatchers esclarecida; contexto dinâmico pendente (23/10/2026)
+# CHECKPOINT ATUAL — contexto de dispatcher validado; salto por fase em teste (23/10/2026)
 
 **Branch:** `research/nesrecomp-evaluation-20261018`  
 **PR ativa:** [#20](https://github.com/PedroMarioaBros/SMNEStoX360/pull/20)  
-**Última rodada validada:** push [39924745832 — SUCCESS](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39924745832) e PR [39924751591 — SUCCESS](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39924751591), commit `38abad83e59d81d853a53d8237bc1a0b15e86d38`.
+**Última CI aprovada:** push [39987103779 — SUCCESS](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39987103779) e PR [39987112324 — SUCCESS](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39987112324), commit `3650b2c17148ca47ef2d8181b96725ba1215377f`.
 
-- Sete roteiros aprovados: **24.600 quadros**, hashes por quadro iguais, PCM/WAV idêntico byte a byte, zero `NATIVE_COVERAGE_MISS`, sem a unidade/símbolo do interpretador no runner temporário.
-- A telemetria filtrada reduziu o log em aproximadamente 81%.
-- A referência de disassembly esclarece os callsites: `$8215:2/3` significam vitória/Game Over; `$C88F:16–22` são objetos `$24–$2A` (plataformas grandes); `$C88F:29` é objeto `$31` (bandeira); `$9664:1` é o parser de `AreaStyleObject`.
-- Os sete roteiros não carregaram IDs `$24–$2A` nem `$31`; todos começam na área 0. O ID `$12` aparece em slots RAM, mas ainda não há registro do par `$C27F:18` correspondente à rotina de inicialização.
-- Próxima alteração: `[DISPATCH_CONTEXT]` registra contextos únicos de modo/área e slots de objeto nos quatro callsites. **A CI dessa instrumentação está pendente**; ela não adiciona seeds e não altera a ROM.
-- Progresso ponderado **22%**. Sem build Xenon/PowerPC, XEX ou teste físico.
+- Sete cenários aprovados: **24.600 quadros**, hashes por quadro iguais, PCM/WAV idêntico byte a byte, zero `NATIVE_COVERAGE_MISS`. O runner experimental segue sem unidade nem símbolo do interpretador.
+- Uma CI intermediária falhou por bug no próprio log: `\\n` literal juntava mensagens e o coletor reconhecia 37 pares em vez de 62; o miss em `$9061` por `$8234:2` foi resolvido corrigindo a quebra de linha. A CI corrigida passou com 62 pares e zero misses.
+- O perfil tem 420 registros contextuais. `$C27F` viu IDs `00/02/04/05/06/0E`; `$C88F` viu selectors 0/26, com ID `$12` ativo no selector genérico 0, mas não no callsite `$C27F:18`.
+- Os 16 seletores prioritários seguem sem cobertura confirmada. `obstacle` continua bloqueando em página 2/`x=$C6`; a nova alteração adiciona contexto em `$C907` e um cenário `obstacle-phase`. **Essa alteração aguarda CI.**
+- Progresso ponderado **22%**. ROM intacta; C gerado temporário. Sem XEX ou teste físico.
 
-**Próximo gate:** validar a instrumentação e decidir, a partir dos contextos reais, o roteiro legítimo de nível/cena para plataformas/bandeira. Não classificar os 16 seletores como alcançáveis no primeiro nível sem evidência.
+**Próximo gate:** validar os oito cenários e examinar os contextos em `$C907`. Só contar cobertura quando o par callsite/seletor aparecer no perfil.
 
 ---
 

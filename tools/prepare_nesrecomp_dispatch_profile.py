@@ -76,10 +76,10 @@ static unsigned cyc_profile_context_seen_count;
 
 static void cyc_profile_context(uint16_t callsite, uint8_t selector, const uint8_t *ram) {
     if (callsite != 0x8215 && callsite != 0x9664 &&
-        callsite != 0xC27F && callsite != 0xC88F) return;
+        callsite != 0xC27F && callsite != 0xC88F && callsite != 0xC907) return;
 
     uint8_t slot_x = 0xFF, slot_id = 0xFF, enemy_flag_active = 0, enemy_state_class = 0;
-    if (callsite == 0xC27F || callsite == 0xC88F) {
+    if (callsite == 0xC27F || callsite == 0xC88F || callsite == 0xC907) {
         if (cpu.x < 6u) {
             slot_x = cpu.x;
             slot_id = ram[0x16u + cpu.x];
@@ -237,13 +237,15 @@ void cyc_profile_state_tick(void) {
         raise SystemExit("ERROR: SMB state telemetry is missing")
     if "[DISPATCH_CONTEXT]" not in source or "cyc_profile_context(callsite, selector, ram);" not in source:
         raise SystemExit("ERROR: targeted dispatcher context profiling is missing")
+    if "callsite != 0xC907" not in source or "callsite == 0xC907" not in source:
+        raise SystemExit("ERROR: downstream enemy type context profiling is missing")
     if "counter_condition_changed" not in source or "state[16] <= 5u" not in source:
         raise SystemExit("ERROR: low-value $0747 condition sampling is missing")
     if "cyc_profile_dispatch(cpu.pc, true);" not in interp_file.read_text(encoding="utf-8"):
         raise SystemExit("ERROR: profile hook was not installed in interpreter fetch")
     print("Applied temporary inline-dispatch profile hook to native fetch and interpreter steps.")
     print("Each observed $8E04 entry reports caller, selector, inline table word, and decoded target.")
-    print("Reference profiling emits compact [DISPATCH_CONTEXT] records for mode/area/enemy-init/enemy-run dispatchers.")
+    print("Reference profiling emits compact [DISPATCH_CONTEXT] records for mode/area/enemy-init/enemy-run/type dispatchers.")
     print("Reference profiling emits [SMB_STATE] on discrete-state changes, every 60 frames, and when RAM[$0747] changes at values <= 5.")
     return 0
 

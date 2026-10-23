@@ -192,6 +192,26 @@ INPUT
   done
 } > "$TMP/native-obstacle.input"
 
+# Hypothesis test: begin the next jump earlier, then space pulses farther apart
+# so a new press can occur after the previous jump lands. Input-only, no seeds.
+{
+  cat <<'INPUT'
+0 -
+100 START
+102 -
+INPUT
+  for ((FRAME=270; FRAME<630; FRAME+=60)); do
+    printf '%d RIGHT+A+B\n' "$FRAME"
+    printf '%d RIGHT+B\n' "$((FRAME + 28))"
+  done
+  printf '675 RIGHT+A+B\n'
+  printf '703 RIGHT+B\n'
+  for ((FRAME=750; FRAME<3600; FRAME+=75)); do
+    printf '%d RIGHT+A+B\n' "$FRAME"
+    printf '%d RIGHT+B\n' "$((FRAME + 28))"
+  done
+} > "$TMP/native-obstacle-phase.input"
+
 echo "=== Instrument interpreter-enabled reference for inline dispatch ==="
 python3 "$ROOT/tools/prepare_nesrecomp_dispatch_profile.py" "$TMP/nesrecomp"
 cmake -S "$TMP/nesrecomp/runner/cyc/project" -B "$TMP/build-reference" -G Ninja \
@@ -208,7 +228,7 @@ if [[ ! -x "$REFERENCE" ]]; then
 fi
 
 : > "$TMP/dispatch-profile.log"
-for SCENARIO in idle route jump long extended run-only obstacle; do
+for SCENARIO in idle route jump long extended run-only obstacle obstacle-phase; do
   INPUT_FILE=""
   case "$SCENARIO" in
     idle) FRAMES=600 ;;
@@ -218,6 +238,7 @@ for SCENARIO in idle route jump long extended run-only obstacle; do
     extended) FRAMES=9000; INPUT_FILE="$TMP/native-extended.input" ;;
     run-only) FRAMES=5400; INPUT_FILE="$TMP/native-run-only.input" ;;
     obstacle) FRAMES=3600; INPUT_FILE="$TMP/native-obstacle.input" ;;
+    obstacle-phase) FRAMES=3600; INPUT_FILE="$TMP/native-obstacle-phase.input" ;;
   esac
   ARGS=(--frames "$FRAMES")
   if [[ -n "$INPUT_FILE" ]]; then ARGS+=(--input "$INPUT_FILE"); fi
@@ -267,7 +288,7 @@ if grep -q 'cpu_interp_step' "$TMP/runtime-symbols.txt"; then
 fi
 echo "Runtime inspection: cpu6502_interp.c absent from build.ninja; cpu_interp_step absent from executable symbols."
 
-for SCENARIO in idle route jump long extended run-only obstacle; do
+for SCENARIO in idle route jump long extended run-only obstacle obstacle-phase; do
   INPUT_FILE=""
   case "$SCENARIO" in
     idle) FRAMES=600 ;;
@@ -277,6 +298,7 @@ for SCENARIO in idle route jump long extended run-only obstacle; do
     extended) FRAMES=9000; INPUT_FILE="$TMP/native-extended.input" ;;
     run-only) FRAMES=5400; INPUT_FILE="$TMP/native-run-only.input" ;;
     obstacle) FRAMES=3600; INPUT_FILE="$TMP/native-obstacle.input" ;;
+    obstacle-phase) FRAMES=3600; INPUT_FILE="$TMP/native-obstacle-phase.input" ;;
   esac
   ARGS=(--frames "$FRAMES")
   if [[ -n "$INPUT_FILE" ]]; then ARGS+=(--input "$INPUT_FILE"); fi
@@ -296,7 +318,7 @@ done
 echo "Interpreter-free deterministic coverage passed using profile-observed dispatcher targets."
 echo "These profile targets exist only in $TMP/runtime-config.toml; the repository config and canonical ROM are unchanged."
 
-for SCENARIO in idle route jump long extended run-only obstacle; do
+for SCENARIO in idle route jump long extended run-only obstacle obstacle-phase; do
   INPUT_FILE=""
   case "$SCENARIO" in
     idle) FRAMES=600 ;;
@@ -306,6 +328,7 @@ for SCENARIO in idle route jump long extended run-only obstacle; do
     extended) FRAMES=9000; INPUT_FILE="$TMP/native-extended.input" ;;
     run-only) FRAMES=5400; INPUT_FILE="$TMP/native-run-only.input" ;;
     obstacle) FRAMES=3600; INPUT_FILE="$TMP/native-obstacle.input" ;;
+    obstacle-phase) FRAMES=3600; INPUT_FILE="$TMP/native-obstacle-phase.input" ;;
   esac
   NATIVE_HASH="$TMP/native-$SCENARIO.hash"
   REFERENCE_HASH="$TMP/reference-$SCENARIO.hash"
@@ -362,7 +385,7 @@ if native_pcm != reference_pcm:
 print(f"[AUDIO_PCM_MATCH] scenario={scenario} samples={native_params[3]} rate={native_params[2]} mono_16bit=true")
 PY
 done
-echo "Interpreter-free runner matched the interpreter-enabled reference across all seven deterministic scenarios."
+echo "Interpreter-free runner matched the interpreter-enabled reference across all eight deterministic scenarios."
 
 mapfile -t GENERATED_C < <(find "$TMP/run/generated" -type f -name '*.c' -print | sort)
 if [[ "${#GENERATED_C[@]}" -eq 0 ]]; then

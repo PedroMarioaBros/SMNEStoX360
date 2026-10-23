@@ -3,7 +3,7 @@
 **Revisão:** 23/10/2026  
 **Branch de trabalho:** `research/nesrecomp-evaluation-20261018`  
 **PR de avaliação:** [#20 — Evaluate NESRecomp against the canonical SMB_v026 ROM](https://github.com/PedroMarioaBros/SMNEStoX360/pull/20)  
-**Últimas CIs validadas:** [push 39924745832 — success](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39924745832) e [PR 39924751591 — success](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39924751591), commit `38abad83e59d81d853a53d8237bc1a0b15e86d38`.
+**Últimas CIs validadas:** [push 39987103779 — success](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39987103779) e [PR 39987112324 — success](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39987112324), commit `3650b2c17148ca47ef2d8181b96725ba1215377f`.
 
 Este é o plano de referência para comunicar andamento, decisões, dependências e critérios de aceite. Percentuais são estimativas de conclusão de entregáveis, ponderadas por importância para o produto final; não representam linhas de código, tempo gasto ou garantia de prazo.
 
@@ -26,10 +26,10 @@ Critérios obrigatórios:
 - ROM canônica validada por tamanho e SHA-256 na CI.
 - NESRecomp, fixado em uma revisão específica, compilou e gerou C a partir da ROM em CI.
 - Em um runner experimental, o interpretador foi removido do build: `cpu6502_interp.c` não aparece em `build.ninja`, e o símbolo `cpu_interp_step` não aparece no executável.
-- A instrumentação de estado foi primeiro aprovada em [39919520366](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39919520366). A telemetria filtrada foi então validada nos dois CIs do commit `32c2208`: [push 39923036457](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39923036457) e [PR 39923040038](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39923040038).
-- Sete roteiros passaram sem interpretador, totalizando 24.600 quadros, com hashes de estado/trace iguais por quadro e PCM/WAV idêntico byte a byte em todos os cenários. Não houve `NATIVE_COVERAGE_MISS`; `cpu6502_interp.c` ficou fora do build e `cpu_interp_step` ausente do executável experimental.
-- O cenário `obstacle` atingiu no máximo página 2, `x=$C6`, e reinicializou após a queda; não resolveu o bloqueio. O perfil continua em 62 pares únicos (callsite/seletor), 12 callsites e 50 destinos. Os 16 seletores prioritários continuam sem confirmação dinâmica. Nenhuma fase concluída nem Game Over foi demonstrado.
-- O log caiu de 2.315.428 para 431.490 bytes (≈81% menor). O cruzamento da tabela de `$C88F` mostra seletores 16–22 como IDs de objeto `$24–$2A` (plataformas grandes), e seletor 29 como ID `$31` (bandeira). Os sete cenários não carregaram nenhum desses IDs; os modos vitória/Game Over em `$8215` também não foram observados. A nova instrumentação contextual para correlacionar os slots e os callsites ainda aguarda CI.
+- A telemetria contextual passou nos CIs do commit `3650b2c`: [push 39987103779](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39987103779) e [PR 39987112324](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39987112324). Um commit intermediário falhou por `\\n` literal no log e o parser só reconheceu 37 pares; o miss em `$9061` por `$8234:2` decorreu do perfil incompleto. A correção recuperou 62 pares.
+- Sete roteiros passaram sem interpretador, totalizando 24.600 quadros: hashes por quadro iguais e PCM/WAV byte a byte idêntico; zero `NATIVE_COVERAGE_MISS`. `cpu6502_interp.c` ficou fora do build e `cpu_interp_step` ausente do executável experimental.
+- O cenário `obstacle` atingiu página 2/`x=$C6` e reinicializou após a queda; não resolveu o bloqueio. Os 16 seletores prioritários continuam sem confirmação.
+- Foram coletados 420 registros contextuais em sete roteiros. `$C27F` não viu ID `$12` na inicialização; `$C88F` viu ID `$12` ativo no selector genérico 0. A alteração que aguarda CI inclui contexto em `$C907` e o roteiro `obstacle-phase`.
 
 ### O que ainda não foi provado
 - Cobertura de todos os caminhos, seletores, estados e fases do jogo.

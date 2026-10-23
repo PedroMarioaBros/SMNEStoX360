@@ -6,6 +6,15 @@ A identidade do commit que contém uma entrada pode ser consultada no histórico
 
 
 
+## S025 — 23/10/2026, correção de perfil e teste de salto por fase
+
+- HEAD validado: `3650b2c17148ca47ef2d8181b96725ba1215377f`; CIs [39987103779 — SUCCESS](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39987103779) e [39987112324 — SUCCESS](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39987112324).
+- O commit intermediário `bfe2096` falhou porque o profiler imprimia `\\n` literal, fundindo eventos numa linha. O extrator identificou 37 pares em vez de 62 e o runner sem interpretador detectou miss `$9061` após `$8234:2`. O commit `3650b2c` corrigiu os terminadores; o extrator voltou a 62 pares / 12 callsites / 50 destinos, e os sete cenários regressivos passaram.
+- A CI corrigida validou sete cenários / 24.600 quadros, zero misses, hashes/trace por quadro iguais e PCM/WAV idêntico byte a byte. O interpretador continua fora do build experimental.
+- Foram coletados 420 registros contextuais. `$C27F` viu selectors 0/2/4/5/6/14 com IDs 00/02/04/05/06/0E; `$C88F` viu 0/26 e ID `$12` ativo no caminho genérico selector 0, não no callsite de inicialização `$C27F:18`.
+- O novo commit adiciona telemetria em `$C907` e cenário `obstacle-phase`: pulso nos frames 675/750 e depois intervalo 75, com 28 frames `RIGHT+A+B` e em seguida `RIGHT+B`. É hipótese a validar; CI nova pendente. Progresso ponderado segue 22%, sem XEX ou teste físico.
+
+
 ## S024 — 23/10/2026, semântica dos seletores e perfil contextual
 
 - HEAD de entrada: `38abad83e59d81d853a53d8237bc1a0b15e86d38`. CIs push/PR do commit anterior passaram: [39924745832](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39924745832), [39924751591](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39924751591).
