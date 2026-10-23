@@ -3,7 +3,7 @@
 **Revisão:** 23/10/2026  
 **Branch de trabalho:** `research/nesrecomp-evaluation-20261018`  
 **PR de avaliação:** [#20 — Evaluate NESRecomp against the canonical SMB_v026 ROM](https://github.com/PedroMarioaBros/SMNEStoX360/pull/20)  
-**Última CI validada:** [run 39919520366 — success](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39919520366)
+**Últimas CIs validadas:** [push 39921081582 — success](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39921081582) e [PR 39921086708 — success](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39921086708), commit `3c64fcad12e36d380b6972365c3a77ad129fe3dc`.
 
 Este é o plano de referência para comunicar andamento, decisões, dependências e critérios de aceite. Percentuais são estimativas de conclusão de entregáveis, ponderadas por importância para o produto final; não representam linhas de código, tempo gasto ou garantia de prazo.
 
@@ -26,9 +26,10 @@ Critérios obrigatórios:
 - ROM canônica validada por tamanho e SHA-256 na CI.
 - NESRecomp, fixado em uma revisão específica, compilou e gerou C a partir da ROM em CI.
 - Em um runner experimental, o interpretador foi removido do build: `cpu6502_interp.c` não aparece em `build.ninja`, e o símbolo `cpu_interp_step` não aparece no executável.
-- A CI [39919520366](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39919520366) validou a instrumentação temporária `[SMB_STATE]` sem quebrar a avaliação. O perfil anterior tinha 62 pares únicos (callsite/seletor), 12 callsites e 50 destinos.
-- Seis roteiros passaram sem interpretador, totalizando 21.000 quadros, com hashes de estado/trace iguais por quadro e PCM/WAV idêntico byte a byte. A inspeção confirmou `cpu6502_interp.c` fora do build e `cpu_interp_step` ausente do executável experimental.
-- Os snapshots mostram os roteiros atuais estagnando/caindo perto da página 2, x≈$D2, com reinicialização; não houve conclusão de fase nem Game Over observado, e os 16 seletores prioritários seguem sem confirmação. A próxima CI inclui `$0746/$0747` e uma rota de salto antecipado.
+- A CI [39919520366](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39919520366) validou a instrumentação temporária `[SMB_STATE]`; a rodada [39921081582](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39921081582) e sua verificação de PR [39921086708](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39921086708) passaram no commit `3c64fca`.
+- Sete roteiros passaram sem interpretador, totalizando 24.600 quadros, com hashes de estado/trace iguais por quadro e PCM/WAV idêntico byte a byte em todos os cenários. Não houve `NATIVE_COVERAGE_MISS`; `cpu6502_interp.c` ficou fora do build e `cpu_interp_step` ausente do executável experimental.
+- O novo cenário `obstacle` atingiu no máximo página 2, `x=$C6`, e reinicializou após a queda; não resolveu o bloqueio. O perfil continua em 62 pares únicos (callsite/seletor), 12 callsites e 50 destinos. Os 16 seletores prioritários continuam sem confirmação dinâmica. Nenhuma fase concluída nem Game Over foi demonstrado.
+- `$0746` permaneceu `$00`; `$0747` funcionou como contagem regressiva e causou snapshots redundantes. O próximo commit ajusta a amostragem para registrar mudanças discretas, periodicidade de 60 quadros e valores baixos de `$0747`, sem alterar estado/ciclos do jogo. Essa alteração nova ainda aguarda sua CI.
 
 ### O que ainda não foi provado
 - Cobertura de todos os caminhos, seletores, estados e fases do jogo.
@@ -64,7 +65,7 @@ Os pesos abaixo somam 100%. A coluna “conclusão estimada” mede a etapa; “
 - **P2 — 60%:** geração C e execução de pesquisa estão provadas, mas arquitetura final, licença e viabilidade do alvo Xenon ainda não estão aprovadas.
 - **P3 — 15%:** o build experimental sem interpretador passou em caminhos observados; 6 de 18 candidatos de dispatcher ainda não foram observados, e a cobertura global continua sem prova. Os 17 seeds derivados de perfil são temporários e não constituem solução geral.
 - **P4 — 10%:** há um runner de referência funcional no host para testes, mas integração completa/aceite dos componentes do NES para o produto final ainda não foi demonstrada.
-- **P5 — 60%:** a infraestrutura de teste diferencial está funcional e há 6.600 quadros e quatro amostras de PCM comparados; faltam cobertura maior, casos extremos, transições, fases e critérios independentes de vídeo/áudio.
+- **P5 — 60%:** a infraestrutura de teste diferencial está funcional; sete cenários totalizam 24.600 quadros comparados e sete saídas PCM/WAV coincidentes. Faltam cobertura de seletores/fluxo ampla, transições e fases, além de critérios independentes de vídeo/áudio.
 - **P6–P8 — 0%:** nenhum build Xenon/PowerPC final, XEX de produto ou aceite Xbox foi demonstrado neste fluxo de trabalho.
 
 ## 4. Procedimentos e gates de engenharia

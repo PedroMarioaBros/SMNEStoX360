@@ -1,14 +1,22 @@
-# PRIORIDADE ATUAL — seguir o estado do jogo e testar salto dirigido (23/10/2026)
+# PRIORIDADE ATUAL — perfilar condição real dos dispatchers (23/10/2026)
 
-**Última CI concluída:** [run 39919520366 — SUCCESS](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39919520366), commit `b78b93cd0e1f810e6ea79e4cbedc86f315e01b12`. PR #20 continua aberta; PR #19 permanece pausada.
+**Última CI aprovada:** commit `3c64fcad12e36d380b6972365c3a77ad129fe3dc`; push [39921081582 — SUCCESS](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39921081582) e PR [39921086708 — SUCCESS](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39921086708). A PR #20 segue aberta; PR #19 continua pausada.
 
-A instrumentação `[SMB_STATE]` passou na CI. Os seis cenários anteriores continuaram com 21.000 quadros comparados, 100% de ciclos nativos, hashes por quadro iguais e PCM/WAV idêntico ao runner de referência. Mais de mil snapshots de estado foram emitidos na referência.
+## Resultado confirmado da última rodada
 
-## O que os snapshots mostraram
+Sete cenários passaram no runner temporário sem interpretador: idle 600, route 600, jump 1.800, long 3.600, extended 9.000, run-only 5.400 e obstacle 3.600 — **24.600 quadros no total**. O harness não encontrou `NATIVE_COVERAGE_MISS`; todos os 24.600 estados/traces por quadro coincidiram com a referência, e PCM/WAV coincidiu byte a byte nos sete cenários. Estruturalmente, `cpu6502_interp.c` ficou fora de `build.ninja` e o símbolo `cpu_interp_step` não foi ligado. Isso cobre os roteiros amostrados, não a ROM completa nem Xenon/Xbox.
 
-Os roteiros atuais entram no gameplay (`mode=$01`) mas, no 1-1, repetidamente chegam à página 2 perto de `x=$D2`, ficam presos ou caem, passam por `game_task=$06` e reinicializam. O valor de vidas permaneceu `$08`; isso não prova Game Over. Os estados vistos em `$0016-$001B` incluíram `$02, $05, $06, $0E, $12, $18, $2E`, mas a presença de um ID em RAM **não significa** que a tabela específica de `$C27F` ou `$C88F` foi despachada. Nenhum dos 16 seletores prioritários apareceu no perfil.
+A sequência `obstacle` confirmou que variar o timing de pulo não resolve o bloqueio: o máximo observado foi página 2, `x=$C6` no quadro 775; o personagem caiu/reinicializou nos quadros 985, 1763 e 3087. Vidas ficaram em `$08`, sem conclusão de fase nem Game Over demonstrado. A tentativa não alcançou os 16 seletores prioritários:
+- `$8215`: seletores 2/3;
+- `$9664`: seletor 1;
+- `$C27F`: seletores 18 e 20–23;
+- `$C88F`: seletores 16–22 e 29.
 
-A próxima alteração registra também `$0746` e `$0747`, condições explícitas dos caminhos `$D2E5`/`$C987`, e inclui o cenário `obstacle` com saltos mais longos e antecipados, mantendo os seis roteiros anteriores como regressão. A hipótese é que o timing dos inputs contribui para o bloqueio em x≈$D2; o novo teste vai confirmar ou rejeitar isso.
+O perfil total continua em 62 pares únicos callsite/seletor, 12 callsites e 50 destinos. `$0746` permaneceu `$00` nos snapshots; `$0747` apresentou uma contagem regressiva por quadro durante `game_task=$0B`, o que gerou saída excessivamente ruidosa. O instrumento foi ajustado neste commit para reduzir snapshots redundantes, preservando amostragem a cada 60 quadros, mudanças discretas do estado e valores de `$0747` de 0 a 5. **A CI desse ajuste de instrumentação ainda precisa concluir.**
+
+## Próxima ação técnica
+
+Após validar a nova instrumentação, instrumentar de modo seletivo as entradas/condições dos candidatos `$83A3`, `$921B`, `$9743`, `$C7A8`, `$C987` e `$D2E5`, e desenhar sequências de input com base nas condições realmente observadas. Um alvo só será contado como coberto quando o par callsite/seletor aparecer no perfil. Manter os sete cenários como regressão, exigir zero misses, hashes por quadro iguais e PCM/WAV byte a byte. Progresso ponderado **22%**; ROM canônica intacta, C gerado temporário; sem XEX, build Xenon/PowerPC ou teste físico.
 
 ---
 
@@ -32,13 +40,14 @@ Não apagar a POC nem afirmar que a arquitetura final foi escolhida.
 - PR #19, que expande o tradutor próprio, fica **em pausa / sem merge por agora**
   enquanto esta avaliação acontece: https://github.com/PedroMarioaBros/SMNEStoX360/pull/19
 
-## Próxima ação executável
+## Estado da avaliação após a rodada mais recente
 
-No GitHub Actions, executar `NESRecomp canonical ROM evaluation` (ou aguardar
-a execução acionada pelo push/PR) e registrar o resultado real. Critérios iniciais cumpridos: hash canônico correto, upstream pin correto,
-compilação do gerador, mapper/vetores reconhecidos e C não vazio. Métricas: 1.305
-instruções compiladas, 1 fallback interpretado, 5 arquivos C, 545.655 bytes e
-14.397 linhas. A arquitetura ainda NÃO está aprovada.
+Os critérios de geração inicial continuam cumpridos; a rodada de regressão de host
+também passou nos sete cenários e 24.600 quadros em [39921081582](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39921081582).
+A arquitetura ainda NÃO está aprovada: 16 seletores prioritários não foram vistos
+dinamicamente e a integração Xenon/XEX não foi iniciada. O próximo trabalho é
+validar a instrumentação de estado com menos ruído e depois perfilar os seis
+candidatos de fluxo de controle descritos acima.
 
 Diagnóstico confirmado: a única cauda no upstream sem configuração é bank 7, slot 7, CPU `$FFFF`, opcode `$FF`, comprimento 3. O vetor IRQ `$FFFE-$FFFF` aponta para `$FFF0`; a caminhada desse alvo alcança bytes de vetor/tabela como se fossem instruções. Na experiência controlada, um patch temporário fez o ciclo respeitar `[[data_region]]` e a configuração marcou bank 7, `$FFF0-$FFFE`, como dados: o baseline manteve 1 tail; o experimento passou a 1.298 instruções compiladas e 0 tails no run [39208412755](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39208412755). Isso comprova que a configuração explícita tira o falso caminho da análise estática, mas NÃO prova que o jogo nunca use IRQ nem que o runtime não contenha interpretador. Próximas tarefas: confirmar como a ROM inicializa/usa IRQ; criar cobertura/trap fail-fast para qualquer PC não compilado e provar que o interpretador foi removido do runtime; compilar e executar o runner host com inputs determinísticos e comparar estado/quadro com a referência. C gerado continua temporário; sem XEX e sem teste físico.
 

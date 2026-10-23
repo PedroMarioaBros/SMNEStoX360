@@ -1,6 +1,6 @@
 # NESRecomp feasibility evaluation — SMB_v026
 
-Status: **generation and six sampled differential host scenarios pass in CI; full selector coverage and Xbox/XEX port remain pending**.
+Status: **generation and seven sampled differential host scenarios (24,600 frames) pass in CI; full selector coverage and Xbox/XEX port remain pending**.
 
 ## Decision being tested
 
@@ -101,6 +101,19 @@ Run [39208412755](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39
 The second result used a temporary patch, `tools/nesrecomp-data-region-vector.patch`, that makes cycle-backend vector seeding respect the already parsed `[[data_region]]` annotation, plus `tools/nesrecomp_smb_v026_data_region_experiment.toml` declaring bank 7, `$FFF0-$FFFE` as data. This exposes a gap in the pinned upstream cycle backend: its current vector seeding does not consult `data_regions`; the configuration alone would not currently stop the walk. The annotation suppresses the IRQ-vector path, whose bytes have the form of a data table and lead to the false tail. Both source patches are applied only to the temporary checkout by CI; no upstream source or generated C is vendored or published.
 
 **Interpretation:** the reported single tail is not necessary for the configured static code walk when the IRQ target is explicitly classified as data. This is progress, not architecture approval. It does not prove the IRQ path can never occur, and intentionally omits the code from `$FFF0`; if a real IRQ arrives there, this generated build would no longer contain a handler for it. Before treating the annotation as correct, verify from the canonical ROM and runtime behavior that the title does not rely on IRQ service, and build/test a runtime with the interpreter entirely removed (not merely unused). No runner execution, no differential gameplay test, no XEX and no Xbox test occurred.
+
+## Latest directed gameplay/dispatch profile — CI success (23/10/2026)
+
+The test commit `3c64fcad12e36d380b6972365c3a77ad129fe3dc` passed both the push run [39921081582](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39921081582) and PR run [39921086708](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39921086708). The run added a 3,600-frame `obstacle` sequence that alternates 28 frames of `RIGHT+A+B` with 32 frames of `RIGHT+B`; the six previous scenarios were retained as regressions.
+
+- **24,600 total frames** were compared across seven scenarios (idle 600, route 600, jump 1,800, long 3,600, extended 9,000, run-only 5,400, obstacle 3,600).
+- Every per-frame state/trace hash matched the interpreter-enabled reference. PCM/WAV matched byte-for-byte in all seven scenarios; no `NATIVE_COVERAGE_MISS` occurred.
+- Runtime structure was verified: `cpu6502_interp.c` absent from `build.ninja`, and `cpu_interp_step` absent from the executable symbols.
+- The new input timing did **not** resolve the gameplay obstacle. In its reference profile, the player reached page 2/`x=$C6` at frame 775, then fell/reset at frames 985, 1763 and 3087. Lives remained `$08`; no level completion or Game Over was demonstrated.
+- The dispatch profile remained **62 unique (callsite, selector) pairs, 12 callsites, 50 destinations**. The 16 priority selectors remain unobserved: `$8215:2/3`, `$9664:1`, `$C27F:18/20/21/22/23`, and `$C88F:16/17/18/19/20/21/22/29`.
+- `$0746` remained `$00` in observed snapshots. `$0747` changed as a frame-countdown during `game_task=$0B`, flooding change-triggered snapshots. The follow-up instrumentation adjustment in the current commit removes the countdown byte from generic change detection while preserving samples every 60 frames and when `$0747` changes through `$00–$05`. This adjustment itself remains pending CI validation.
+
+This is evidence of deterministic parity for these seven sampled host routes only—not full-ROM coverage, game completion, Xenon/PowerPC output, an XEX or physical Xbox compatibility. The weighted project estimate remains **22%**.
 
 ## First-stage acceptance criteria
 

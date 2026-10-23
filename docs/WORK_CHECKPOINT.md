@@ -1,16 +1,16 @@
-# CHECKPOINT ATUAL — diagnóstico de gameplay no host (23/10/2026)
+# CHECKPOINT ATUAL — cenário obstacle analisado; cobertura dinâmica segue pendente (23/10/2026)
 
 **Branch:** `research/nesrecomp-evaluation-20261018`  
 **PR ativa:** [#20](https://github.com/PedroMarioaBros/SMNEStoX360/pull/20)  
-**CI que validou a instrumentação de estado:** [39919520366 — success](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39919520366), commit `b78b93cd0e1f810e6ea79e4cbedc86f315e01b12`.
+**Última rodada concluída:** push [39921081582 — SUCCESS](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39921081582) e PR [39921086708 — SUCCESS](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39921086708), commit `3c64fcad12e36d380b6972365c3a77ad129fe3dc`.
 
-- Os seis roteiros anteriores continuam aprovados: 21.000 quadros, runtime temporário sem interpretador, 100% de ciclos nativos, hashes por quadro e PCM/WAV idênticos à referência.
-- Os snapshots mostram inputs iniciando gameplay e avançando, mas ficando presos/caindo perto da página 2, `x≈$D2`; o fluxo volta ao início da fase. Vidas permaneceram em `$08`; Game Over não foi demonstrado.
-- Os bytes em `$0016-$001B` incluíram `$02/$05/$06/$0E/$12/$18/$2E`. O ID `$12` aparece em RAM, mas isso não prova que `$C27F` recebeu seletor 18.
-- Os 16 seletores prioritários continuam sem confirmação dinâmica. Progresso global **22%**. ROM intacta; C gerado temporário; nenhum build Xenon/PowerPC, XEX ou teste físico.
-- Nova alteração preparada: acrescentar `$0746/$0747` aos snapshots e um cenário `obstacle` (28 frames RIGHT+A+B, 32 frames RIGHT+B), mantendo os seis roteiros anteriores como regressão. O resultado depende da próxima CI.
+- Sete cenários foram validados em runtime temporário sem interpretador: **24.600 quadros**, zero `NATIVE_COVERAGE_MISS`, hashes por quadro iguais à referência e sete PCM/WAV byte a byte iguais. `cpu6502_interp.c` não aparece no build e `cpu_interp_step` não está nos símbolos do binário de teste.
+- `obstacle` chegou no máximo à página 2, `x=$C6` (quadro 775); caiu/reinicializou nos quadros 985, 1763 e 3087. Vidas permaneceram `$08`; não foi demonstrado fim de fase nem Game Over.
+- Perfil de dispatch permanece em 62 pares únicos, 12 callsites e 50 destinos. Os 16 seletores prioritários (em `$8215`, `$9664`, `$C27F` e `$C88F`) não foram alcançados.
+- `$0746` permaneceu `$00`; `$0747` diminui a cada quadro durante `game_task=$0B`. A telemetria foi ajustada neste commit para evitar imprimir toda a contagem regressiva e ainda registrar valores `$00–$05`; **a CI desta nova amostragem está pendente**.
+- Percentual global ponderado **22%**. ROM canônica intacta; C gerado apenas em diretório temporário. Nenhum build Xenon/PowerPC, XEX ou teste físico.
 
-**Gate seguinte:** confirmar build e cenário `obstacle` sem miss, com hashes/PCM iguais à referência; usar os estados observados para decidir a próxima sequência. Não inferir cobertura pela presença de bytes na RAM.
+**Próximo gate:** validar a redução do ruído e usar o próximo perfil para decidir quais condições/callers precisam de inputs dirigidos. Só contar um caminho como coberto quando a seleção de dispatcher aparecer efetivamente no log.
 
 ---
 

@@ -4,6 +4,18 @@ O checkpoint descreve o presente; este diário preserva avanços, falhas e decis
 Cada nova sessão deve acrescentar uma entrada, seguindo CONTINUITY_PROTOCOL.md.
 A identidade do commit que contém uma entrada pode ser consultada no histórico Git.
 
+
+## S022 — 23/10/2026, cenário obstacle e revisão da telemetria
+
+- HEAD de entrada: `3c64fcad12e36d380b6972365c3a77ad129fe3dc`, branch `research/nesrecomp-evaluation-20261018`.
+- CIs do commit confirmadas como success: push [39921081582](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39921081582) e PR [39921086708](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39921086708).
+- Sete cenários passaram no runner sem interpretador: idle 600, route 600, jump 1.800, long 3.600, extended 9.000, run-only 5.400 e obstacle 3.600. Total: 24.600 quadros com hashes/trace por quadro idênticos à referência; PCM/WAV idêntico nos sete. Zero `NATIVE_COVERAGE_MISS`; `cpu6502_interp.c` fora do build e símbolo `cpu_interp_step` ausente.
+- A sequência `obstacle` não superou o bloqueio: máxima posição página 2/`$C6` no quadro 775; queda/reinicialização nos quadros 985, 1763 e 3087. Vidas permaneceram `$08`; nenhum fim de fase ou Game Over foi provado.
+- O perfil de dispatch continuou em 62 pares callsite/seletor, 12 callsites e 50 destinos. Permanecem sem perfil os seletores `$8215:2/3`, `$9664:1`, `$C27F:18/20/21/22/23` e `$C88F:16/17/18/19/20/21/22/29`.
+- Os snapshots mostram `$0746=$00`; `$0747` tem comportamento de contagem regressiva nos estados de queda `game_task=$0B`. Como o valor mudava por quadro e disparava telemetria ruidosa, a alteração incluída no commit atual limita o log genérico às mudanças discretas e a cada 60 quadros, mantendo o registro das mudanças de `$0747` nos valores `$00–$05` para observar a condição zero de `$C987`.
+- O script de telemetria modificado ainda não foi validado pela CI do commit desta entrada; não apresentar a alteração como aprovada antes do resultado verde.
+- Progresso global permanece **22%**. Nenhum XEX/build Xenon ou teste físico produzido/solicitado. Próximo comando após a CI: analisar os logs de condição e seguir com o perfil seletivo dos seis candidatos `$83A3`, `$921B`, `$9743`, `$C7A8`, `$C987`, `$D2E5`.
+
 ## S001 — 06/10/2026, execução canônica no Work
 
 - HEAD recebido: b8de2f29f36316f386a3ff4c54f91a8c76c08b0f.

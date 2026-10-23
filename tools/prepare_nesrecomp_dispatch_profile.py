@@ -96,7 +96,10 @@ void cyc_profile_dispatch(uint16_t pc, bool from_interpreter) {
 
     state_hook = r'''
 /* Evaluation-only SMB_v026 progress telemetry. Samples RAM at frame boundaries;
- * it does not modify CPU registers, bus activity or emulated cycles. */
+ * it does not modify CPU registers, bus activity or emulated cycles. Emits on
+ * discrete-state changes and every 60 frames; $0747 is sampled for each change
+ * at values <= 5 so the $C987 zero-condition stays observable without flooding
+ * the log during the per-frame falling countdown. */
 static unsigned cyc_profile_state_frame;
 static uint8_t cyc_profile_last_state[17];
 static bool cyc_profile_have_state;
@@ -110,7 +113,12 @@ void cyc_profile_state_tick(void) {
         ram[0x0019], ram[0x001A], ram[0x001B],
         ram[0x0746], ram[0x0747]
     };
-    static const uint8_t relevant[] = {0, 1, 2, 3, 4, 5, 9, 10, 11, 12, 13, 14, 15, 16};
+    /* Keep the countdown byte out of generic change detection: it decrements
+     * every frame while falling. We still emit each near-zero value because
+     * $C987's candidate path is conditioned on RAM[$0747] == 0. */
+    static const uint8_t relevant[] = {0, 1, 2, 3, 4, 5, 9, 10, 11, 12, 13, 14, 15};
+    bool counter_condition_changed = cyc_profile_have_state &&
+        state[16] != cyc_profile_last_state[16] && state[16] <= 5u;
     bool changed = !cyc_profile_have_state;
     if (!changed) {
         for (unsigned i = 0; i < sizeof(relevant); ++i) {
@@ -121,7 +129,8 @@ void cyc_profile_state_tick(void) {
             }
         }
     }
-    if (changed || (cyc_profile_state_frame % 60u) == 0u) {
+    if (changed || counter_condition_changed ||
+        (cyc_profile_state_frame % 60u) == 0u) {
         fprintf(stderr,
                 "[SMB_STATE] frame=%u mode=$%02X mode_task=$%02X game_task=$%02X "
                 "world=$%02X area=$%02X lives=$%02X player_page=$%02X player_x=$%02X "
@@ -163,12 +172,14 @@ void cyc_profile_state_tick(void) {
     if "[INLINE_DISPATCH_PROFILE]" not in source or "decoded_target=$%04X" not in source:
         raise SystemExit("ERROR: dynamic dispatch target reporting is missing")
     if "[SMB_STATE]" not in source or "cyc_profile_state_tick();" not in source:
-        raise SystemExit("ERROR: per-frame SMB state telemetry is missing")
+        raise SystemExit("ERROR: SMB state telemetry is missing")
+    if "counter_condition_changed" not in source or "state[16] <= 5u" not in source:
+        raise SystemExit("ERROR: low-value $0747 condition sampling is missing")
     if "cyc_profile_dispatch(cpu.pc, true);" not in interp_file.read_text(encoding="utf-8"):
         raise SystemExit("ERROR: profile hook was not installed in interpreter fetch")
     print("Applied temporary inline-dispatch profile hook to native fetch and interpreter steps.")
     print("Each observed $8E04 entry reports caller, selector, inline table word, and decoded target.")
-    print("Reference profiling also emits [SMB_STATE] snapshots for mode/tasks, level, lives, player coordinates and enemy IDs.")
+    print("Reference profiling emits [SMB_STATE] on discrete-state changes, every 60 frames, and when RAM[$0747] changes at values <= 5.")
     return 0
 
 
