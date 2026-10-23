@@ -1,20 +1,17 @@
-# PRIORIDADE ATUAL — validar salto por fase e correlacionar o tipo de objeto (23/10/2026)
+# PRIORIDADE ATUAL — refinar a segunda barreira e cobrir o parser de área (23/10/2026)
 
-**Últimas CIs aprovadas:** commit `3650b2c17148ca47ef2d8181b96725ba1215377f`; push [39987103779 — SUCCESS](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39987103779) e PR [39987112324 — SUCCESS](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39987112324).
+Últimas CIs aprovadas para o código: commit 7f4d0cae87d6a804c4aa2d8d150fbd1c4ee71ef7; push [39990420329 — SUCCESS](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39990420329) e PR [39990426882 — SUCCESS](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39990426882).
 
-O perfil contextual corrigido passou. A versão anterior imprimia `\\n` literal, fundindo eventos numa linha; o coletor reconheceu só 37 pares e o runner sem interpretador falhou em `$9061` via `$8234:2`. Com a quebra de linha corrigida, o profiler recuperou **62 pares**, 12 callsites e 50 destinos; os sete cenários voltaram a passar: **24.600 quadros**, hashes/trace iguais por quadro, PCM/WAV byte a byte idêntico, zero `NATIVE_COVERAGE_MISS`, sem unidade nem símbolo do interpretador.
+O oitavo cenário obstacle-phase passou junto aos sete cenários anteriores. Total: 28.200 quadros; oito comparações de hash/trace por quadro; oito WAV/PCM idênticos byte a byte; zero NATIVE_COVERAGE_MISS. A unidade cpu6502_interp.c e o símbolo cpu_interp_step continuam ausentes do runner experimental.
 
-A instrumentação emitiu 420 registros de contexto sem erro. `$C27F` viu selectors `0,2,4,5,6,14` (IDs `$00,$02,$04,$05,$06,$0E`); `$C88F` viu selectors `0,26` e ID `$12` ativo sob selector 0. Isso não confirma `$C27F:18`. O novo perfil inclui `$C907` para correlacionar o slot e o ID com o despacho de tipo interno.
+O novo timing de salto produziu progressão maior: máximo de mundo-X 1244 (página 4, x=$DC, quadro 1080), contra mundo-X 710 (página 2, x=$C6) no roteiro anterior — 534 pixels a mais. A trajetória ainda reinicializa nos quadros 1234 e 2926; vidas $08, sem conclusão de fase ou Game Over demonstrado.
 
-Os 16 seletores prioritários continuam sem cobertura confirmada: `$8215:2/3`, `$9664:1`, `$C27F:18/20/21/22/23` e `$C88F:16–22/29`. O teste `obstacle` alcança página 2/`x=$C6` e entra na rotina de queda; o pulso em frame 750 pode ter chegado antes de a animação anterior terminar.
+O perfil subiu para 64 pares callsite/seletor, 12 callsites e 52 destinos. Novos pares: $9664:8 -> $9B41 e $9664:25 -> $9B01. A telemetria em $C907 mostrou ID $12 ativo sob selector 18 em vários slots; isso comprova seu despacho de tipo, mas $C27F:18 na rotina de inicialização segue ausente. Os 16 seletores prioritários ainda não foram observados nos callsites específicos.
 
-## Próximo experimento
+Próxima ação: registrar coordenadas em alta resolução só quando a página do jogador for >= 3 ou game_task=$0B, para localizar o bloqueio em mundo-X 1244 e orientar nova sequência de salto. Em paralelo, investigar os pares $9664:8/25 e como chegar a $9664:1 por transição legítima de objetos/área.
 
-Adicionei `obstacle-phase`: tenta salto no frame 675, outro no 750 e depois espaça pulsos em 75 frames (28 frames `RIGHT+A+B`, seguidos de `RIGHT+B`). É uma hipótese a validar, não um resultado. Os sete cenários anteriores permanecem como regressão; o oitavo rodará no mesmo harness de referência, runner sem interpretador e diferencial de hashes/áudio.
+Progresso ponderado atualizado de 22,0% para 22,4%, um ajuste pequeno pela adição de dois pares dinâmicos e uma rota mais longa com paridade. ROM intacta, C gerado temporário; sem build Xenon/PowerPC, XEX ou teste físico.
 
-**CI da nova alteração pendente.** Progresso ponderado **22%**. ROM intacta, C gerado temporário; sem build Xenon/PowerPC, XEX ou teste físico.
-
----
 
 ---
 

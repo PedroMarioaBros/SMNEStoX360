@@ -1,16 +1,16 @@
-# CHECKPOINT ATUAL — contexto de dispatcher validado; salto por fase em teste (23/10/2026)
+# CHECKPOINT ATUAL — oitavo cenário aprovado; progressão aumentou (23/10/2026)
 
-**Branch:** `research/nesrecomp-evaluation-20261018`  
-**PR ativa:** [#20](https://github.com/PedroMarioaBros/SMNEStoX360/pull/20)  
-**Última CI aprovada:** push [39987103779 — SUCCESS](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39987103779) e PR [39987112324 — SUCCESS](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39987112324), commit `3650b2c17148ca47ef2d8181b96725ba1215377f`.
+Branch: research/nesrecomp-evaluation-20261018  
+PR ativa: [#20](https://github.com/PedroMarioaBros/SMNEStoX360/pull/20)  
+CIs de código: push [39990420329 — SUCCESS](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39990420329), PR [39990426882 — SUCCESS](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39990426882), commit 7f4d0cae87d6a804c4aa2d8d150fbd1c4ee71ef7.
 
-- Sete cenários aprovados: **24.600 quadros**, hashes por quadro iguais, PCM/WAV idêntico byte a byte, zero `NATIVE_COVERAGE_MISS`. O runner experimental segue sem unidade nem símbolo do interpretador.
-- Uma CI intermediária falhou por bug no próprio log: `\\n` literal juntava mensagens e o coletor reconhecia 37 pares em vez de 62; o miss em `$9061` por `$8234:2` foi resolvido corrigindo a quebra de linha. A CI corrigida passou com 62 pares e zero misses.
-- O perfil tem 420 registros contextuais. `$C27F` viu IDs `00/02/04/05/06/0E`; `$C88F` viu selectors 0/26, com ID `$12` ativo no selector genérico 0, mas não no callsite `$C27F:18`.
-- Os 16 seletores prioritários seguem sem cobertura confirmada. `obstacle` continua bloqueando em página 2/`x=$C6`; a nova alteração adiciona contexto em `$C907` e um cenário `obstacle-phase`. **Essa alteração aguarda CI.**
-- Progresso ponderado **22%**. ROM intacta; C gerado temporário. Sem XEX ou teste físico.
+- Oito cenários passaram: 28.200 quadros, oito conjuntos de hashes por quadro e oito saídas PCM/WAV idênticas byte a byte. Zero NATIVE_COVERAGE_MISS; cpu6502_interp.c e cpu_interp_step ausentes do runner experimental.
+- obstacle-phase chegou à página 4/x=$DC, mundo-X 1244, quadro 1080: 534 pixels além do máximo anterior. Houve reinicializações nos quadros 1234 e 2926; vidas $08; não há conclusão de fase provada.
+- O perfil subiu de 62 para 64 pares, 12 callsites e 52 destinos. Pares novos: $9664:8 -> $9B41 e $9664:25 -> $9B01.
+- $C907:18 foi observado com ID $12 ativo em slots diferentes. Isso comprova o despacho de tipo, mas $C27F:18 na inicialização permanece sem observação. Os 16 seletores prioritários seguem sem confirmação no callsite específico.
+- Progresso ponderado: 22,4% (P3 16%; P5 62%). ROM intacta; C gerado temporário; sem build Xenon/PowerPC, XEX ou teste físico.
 
-**Próximo gate:** validar os oito cenários e examinar os contextos em `$C907`. Só contar cobertura quando o par callsite/seletor aparecer no perfil.
+Próximo gate: instrumentar coordenadas em maior resolução somente quando página >= 3 ou game_task=$0B, localizar o bloqueio em mundo-X 1244 e ajustar os inputs com base nos quadros exatos. Em paralelo, investigar $9664:8/25 e a rota legítima para $9664:1.
 
 ---
 

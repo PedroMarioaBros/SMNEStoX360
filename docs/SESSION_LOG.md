@@ -6,6 +6,18 @@ A identidade do commit que contém uma entrada pode ser consultada no histórico
 
 
 
+## S026 — 23/10/2026, oitavo cenário e avanço de 534 pixels
+
+- Código testado: 7f4d0cae87d6a804c4aa2d8d150fbd1c4ee71ef7. Push CI [39990420329 — SUCCESS](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39990420329); PR CI [39990426882 — SUCCESS](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39990426882).
+- Oito cenários passaram: 28.200 quadros, hashes/trace por quadro iguais, PCM/WAV idêntico byte a byte em todos, zero NATIVE_COVERAGE_MISS; a unidade/símbolo do interpretador permanece ausente.
+- obstacle-phase alcançou mundo-X 1244 (página 4, x=$DC, quadro 1080), comparado ao mundo-X 710 (página 2, x=$C6) anterior: avanço de 534 pixels. Reinicializou nos quadros 1234 e 2926; vidas $08; fase completa não demonstrada.
+- O perfil dinâmico foi de 62 para 64 pares callsite/seletor, 12 callsites e 52 destinos. Pares novos: $9664:8 -> $9B41 e $9664:25 -> $9B01.
+- Contextos $C907:18 mostraram ID bruto $12 ativo (flag=1) nos slots 0, 1 e 2 em vários roteiros. Isso explica seu dispatch de tipo em runtime; $C27F:18 no dispatcher de inicialização continua não observado.
+- Os 16 seletores prioritários seguem sem confirmação.
+- Progresso ponderado mudou de 22,0% para 22,4%: P3 foi recalibrado de 15% para 16%, P5 de 60% para 62%, por dois pares novos e uma rota mais longa com paridade host. P6–P8 permanecem em 0%; sem build Xenon, XEX ou teste físico.
+- Próximo passo: registrar coordenadas em maior resolução só na página >= 3 ou game_task=$0B, localizar o primeiro quadro de bloqueio em mundo-X 1244 e ajustar o timing de salto. Manter os oito cenários como regressão.
+
+
 ## S025 — 23/10/2026, correção de perfil e teste de salto por fase
 
 - HEAD validado: `3650b2c17148ca47ef2d8181b96725ba1215377f`; CIs [39987103779 — SUCCESS](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39987103779) e [39987112324 — SUCCESS](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39987112324).

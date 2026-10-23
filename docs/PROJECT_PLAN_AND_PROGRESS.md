@@ -3,7 +3,7 @@
 **Revisão:** 23/10/2026  
 **Branch de trabalho:** `research/nesrecomp-evaluation-20261018`  
 **PR de avaliação:** [#20 — Evaluate NESRecomp against the canonical SMB_v026 ROM](https://github.com/PedroMarioaBros/SMNEStoX360/pull/20)  
-**Últimas CIs validadas:** [push 39987103779 — success](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39987103779) e [PR 39987112324 — success](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39987112324), commit `3650b2c17148ca47ef2d8181b96725ba1215377f`.
+**Últimas CIs validadas:** [push 39990420329 — success](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39990420329) e [PR 39990426882 — success](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39990426882), código no commit `7f4d0cae87d6a804c4aa2d8d150fbd1c4ee71ef7`.
 
 Este é o plano de referência para comunicar andamento, decisões, dependências e critérios de aceite. Percentuais são estimativas de conclusão de entregáveis, ponderadas por importância para o produto final; não representam linhas de código, tempo gasto ou garantia de prazo.
 
@@ -49,23 +49,23 @@ Os pesos abaixo somam 100%. A coluna “conclusão estimada” mede a etapa; “
 |---|---|---:|---:|---:|
 | P1 | Requisitos, ROM canônica, hash e política do projeto documentados | 5% | 100% | 5,0% |
 | P2 | Avaliação de arquitetura/recompilador, licença e prova inicial de geração C | 10% | 60% | 6,0% |
-| P3 | Recompilação estática, fluxo de controle e remoção completa do interpretador em toda a ROM | 20% | 15% | 3,0% |
+| P3 | Recompilação estática, fluxo de controle e remoção completa do interpretador em toda a ROM | 20% | 16% | 3,2% |
 | P4 | Runtime NES completo e integrado (CPU/PPU/APU/mapper/DMA/IRQ/entrada/tempo) | 20% | 10% | 2,0% |
-| P5 | Testes de host, cobertura determinística e paridade diferencial de estado/vídeo/áudio | 10% | 60% | 6,0% |
+| P5 | Testes de host, cobertura determinística e paridade diferencial de estado/vídeo/áudio | 10% | 62% | 6,2% |
 | P6 | Toolchain Xenon/PowerPC, ABI, CRT/startup, imports e build nativo | 15% | 0% | 0,0% |
 | P7 | Integração Xbox: ciclo de vida, vídeo, controles, áudio e desempenho | 10% | 0% | 0,0% |
 | P8 | QA final, empacotamento, reprodutibilidade, documentação e aceite | 10% | 0% | 0,0% |
-|  | **Total ponderado do projeto** | **100%** |  | **22,0%** |
+|  | **Total ponderado do projeto** | **100%** |  | **22,4%** |
 
-**Percentual de planejamento adotado nesta revisão: 22%.** É uma estimativa ponderada de progresso técnico em relação ao produto final, não uma afirmação de que 22% do jogo já esteja pronto. A estimativa anterior de 20% era uma medida aproximada por marcos; a presente tabela explicita pesos e reduz o risco de confundir uma boa prova de host com portabilidade Xbox concluída. Recalcular após cada gate relevante e explicar qualquer alteração de método.
+**Percentual de planejamento adotado nesta revisão: 22,4%.** É uma estimativa ponderada de progresso técnico em relação ao produto final, não uma afirmação de que 22,4% do jogo já esteja pronto. A estimativa anterior de 20% era uma medida aproximada por marcos; a presente tabela explicita pesos e reduz o risco de confundir uma boa prova de host com portabilidade Xbox concluída. Recalcular após cada gate relevante e explicar qualquer alteração de método.
 
 ### Interpretação por etapa
 
 - **P1 — 100%:** ROM, hash, regras e limites estão registrados e verificáveis.
 - **P2 — 60%:** geração C e execução de pesquisa estão provadas, mas arquitetura final, licença e viabilidade do alvo Xenon ainda não estão aprovadas.
-- **P3 — 15%:** o build experimental sem interpretador passou em caminhos observados; 6 de 18 candidatos de dispatcher ainda não foram observados, e a cobertura global continua sem prova. Os 17 seeds derivados de perfil são temporários e não constituem solução geral.
+- **P3 — 16%:** o build experimental sem interpretador passou nos caminhos observados; o perfil contém 64 pares callsite/seletor e 52 destinos. Os 16 seletores prioritários seguem ausentes nos seus callsites específicos, e a cobertura global continua sem prova. Os seeds derivados de perfil são temporários.
 - **P4 — 10%:** há um runner de referência funcional no host para testes, mas integração completa/aceite dos componentes do NES para o produto final ainda não foi demonstrada.
-- **P5 — 60%:** a infraestrutura de teste diferencial está funcional; sete cenários totalizam 24.600 quadros comparados e sete saídas PCM/WAV coincidentes. Faltam cobertura de seletores/fluxo ampla, transições e fases, além de critérios independentes de vídeo/áudio.
+- **P5 — 62%:** oito cenários totalizam 28.200 quadros comparados e oito saídas PCM/WAV coincidentes byte a byte. Um roteiro passou 534 pixels além do bloqueio anterior, mas ainda reinicializa. Faltam cobertura ampla de seletores/fluxo, transições e fases e critérios independentes de vídeo/áudio.
 - **P6–P8 — 0%:** nenhum build Xenon/PowerPC final, XEX de produto ou aceite Xbox foi demonstrado neste fluxo de trabalho.
 
 ## 4. Procedimentos e gates de engenharia
@@ -164,4 +164,4 @@ Não contar como progresso concluído: tempo de execução, tentativa sem evidê
 7. Depois dos gates host, iniciar o trabalho de toolchain Xenon/PowerPC e executável mínimo.
 8. Integrar o jogo ao Xbox e preparar release somente após os gates anteriores.
 
-**Estado da etapa atual (23/10/2026):** a CI [39919520366](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39919520366) concluiu success e validou os snapshots `[SMB_STATE]`. Seis roteiros/21.000 quadros continuaram passando sem interpretador, com paridade de estado/trace e PCM/WAV. Os snapshots mostram os cenários atuais estagnando por volta da página 2, x≈$D2, e depois reinicializando; nenhum dos 16 seletores prioritários foi observado. A próxima CI instrumenta `$0746/$0747` e adiciona um cenário de salto antecipado; o progresso ponderado continua **22%**. Nenhum build Xenon/PowerPC, XEX ou teste físico foi realizado.
+**Estado da etapa atual (23/10/2026):** as CIs [39990420329](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39990420329) e [39990426882](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39990426882) passaram no commit `7f4d0ca`. Oito roteiros/28.200 quadros passaram com hash por quadro e PCM/WAV iguais, zero `NATIVE_COVERAGE_MISS` e runner experimental sem interpretador. O cenário obstacle-phase avançou do mundo-X 710 para 1244 e produziu dois pares adicionais em `$9664`; os 16 seletores prioritários seguem sem cobertura confirmada. Progresso ponderado: **22,4%**. Nenhum build Xenon/PowerPC, XEX ou teste físico foi realizado.

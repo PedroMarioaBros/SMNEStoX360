@@ -124,3 +124,17 @@ O commit que adiciona `[DISPATCH_CONTEXT]` conserva os testes anteriores; o perf
 contém apenas combinações de contexto únicas para não reintroduzir o volume excessivo
 de logs. **A nova telemetria ainda depende de CI**. A ROM não é editada e nenhum seed
 de execução é adicionado por esta análise.
+
+
+## Passagem 6 — paridade validada e progressão de salto por fase (23/10/2026)
+
+A versão 7f4d0cae87d6a804c4aa2d8d150fbd1c4ee71ef7 passou nas duas CIs: [push 39990420329](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39990420329) e [PR 39990426882](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39990426882).
+
+- Oito cenários / 28.200 quadros. Hashes/trace coincidiram por quadro e PCM/WAV foi idêntico byte a byte em todos; zero NATIVE_COVERAGE_MISS, cpu6502_interp.c fora do build e cpu_interp_step ausente.
+- obstacle-phase avançou de mundo-X 710 a 1244 (+534 pixels), página 4/x=$DC no quadro 1080. Reinicializou depois nos quadros 1234 e 2926; não é conclusão de fase nem Game Over demonstrado.
+- O perfil foi de 62 para 64 pares de dispatcher (12 callsites / 52 destinos). Pares novos: $9664:8 -> $9B41 e $9664:25 -> $9B01. O seletor prioritário $9664:1 continua ausente.
+- Contextos $C907:18 mostraram ID bruto $12 ativo (flag=1) nos slots 0, 1 e 2. Isso comprova o despacho de execução do tipo $12, mas não o dispatcher de inicialização $C27F:18, que segue sem observação.
+- Os 16 seletores prioritários permanecem pendentes.
+- Progresso ponderado estimado: 22,4%. O ajuste pequeno reflete dois pares dinâmicos novos e uma rota mais longa com paridade host; integração Xenon/PowerPC, XEX e teste físico continuam sem iniciar.
+
+Próxima ação: instrumentação temporária de coordenadas apenas em página >= 3 ou game_task=$0B para encontrar o primeiro quadro de bloqueio em mundo-X 1244, evitando snapshots indiscriminados para a ROM inteira.
