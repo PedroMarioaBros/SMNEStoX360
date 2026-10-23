@@ -107,7 +107,7 @@ static void cyc_profile_context(uint16_t callsite, uint8_t selector, const uint8
             seen->area_style == context.area_style && seen->area_type == context.area_type) return;
     }
     if (cyc_profile_context_seen_count >= CYC_PROFILE_MAX_CONTEXTS) {
-        fprintf(stderr, "[DISPATCH_CONTEXT_ERROR] context cap exceeded\\n");
+        fprintf(stderr, "[DISPATCH_CONTEXT_ERROR] context cap exceeded\n");
         return;
     }
     cyc_profile_context_seen[cyc_profile_context_seen_count++] = context;
@@ -115,7 +115,7 @@ static void cyc_profile_context(uint16_t callsite, uint8_t selector, const uint8
         "[DISPATCH_CONTEXT] frame=%u callsite=$%04X selector=%u slot_x=$%02X "
         "enemy_id=$%02X enemy_flag_active=%u enemy_state_class=$%02X "
         "timer0747=$%02X starflag0746=$%02X oper_mode=$%02X mode_task=$%02X "
-        "world=$%02X area=$%02X area_style=$%02X area_type=$%02X\\n",
+        "world=$%02X area=$%02X area_style=$%02X area_type=$%02X\n",
         cyc_profile_state_frame, context.callsite, context.selector,
         context.slot_x, context.slot_id, context.enemy_flag_active,
         context.enemy_state_class, ram[0x0747], ram[0x0746], context.oper_mode,
