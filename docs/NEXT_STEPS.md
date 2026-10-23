@@ -1,4 +1,20 @@
-# PRIORIDADE ATUAL — avaliar NESRecomp antes de expandir o tradutor próprio
+# PRIORIDADE ATUAL — perfil dirigido com telemetria de estado (23/10/2026)
+
+**Última CI verificada antes desta alteração:** [run 39778074358 — SUCCESS](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39778074358), head anterior `6e94f561f7274f0368929e1c73b0e1c22e0863d0`. PR [#20](https://github.com/PedroMarioaBros/SMNEStoX360/pull/20) continua aberta; PR #19 permanece pausada.
+
+A CI executou seis roteiros determinísticos (idle 600, route 600, jump 1.800, long 3.600, extended 9.000, run-only 5.400): **21.000 quadros**. Em todos os seis, o runner temporário sem interpretador registrou 100% de ciclos nativos, hashes de estado/trace iguais por quadro e PCM/WAV idêntico ao runner de referência. A inspeção confirmou `cpu6502_interp.c` fora do `build.ninja` e `cpu_interp_step` ausente dos símbolos. A geração C continua temporária (5 arquivos; 545.655 bytes; 14.397 linhas).
+
+O perfil registrou **62 pares únicos (callsite,seletor), 12 callsites e 50 destinos** (antes: 57 pares/47 destinos), mas nenhum dos 16 seletores priorizados apareceu: `$8215:2/3`, `$9664:1`, `$C27F:18/20/21/22/23` e `$C88F:16–22/29`. Logo, a estimativa global não sobe de **22%**. Os 21.000 quadros comprovam paridade amostrada, não cobertura integral nem execução no Xbox 360.
+
+## Próxima tarefa executável
+
+O script `tools/prepare_nesrecomp_dispatch_profile.py` está sendo instrumentado para emitir snapshots `[SMB_STATE]` na fronteira de frame quando modo/tarefa/nível/vidas/IDs mudarem e a cada 60 quadros, incluindo coordenadas do jogador. O resultado dessa instrumentação ainda depende da CI acionada por este commit.
+
+Com os snapshots, desenhar inputs por objetivo em vez de prolongar sequências às cegas: vitória para `$8215:2`, Game Over para `$8215:3`, estilo de área para `$9664:1`, objetos IDs `$12/$14–$17`, `$24–$2A` e `$31`; para `$C987`, monitorar `$0747 == 0`, e para `$D2E5`, `$0746 < 5`. Só contar um par se aparecer no perfil dinâmico; depois todos os roteiros precisam passar sem `NATIVE_COVERAGE_MISS`, com hashes/frame e PCM/WAV idênticos. Sem seeds arbitrários, XEX ou teste físico.
+
+---
+
+# HISTÓRICO — avaliar NESRecomp antes de expandir o tradutor próprio
 
 **Ordem atual do proprietário — 19/10/2026:** pausar a expansão de
 `tools/static6502_poc.py` enquanto avaliamos o recompilador genérico

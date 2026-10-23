@@ -1093,3 +1093,14 @@ A identidade do commit que contém uma entrada pode ser consultada no histórico
 - CI disparada pela PR #20: [run 39777011225](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39777011225). Na última consulta, o job `evaluate` ainda estava `in_progress`; logs completos ainda não estavam disponíveis. Não declarar sucesso/falha até conclusão.
 - Próxima análise deve verificar se a referência observou algum novo par callsite/seletor; especialmente `$8215:2/3`, `$9664:1`, `$C27F:18/20/21/22/23`, `$C88F:16–22/29`. Se os novos roteiros não alcançarem os seletores, registrar isso e ajustar o desenho dos inputs sem semear endereços arbitrários.
 - O gate final dos seis roteiros continua: ROM/hash intactos; runner sem interpretador; zero `NATIVE_COVERAGE_MISS`; hashes por quadro coincidentes; PCM/WAV byte idêntico. Até esses resultados, progresso ponderado continua **22%**. Sem build Xenon/PowerPC, XEX ou teste físico.
+
+## 23/10/2026 — revisão da CI ampliada e próximo experimento dirigido
+
+- Estado no início do ciclo: branch `research/nesrecomp-evaluation-20261018`, commit `6e94f561f7274f0368929e1c73b0e1c22e0863d0`, PR #20 aberta; PR #19 pausada.
+- Inspecionei os logs reais de [CI 39778074358](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39778074358), que terminou `success`.
+- A CI cobriu seis roteiros: idle 600, route 600, jump 1.800, long 3.600, extended 9.000, run-only 5.400 = **21.000 quadros**. Em todos, o runtime temporário sem interpretador chegou ao fim, rodou com 100% de ciclos nativos, e hashes por quadro e PCM/WAV coincidiram com a referência.
+- O perfil produziu 62 pares únicos (callsite,seletor), 12 callsites e 50 destinos. Os seletores da análise estática ainda não foram atingidos: `$8215:2/3`, `$9664:1`, `$C27F:18/20/21/22/23`, `$C88F:16–22/29`. Os roteiros mais longos não bastaram; usar observabilidade de estado antes de definir novas rotas.
+- Percentual ponderado permanece **22%**: amostra diferencial maior, porém nenhum alvo de cobertura pendente ganhou confirmação dinâmica e o port Xenon/PowerPC/XEX não começou.
+- Próximo experimento: modificar o profiler temporário para emitir snapshots `[SMB_STATE]` da RAM nos limites de frame. O código da instrumentação está nesta atualização e ainda precisa ser validado pela próxima CI.
+- Depois, construir cenários por estado/objeto; só contar um par após observá-lo na referência, seguido de regressão sem interpretador com miss=0, hashes iguais e PCM/WAV idêntico.
+- Nenhum XEX foi gerado, nenhum teste físico foi solicitado; ROM intacta, C gerado não publicado.

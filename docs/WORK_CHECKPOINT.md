@@ -1,4 +1,22 @@
-# CHECKPOINT ATUAL — estudo de viabilidade NESRecomp (19/10/2026)
+# CHECKPOINT ATUAL — seis roteiros, cobertura e próximo diagnóstico (23/10/2026)
+
+**Branch:** `research/nesrecomp-evaluation-20261018`  
+**PR ativa:** [#20](https://github.com/PedroMarioaBros/SMNEStoX360/pull/20)  
+**Última CI concluída e verificada antes desta alteração:** [39778074358 — success](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39778074358), commit `6e94f561f7274f0368929e1c73b0e1c22e0863d0`.
+
+- ROM canônica preservada: 40.976 bytes; SHA-256 `57fb4ee14288853bc0c8a5a629a103e51e87a4ebae1cc699b435060d2690b047`.
+- Seis roteiros temporários sem interpretador passaram: 21.000 quadros totais, 100% ciclos nativos em cada roteiro, hashes/trace por quadro e PCM/WAV byte a byte iguais ao runner de referência.
+- Inspeção estrutural: `cpu6502_interp.c` ausente de `build.ninja`; `cpu_interp_step` ausente dos símbolos.
+- Perfil: 62 pares únicos, 12 callsites e 50 destinos; antes havia 57 pares/47 destinos.
+- **Bloqueio:** os 16 pares prioritários seguem sem confirmação dinâmica: `$8215:2/3`, `$9664:1`, `$C27F:18/20/21/22/23`, `$C88F:16/17/18/19/20/21/22/29`. Não confundir relações estáticas com cobertura de execução.
+- Progresso ponderado segue **22%**. Não houve build Xenon/PowerPC, XEX novo, teste físico, nem publicação do C gerado.
+- A instrumentação temporária `[SMB_STATE]` está sendo acrescentada para registrar modo/subtarefa, mundo/área, vidas, posição do jogador e IDs dos inimigos. Essa nova instrumentação precisa passar na CI ainda não verificada.
+
+**Próxima ação:** validar os logs `[SMB_STATE]` da próxima CI e preparar rotas dirigidas para VictoryMode/GameOverMode, estilo de área e spawn de objetos IDs `$12/$14–$17`, `$24–$2A`, `$31`. Acompanhar `$0747 == 0` para `$C987` e `$0746 < 5` para `$D2E5`. Não prolongar sequências indiscriminadamente, não adicionar seeds sem evidência e não gerar XEX/não solicitar teste físico nesta fase.
+
+---
+
+## Checkpoint anterior — estudo de viabilidade NESRecomp (19/10/2026)
 
 A pedido do proprietário, a expansão do tradutor próprio está temporariamente
 pausada para avaliar o framework genérico NESRecomp usando

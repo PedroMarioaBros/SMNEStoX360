@@ -1,9 +1,9 @@
 # Plano mestre do projeto — SMB_v026 → Xbox 360 nativo
 
-**Revisão:** 22/10/2026  
+**Revisão:** 23/10/2026  
 **Branch de trabalho:** `research/nesrecomp-evaluation-20261018`  
 **PR de avaliação:** [#20 — Evaluate NESRecomp against the canonical SMB_v026 ROM](https://github.com/PedroMarioaBros/SMNEStoX360/pull/20)  
-**Última CI validada:** [run 39434891134 — success](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39434891134)
+**Última CI validada:** [run 39778074358 — success](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39778074358)
 
 Este é o plano de referência para comunicar andamento, decisões, dependências e critérios de aceite. Percentuais são estimativas de conclusão de entregáveis, ponderadas por importância para o produto final; não representam linhas de código, tempo gasto ou garantia de prazo.
 
@@ -26,9 +26,9 @@ Critérios obrigatórios:
 - ROM canônica validada por tamanho e SHA-256 na CI.
 - NESRecomp, fixado em uma revisão específica, compilou e gerou C a partir da ROM em CI.
 - Em um runner experimental, o interpretador foi removido do build: `cpu6502_interp.c` não aparece em `build.ninja`, e o símbolo `cpu_interp_step` não aparece no executável.
-- Um perfil observou 57 combinações únicas de callsite/seletor em 12 dos 18 candidatos brutos a `JSR $8E04`; as chamadas e palavras de tabela observadas foram verificadas contra os bytes da ROM.
-- Quatro roteiros de host passaram sem interpretador, totalizando 6.600 quadros, com hashes de estado/trace iguais por quadro e PCM/WAV idêntico byte a byte.
-- A CI mais recente, run 39434891134, concluiu com success. O relatório da última análise dinâmica é `docs/evidence/INLINE_DISPATCH_PROFILE_20261020.md`; a revisão estática posterior dos seis candidatos é `docs/evidence/UNOBSERVED_DISPATCH_STATIC_REVIEW_20261022.md`.
+- O perfil atualizado da CI [39778074358](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39778074358) registrou 62 pares únicos (callsite/seletor) em 12 callsites e 50 destinos; as palavras inline observadas foram verificadas contra os bytes da ROM.
+- Seis roteiros passaram sem interpretador, totalizando 21.000 quadros, com hashes de estado/trace iguais por quadro e PCM/WAV idêntico byte a byte nos seis roteiros. A inspeção confirmou `cpu6502_interp.c` fora do build e `cpu_interp_step` ausente do executável experimental.
+- A revisão estática posterior está em `docs/evidence/UNOBSERVED_DISPATCH_STATIC_REVIEW_20261022.md`. Nenhum dos 16 pares callsite/seletor priorizados apareceu nos perfis atuais; a cobertura integral continua aberta.
 
 ### O que ainda não foi provado
 - Cobertura de todos os caminhos, seletores, estados e fases do jogo.
@@ -163,4 +163,4 @@ Não contar como progresso concluído: tempo de execução, tentativa sem evidê
 7. Depois dos gates host, iniciar o trabalho de toolchain Xenon/PowerPC e executável mínimo.
 8. Integrar o jogo ao Xbox e preparar release somente após os gates anteriores.
 
-**Estado da etapa atual (22/10/2026):** a última CI dinâmica concluída continua sendo [39434891134](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39434891134) — success. Os caminhos estáticos para os seis candidatos foram relacionados a seletores nas tabelas parentais; `tools/analyze_unobserved_dispatchers.py` foi integrado ao harness/CI. A CI [39775826447](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39775826447) estava em andamento no momento deste registro. O baseline ponderado permanece **22%**, pois nenhum caminho adicional foi confirmado dinamicamente. Próximo passo: perfil dirigido dos seletores listados; não produzir XEX nem pedir teste físico nesta fase.
+**Estado da etapa atual (23/10/2026):** a CI [39778074358](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39778074358) concluiu success. Foram comparados seis roteiros e 21.000 quadros, com runtime experimental sem interpretador, hashes por quadro idênticos e PCM/WAV idêntico. O perfil encontrou 62 pares/50 destinos em 12 callsites, mas não observou nenhum dos 16 seletores priorizados (`$8215:2/3`, `$9664:1`, `$C27F:18/20/21/22/23`, `$C88F:16–22/29`). O baseline ponderado permanece **22%**, porque nenhum alvo novo de cobertura foi confirmado e não há build Xenon/PowerPC, XEX ou teste físico. Próximo passo: adicionar snapshots temporários `[SMB_STATE]` e planejar roteiros de gameplay por estado/objeto.

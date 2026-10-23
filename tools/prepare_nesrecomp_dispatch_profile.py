@@ -49,7 +49,7 @@ def main() -> int:
     replace_once(
         run_c,
         '#include "hw_internal.h"\n',
-        '#include "hw_internal.h"\n#include "cpu6502.h"\n#include <stdio.h>\n',
+        '#include "hw_internal.h"\n#include "cpu6502.h"\n#include <stdio.h>\nvoid cyc_profile_state_tick(void);\n',
     )
     hook = r'''
 /* Evaluation-only profiler for SMB_v026's inline-argument tail dispatcher.
@@ -94,10 +94,58 @@ void cyc_profile_dispatch(uint16_t pc, bool from_interpreter) {
 
 '''
 
+    state_hook = r'''
+/* Evaluation-only SMB_v026 progress telemetry. Samples RAM at frame boundaries;
+ * it does not modify CPU registers, bus activity or emulated cycles. */
+static unsigned cyc_profile_state_frame;
+static uint8_t cyc_profile_last_state[15];
+static bool cyc_profile_have_state;
+
+void cyc_profile_state_tick(void) {
+    const uint8_t *ram = cyc_cpu_ram();
+    uint8_t state[15] = {
+        ram[0x0770], ram[0x0772], ram[0x000E], ram[0x075F], ram[0x075C],
+        ram[0x075A], ram[0x006D], ram[0x0086], ram[0x00CE],
+        ram[0x0016], ram[0x0017], ram[0x0018],
+        ram[0x0019], ram[0x001A], ram[0x001B]
+    };
+    static const uint8_t relevant[] = {0, 1, 2, 3, 4, 5, 9, 10, 11, 12, 13, 14};
+    bool changed = !cyc_profile_have_state;
+    if (!changed) {
+        for (unsigned i = 0; i < sizeof(relevant); ++i) {
+            unsigned k = relevant[i];
+            if (state[k] != cyc_profile_last_state[k]) {
+                changed = true;
+                break;
+            }
+        }
+    }
+    if (changed || (cyc_profile_state_frame % 60u) == 0u) {
+        fprintf(stderr,
+                "[SMB_STATE] frame=%u mode=$%02X mode_task=$%02X game_task=$%02X "
+                "world=$%02X area=$%02X lives=$%02X player_page=$%02X player_x=$%02X "
+                "player_y=$%02X enemy_ids=$%02X,$%02X,$%02X,$%02X,$%02X,$%02X\n",
+                cyc_profile_state_frame,
+                state[0], state[1], state[2], state[3], state[4], state[5],
+                state[6], state[7], state[8], state[9], state[10], state[11],
+                state[12], state[13], state[14]);
+    }
+    for (unsigned i = 0; i < sizeof(state); ++i) cyc_profile_last_state[i] = state[i];
+    cyc_profile_have_state = true;
+    cyc_profile_state_frame++;
+}
+
+'''
+    replace_once(
+        run_c,
+        "void cyc_run_frame(void) {\n    hw_frame_done = hw_frame_end_hit = false;",
+        "void cyc_run_frame(void) {\n    cyc_profile_state_tick();\n    hw_frame_done = hw_frame_end_hit = false;",
+    )
+
     replace_once(
         run_c,
         "/* One dispatch at an instruction boundary: recompiled ROM code, a compiled\n",
-        hook + "/* One dispatch at an instruction boundary: recompiled ROM code, a compiled\n",
+        state_hook + hook + "/* One dispatch at an instruction boundary: recompiled ROM code, a compiled\n",
     )
     interp_file = cyc / "cpu6502_interp.c"
     replace_once(
@@ -112,10 +160,13 @@ void cyc_profile_dispatch(uint16_t pc, bool from_interpreter) {
         raise SystemExit("ERROR: profile hook is not installed in native opcode fetch")
     if "[INLINE_DISPATCH_PROFILE]" not in source or "decoded_target=$%04X" not in source:
         raise SystemExit("ERROR: dynamic dispatch target reporting is missing")
+    if "[SMB_STATE]" not in source or "cyc_profile_state_tick();" not in source:
+        raise SystemExit("ERROR: per-frame SMB state telemetry is missing")
     if "cyc_profile_dispatch(cpu.pc, true);" not in interp_file.read_text(encoding="utf-8"):
         raise SystemExit("ERROR: profile hook was not installed in interpreter fetch")
     print("Applied temporary inline-dispatch profile hook to native fetch and interpreter steps.")
     print("Each observed $8E04 entry reports caller, selector, inline table word, and decoded target.")
+    print("Reference profiling also emits [SMB_STATE] snapshots for mode/tasks, level, lives, player coordinates and enemy IDs.")
     return 0
 
 

@@ -1,6 +1,6 @@
 # NESRecomp feasibility evaluation — SMB_v026
 
-Status: **first-stage generation passed in GitHub Actions; deeper coverage/runtime checks remain pending**.
+Status: **generation and six sampled differential host scenarios pass in CI; full selector coverage and Xbox/XEX port remain pending**.
 
 ## Decision being tested
 
@@ -299,3 +299,17 @@ The evaluator was subsequently expanded with two deterministic exploration scena
 These scenarios are exploratory rather than guaranteed triggers for the missing selectors. Their acceptance still depends on CI results: the interpreter-enabled profile must record any newly reached parent callsite/selector; then the no-interpreter runner must complete without a coverage miss and pass frame-hash and PCM/WAV parity. No results are claimed for this expanded matrix until its workflow run completes.
 
 The static checker and additional inputs do not change the canonical ROM, do not modify permanent seed/configuration files, and do not produce an Xbox executable. The weighted project estimate remains 22% pending new dynamic evidence.
+
+## Six-scenario host differential result — 23/10/2026
+
+CI [39778074358](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39778074358) passed on commit `6e94f561f7274f0368929e1c73b0e1c22e0863d0`. Six deterministic scripts ran: idle (600 frames), route (600), jump (1,800), long (3,600), extended (9,000), and run-only (5,400), totalling **21,000 frames**.
+
+For every script, the experimental runner was rebuilt without `cpu6502_interp.c`; the build manifest and executable symbol table confirmed no `cpu6502_interp.c` translation unit and no `cpu_interp_step` symbol. Each no-interpreter scenario reported 100.0% native cycles and completed without a coverage miss. Per-frame state/trace hashes matched the interpreter-enabled reference for all 21,000 tested frames; 48 kHz mono 16-bit PCM/WAV metadata and payload were byte-identical for each scenario. The five generated C files (545,655 bytes / 14,397 lines) remained in a temporary CI directory and were not uploaded or committed.
+
+The expanded dispatcher profile recorded **62 unique (callsite, selector) pairs across 12 callsites and 50 destinations**, compared with 57 pairs / 47 destinations in the earlier four-scenario report. The 16 statically prioritized pairs still did not appear: `$8215:2`, `$8215:3`, `$9664:1`, `$C27F:18/20/21/22/23`, and `$C88F:16/17/18/19/20/21/22/29`. The static graph remains a hypothesis for those dynamic paths, not coverage evidence.
+
+**Interpretation:** sampled host-route confidence improved, but the weighted estimate remains 22% because no new target path was dynamically confirmed. These tests do not prove full-ROM reachability/correctness, Xenon/PowerPC compatibility, Xbox API integration, XEX boot, physical playability, or acceptance of the upstream noncommercial license.
+
+## Next instrumentation step — pending CI
+
+`tools/prepare_nesrecomp_dispatch_profile.py` is being extended to emit temporary `[SMB_STATE]` snapshots at frame boundaries whenever relevant state changes and every 60 frames. Fields include mode/subtask, world/area, lives, player coordinates, and enemy IDs. The purpose is to build directed routes for victory/game-over, area style, and enemy/object-specific dispatchers rather than simply lengthening the same input sequence. Treat this as pending until the CI triggered by that script change passes and its output is inspected. No XEX and no physical test are authorized at this stage.
