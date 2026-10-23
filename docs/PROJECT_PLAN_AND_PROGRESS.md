@@ -3,7 +3,7 @@
 **Revisão:** 23/10/2026  
 **Branch de trabalho:** `research/nesrecomp-evaluation-20261018`  
 **PR de avaliação:** [#20 — Evaluate NESRecomp against the canonical SMB_v026 ROM](https://github.com/PedroMarioaBros/SMNEStoX360/pull/20)  
-**Última CI validada:** [run 39778074358 — success](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39778074358)
+**Última CI validada:** [run 39919520366 — success](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39919520366)
 
 Este é o plano de referência para comunicar andamento, decisões, dependências e critérios de aceite. Percentuais são estimativas de conclusão de entregáveis, ponderadas por importância para o produto final; não representam linhas de código, tempo gasto ou garantia de prazo.
 
@@ -26,9 +26,9 @@ Critérios obrigatórios:
 - ROM canônica validada por tamanho e SHA-256 na CI.
 - NESRecomp, fixado em uma revisão específica, compilou e gerou C a partir da ROM em CI.
 - Em um runner experimental, o interpretador foi removido do build: `cpu6502_interp.c` não aparece em `build.ninja`, e o símbolo `cpu_interp_step` não aparece no executável.
-- O perfil atualizado da CI [39778074358](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39778074358) registrou 62 pares únicos (callsite/seletor) em 12 callsites e 50 destinos; as palavras inline observadas foram verificadas contra os bytes da ROM.
-- Seis roteiros passaram sem interpretador, totalizando 21.000 quadros, com hashes de estado/trace iguais por quadro e PCM/WAV idêntico byte a byte nos seis roteiros. A inspeção confirmou `cpu6502_interp.c` fora do build e `cpu_interp_step` ausente do executável experimental.
-- A revisão estática posterior está em `docs/evidence/UNOBSERVED_DISPATCH_STATIC_REVIEW_20261022.md`. Nenhum dos 16 pares callsite/seletor priorizados apareceu nos perfis atuais; a cobertura integral continua aberta.
+- A CI [39919520366](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39919520366) validou a instrumentação temporária `[SMB_STATE]` sem quebrar a avaliação. O perfil anterior tinha 62 pares únicos (callsite/seletor), 12 callsites e 50 destinos.
+- Seis roteiros passaram sem interpretador, totalizando 21.000 quadros, com hashes de estado/trace iguais por quadro e PCM/WAV idêntico byte a byte. A inspeção confirmou `cpu6502_interp.c` fora do build e `cpu_interp_step` ausente do executável experimental.
+- Os snapshots mostram os roteiros atuais estagnando/caindo perto da página 2, x≈$D2, com reinicialização; não houve conclusão de fase nem Game Over observado, e os 16 seletores prioritários seguem sem confirmação. A próxima CI inclui `$0746/$0747` e uma rota de salto antecipado.
 
 ### O que ainda não foi provado
 - Cobertura de todos os caminhos, seletores, estados e fases do jogo.
@@ -163,4 +163,4 @@ Não contar como progresso concluído: tempo de execução, tentativa sem evidê
 7. Depois dos gates host, iniciar o trabalho de toolchain Xenon/PowerPC e executável mínimo.
 8. Integrar o jogo ao Xbox e preparar release somente após os gates anteriores.
 
-**Estado da etapa atual (23/10/2026):** a CI [39778074358](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39778074358) concluiu success. Foram comparados seis roteiros e 21.000 quadros, com runtime experimental sem interpretador, hashes por quadro idênticos e PCM/WAV idêntico. O perfil encontrou 62 pares/50 destinos em 12 callsites, mas não observou nenhum dos 16 seletores priorizados (`$8215:2/3`, `$9664:1`, `$C27F:18/20/21/22/23`, `$C88F:16–22/29`). O baseline ponderado permanece **22%**, porque nenhum alvo novo de cobertura foi confirmado e não há build Xenon/PowerPC, XEX ou teste físico. Próximo passo: adicionar snapshots temporários `[SMB_STATE]` e planejar roteiros de gameplay por estado/objeto.
+**Estado da etapa atual (23/10/2026):** a CI [39919520366](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39919520366) concluiu success e validou os snapshots `[SMB_STATE]`. Seis roteiros/21.000 quadros continuaram passando sem interpretador, com paridade de estado/trace e PCM/WAV. Os snapshots mostram os cenários atuais estagnando por volta da página 2, x≈$D2, e depois reinicializando; nenhum dos 16 seletores prioritários foi observado. A próxima CI instrumenta `$0746/$0747` e adiciona um cenário de salto antecipado; o progresso ponderado continua **22%**. Nenhum build Xenon/PowerPC, XEX ou teste físico foi realizado.

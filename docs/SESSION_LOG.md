@@ -1104,3 +1104,12 @@ A identidade do commit que contém uma entrada pode ser consultada no histórico
 - Próximo experimento: modificar o profiler temporário para emitir snapshots `[SMB_STATE]` da RAM nos limites de frame. O código da instrumentação está nesta atualização e ainda precisa ser validado pela próxima CI.
 - Depois, construir cenários por estado/objeto; só contar um par após observá-lo na referência, seguido de regressão sem interpretador com miss=0, hashes iguais e PCM/WAV idêntico.
 - Nenhum XEX foi gerado, nenhum teste físico foi solicitado; ROM intacta, C gerado não publicado.
+
+## 23/10/2026 — snapshots de gameplay aprovados; teste de salto antecipado preparado
+
+- CI [39919520366](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39919520366) terminou `success` no commit `b78b93cd0e1f810e6ea79e4cbedc86f315e01b12`.
+- A instrumentação temporária `[SMB_STATE]` compilou e emitiu snapshots; os seis cenários/21.000 quadros mantiveram paridade de hash por quadro e PCM/WAV byte a byte, runtime sem interpretador e 100% de ciclos nativos.
+- O perfil de estado mostrou modo de jogo `$01`, progressão até página 2 / x≈`$D2`, depois `game_task=$06` e reinicialização. O campo vidas permaneceu `$08`; não há vitória nem Game Over demonstrado.
+- IDs em `$0016-$001B` observados: `$02,$05,$06,$0E,$12,$18,$2E`. O ID `$12` em RAM não ocasionou o seletor 18 em `$C27F`; não confundir presença de dados com prova de execução do caminho.
+- Próxima mudança: incluir `$0746/$0747` nos snapshots para avaliar condições dos caminhos `$D2E5/$C987`, e testar cenário `obstacle` com saltos de 28 frames iniciados cedo, seguido de 32 frames de RIGHT+B. Os seis roteiros anteriores ficam como regressão.
+- Percentual ponderado fica em **22%**. Sem XEX novo, teste físico, alteração da ROM ou publicação do C gerado.

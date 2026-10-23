@@ -98,18 +98,19 @@ void cyc_profile_dispatch(uint16_t pc, bool from_interpreter) {
 /* Evaluation-only SMB_v026 progress telemetry. Samples RAM at frame boundaries;
  * it does not modify CPU registers, bus activity or emulated cycles. */
 static unsigned cyc_profile_state_frame;
-static uint8_t cyc_profile_last_state[15];
+static uint8_t cyc_profile_last_state[17];
 static bool cyc_profile_have_state;
 
 void cyc_profile_state_tick(void) {
     const uint8_t *ram = cyc_cpu_ram();
-    uint8_t state[15] = {
+    uint8_t state[17] = {
         ram[0x0770], ram[0x0772], ram[0x000E], ram[0x075F], ram[0x075C],
         ram[0x075A], ram[0x006D], ram[0x0086], ram[0x00CE],
         ram[0x0016], ram[0x0017], ram[0x0018],
-        ram[0x0019], ram[0x001A], ram[0x001B]
+        ram[0x0019], ram[0x001A], ram[0x001B],
+        ram[0x0746], ram[0x0747]
     };
-    static const uint8_t relevant[] = {0, 1, 2, 3, 4, 5, 9, 10, 11, 12, 13, 14};
+    static const uint8_t relevant[] = {0, 1, 2, 3, 4, 5, 9, 10, 11, 12, 13, 14, 15, 16};
     bool changed = !cyc_profile_have_state;
     if (!changed) {
         for (unsigned i = 0; i < sizeof(relevant); ++i) {
@@ -124,11 +125,12 @@ void cyc_profile_state_tick(void) {
         fprintf(stderr,
                 "[SMB_STATE] frame=%u mode=$%02X mode_task=$%02X game_task=$%02X "
                 "world=$%02X area=$%02X lives=$%02X player_page=$%02X player_x=$%02X "
-                "player_y=$%02X enemy_ids=$%02X,$%02X,$%02X,$%02X,$%02X,$%02X\n",
+                "player_y=$%02X cond0746=$%02X cond0747=$%02X "
+                "enemy_ids=$%02X,$%02X,$%02X,$%02X,$%02X,$%02X\n",
                 cyc_profile_state_frame,
                 state[0], state[1], state[2], state[3], state[4], state[5],
-                state[6], state[7], state[8], state[9], state[10], state[11],
-                state[12], state[13], state[14]);
+                state[6], state[7], state[8], state[15], state[16],
+                state[9], state[10], state[11], state[12], state[13], state[14]);
     }
     for (unsigned i = 0; i < sizeof(state); ++i) cyc_profile_last_state[i] = state[i];
     cyc_profile_have_state = true;

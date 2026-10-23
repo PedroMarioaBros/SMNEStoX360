@@ -313,3 +313,11 @@ The expanded dispatcher profile recorded **62 unique (callsite, selector) pairs 
 ## Next instrumentation step — pending CI
 
 `tools/prepare_nesrecomp_dispatch_profile.py` is being extended to emit temporary `[SMB_STATE]` snapshots at frame boundaries whenever relevant state changes and every 60 frames. Fields include mode/subtask, world/area, lives, player coordinates, and enemy IDs. The purpose is to build directed routes for victory/game-over, area style, and enemy/object-specific dispatchers rather than simply lengthening the same input sequence. Treat this as pending until the CI triggered by that script change passes and its output is inspected. No XEX and no physical test are authorized at this stage.
+
+## State telemetry result and jump-timing test — 23/10/2026
+
+CI [39919520366](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39919520366) passed after introducing temporary `[SMB_STATE]` snapshots. The six previous scenarios still ran 21,000 frames without the interpreter and matched per-frame hashes and PCM/WAV byte-for-byte against the reference.
+
+Snapshots show that existing scripted inputs enter gameplay but repeatedly reach around player page 2 / X=$D2, stall or fall, enter game subtask `$06`, and reset the stage. Lives stayed at `$08`; neither level completion nor Game Over was demonstrated. Values in object-ID slots `$0016-$001B` included `$02, $05, $06, $0E, $12, $18, $2E`. Although `$12` appeared in those RAM slots, the profiler did not observe `$C27F` selector 18. The contents of an object-ID slot therefore do not by themselves prove a dispatch branch executed.
+
+The next evaluation update adds `$0746` and `$0747` to telemetry to inspect the conditions for `$D2E5` and `$C987`. It also adds a separate `obstacle` route alternating 28-frame RIGHT+A+B phases and 32-frame RIGHT+B phases starting after gameplay entry. Existing six routes remain unchanged as regression. Treat the experiment as pending until CI and per-frame/PCM differential checks pass. No XEX or console test.

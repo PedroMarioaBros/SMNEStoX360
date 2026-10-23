@@ -179,6 +179,19 @@ cat > "$TMP/native-run-only.input" <<'INPUT'
 102 RIGHT+B
 INPUT
 
+# Separate candidate: a full jump/run cycle starts before the previous barrier.
+{
+  cat <<'INPUT'
+0 -
+100 START
+102 -
+INPUT
+  for ((FRAME=270; FRAME<3600; FRAME+=60)); do
+    printf '%d RIGHT+A+B\n' "$FRAME"
+    printf '%d RIGHT+B\n' "$((FRAME + 28))"
+  done
+} > "$TMP/native-obstacle.input"
+
 echo "=== Instrument interpreter-enabled reference for inline dispatch ==="
 python3 "$ROOT/tools/prepare_nesrecomp_dispatch_profile.py" "$TMP/nesrecomp"
 cmake -S "$TMP/nesrecomp/runner/cyc/project" -B "$TMP/build-reference" -G Ninja \
@@ -195,7 +208,7 @@ if [[ ! -x "$REFERENCE" ]]; then
 fi
 
 : > "$TMP/dispatch-profile.log"
-for SCENARIO in idle route jump long extended run-only; do
+for SCENARIO in idle route jump long extended run-only obstacle; do
   INPUT_FILE=""
   case "$SCENARIO" in
     idle) FRAMES=600 ;;
@@ -204,6 +217,7 @@ for SCENARIO in idle route jump long extended run-only; do
     long) FRAMES=3600; INPUT_FILE="$TMP/native-long.input" ;;
     extended) FRAMES=9000; INPUT_FILE="$TMP/native-extended.input" ;;
     run-only) FRAMES=5400; INPUT_FILE="$TMP/native-run-only.input" ;;
+    obstacle) FRAMES=3600; INPUT_FILE="$TMP/native-obstacle.input" ;;
   esac
   ARGS=(--frames "$FRAMES")
   if [[ -n "$INPUT_FILE" ]]; then ARGS+=(--input "$INPUT_FILE"); fi
@@ -253,7 +267,7 @@ if grep -q 'cpu_interp_step' "$TMP/runtime-symbols.txt"; then
 fi
 echo "Runtime inspection: cpu6502_interp.c absent from build.ninja; cpu_interp_step absent from executable symbols."
 
-for SCENARIO in idle route jump long extended run-only; do
+for SCENARIO in idle route jump long extended run-only obstacle; do
   INPUT_FILE=""
   case "$SCENARIO" in
     idle) FRAMES=600 ;;
@@ -262,6 +276,7 @@ for SCENARIO in idle route jump long extended run-only; do
     long) FRAMES=3600; INPUT_FILE="$TMP/native-long.input" ;;
     extended) FRAMES=9000; INPUT_FILE="$TMP/native-extended.input" ;;
     run-only) FRAMES=5400; INPUT_FILE="$TMP/native-run-only.input" ;;
+    obstacle) FRAMES=3600; INPUT_FILE="$TMP/native-obstacle.input" ;;
   esac
   ARGS=(--frames "$FRAMES")
   if [[ -n "$INPUT_FILE" ]]; then ARGS+=(--input "$INPUT_FILE"); fi
@@ -281,7 +296,7 @@ done
 echo "Interpreter-free deterministic coverage passed using profile-observed dispatcher targets."
 echo "These profile targets exist only in $TMP/runtime-config.toml; the repository config and canonical ROM are unchanged."
 
-for SCENARIO in idle route jump long extended run-only; do
+for SCENARIO in idle route jump long extended run-only obstacle; do
   INPUT_FILE=""
   case "$SCENARIO" in
     idle) FRAMES=600 ;;
@@ -290,6 +305,7 @@ for SCENARIO in idle route jump long extended run-only; do
     long) FRAMES=3600; INPUT_FILE="$TMP/native-long.input" ;;
     extended) FRAMES=9000; INPUT_FILE="$TMP/native-extended.input" ;;
     run-only) FRAMES=5400; INPUT_FILE="$TMP/native-run-only.input" ;;
+    obstacle) FRAMES=3600; INPUT_FILE="$TMP/native-obstacle.input" ;;
   esac
   NATIVE_HASH="$TMP/native-$SCENARIO.hash"
   REFERENCE_HASH="$TMP/reference-$SCENARIO.hash"

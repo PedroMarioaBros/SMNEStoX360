@@ -1,16 +1,14 @@
-# PRIORIDADE ATUAL — perfil dirigido com telemetria de estado (23/10/2026)
+# PRIORIDADE ATUAL — seguir o estado do jogo e testar salto dirigido (23/10/2026)
 
-**Última CI verificada antes desta alteração:** [run 39778074358 — SUCCESS](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39778074358), head anterior `6e94f561f7274f0368929e1c73b0e1c22e0863d0`. PR [#20](https://github.com/PedroMarioaBros/SMNEStoX360/pull/20) continua aberta; PR #19 permanece pausada.
+**Última CI concluída:** [run 39919520366 — SUCCESS](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39919520366), commit `b78b93cd0e1f810e6ea79e4cbedc86f315e01b12`. PR #20 continua aberta; PR #19 permanece pausada.
 
-A CI executou seis roteiros determinísticos (idle 600, route 600, jump 1.800, long 3.600, extended 9.000, run-only 5.400): **21.000 quadros**. Em todos os seis, o runner temporário sem interpretador registrou 100% de ciclos nativos, hashes de estado/trace iguais por quadro e PCM/WAV idêntico ao runner de referência. A inspeção confirmou `cpu6502_interp.c` fora do `build.ninja` e `cpu_interp_step` ausente dos símbolos. A geração C continua temporária (5 arquivos; 545.655 bytes; 14.397 linhas).
+A instrumentação `[SMB_STATE]` passou na CI. Os seis cenários anteriores continuaram com 21.000 quadros comparados, 100% de ciclos nativos, hashes por quadro iguais e PCM/WAV idêntico ao runner de referência. Mais de mil snapshots de estado foram emitidos na referência.
 
-O perfil registrou **62 pares únicos (callsite,seletor), 12 callsites e 50 destinos** (antes: 57 pares/47 destinos), mas nenhum dos 16 seletores priorizados apareceu: `$8215:2/3`, `$9664:1`, `$C27F:18/20/21/22/23` e `$C88F:16–22/29`. Logo, a estimativa global não sobe de **22%**. Os 21.000 quadros comprovam paridade amostrada, não cobertura integral nem execução no Xbox 360.
+## O que os snapshots mostraram
 
-## Próxima tarefa executável
+Os roteiros atuais entram no gameplay (`mode=$01`) mas, no 1-1, repetidamente chegam à página 2 perto de `x=$D2`, ficam presos ou caem, passam por `game_task=$06` e reinicializam. O valor de vidas permaneceu `$08`; isso não prova Game Over. Os estados vistos em `$0016-$001B` incluíram `$02, $05, $06, $0E, $12, $18, $2E`, mas a presença de um ID em RAM **não significa** que a tabela específica de `$C27F` ou `$C88F` foi despachada. Nenhum dos 16 seletores prioritários apareceu no perfil.
 
-O script `tools/prepare_nesrecomp_dispatch_profile.py` está sendo instrumentado para emitir snapshots `[SMB_STATE]` na fronteira de frame quando modo/tarefa/nível/vidas/IDs mudarem e a cada 60 quadros, incluindo coordenadas do jogador. O resultado dessa instrumentação ainda depende da CI acionada por este commit.
-
-Com os snapshots, desenhar inputs por objetivo em vez de prolongar sequências às cegas: vitória para `$8215:2`, Game Over para `$8215:3`, estilo de área para `$9664:1`, objetos IDs `$12/$14–$17`, `$24–$2A` e `$31`; para `$C987`, monitorar `$0747 == 0`, e para `$D2E5`, `$0746 < 5`. Só contar um par se aparecer no perfil dinâmico; depois todos os roteiros precisam passar sem `NATIVE_COVERAGE_MISS`, com hashes/frame e PCM/WAV idênticos. Sem seeds arbitrários, XEX ou teste físico.
+A próxima alteração registra também `$0746` e `$0747`, condições explícitas dos caminhos `$D2E5`/`$C987`, e inclui o cenário `obstacle` com saltos mais longos e antecipados, mantendo os seis roteiros anteriores como regressão. A hipótese é que o timing dos inputs contribui para o bloqueio em x≈$D2; o novo teste vai confirmar ou rejeitar isso.
 
 ---
 
