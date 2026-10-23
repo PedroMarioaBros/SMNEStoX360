@@ -1,16 +1,17 @@
-# CHECKPOINT ATUAL — cenário obstacle analisado; cobertura dinâmica segue pendente (23/10/2026)
+# CHECKPOINT ATUAL — telemetria reduzida validada; cobertura de dispatch pendente (23/10/2026)
 
 **Branch:** `research/nesrecomp-evaluation-20261018`  
 **PR ativa:** [#20](https://github.com/PedroMarioaBros/SMNEStoX360/pull/20)  
-**Última rodada concluída:** push [39921081582 — SUCCESS](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39921081582) e PR [39921086708 — SUCCESS](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39921086708), commit `3c64fcad12e36d380b6972365c3a77ad129fe3dc`.
+**Última rodada validada:** push [39923036457 — SUCCESS](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39923036457) e PR [39923040038 — SUCCESS](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39923040038), commit `32c22083f0e936ff5284134c624b4aeefdc96c24`.
 
-- Sete cenários foram validados em runtime temporário sem interpretador: **24.600 quadros**, zero `NATIVE_COVERAGE_MISS`, hashes por quadro iguais à referência e sete PCM/WAV byte a byte iguais. `cpu6502_interp.c` não aparece no build e `cpu_interp_step` não está nos símbolos do binário de teste.
-- `obstacle` chegou no máximo à página 2, `x=$C6` (quadro 775); caiu/reinicializou nos quadros 985, 1763 e 3087. Vidas permaneceram `$08`; não foi demonstrado fim de fase nem Game Over.
-- Perfil de dispatch permanece em 62 pares únicos, 12 callsites e 50 destinos. Os 16 seletores prioritários (em `$8215`, `$9664`, `$C27F` e `$C88F`) não foram alcançados.
-- `$0746` permaneceu `$00`; `$0747` diminui a cada quadro durante `game_task=$0B`. A telemetria foi ajustada neste commit para evitar imprimir toda a contagem regressiva e ainda registrar valores `$00–$05`; **a CI desta nova amostragem está pendente**.
-- Percentual global ponderado **22%**. ROM canônica intacta; C gerado apenas em diretório temporário. Nenhum build Xenon/PowerPC, XEX ou teste físico.
+- Sete cenários passaram no runner temporário sem interpretador: **24.600 quadros**, zero `NATIVE_COVERAGE_MISS`, hashes/trace por quadro iguais à referência e sete PCM/WAV idênticos byte a byte. `cpu6502_interp.c` ficou fora de `build.ninja`; `cpu_interp_step` está ausente dos símbolos do runner experimental.
+- A telemetria filtrada foi validada. O log de CI caiu de 2.315.428 para 431.490 bytes (~81% menor); a amostragem preserva mudanças discretas, periodicidade de 60 frames e mudanças de `$0747` quando o byte chega a `$05–$00`.
+- Nos ciclos de queda observados, `$0747=$30` aparece com `game_task=$06`; no estado seguinte, `$0747=$00` e `game_task=$00`. Isso não prova que a condição de `$C987` seja alcançada durante o despacho dos tipos 36–42.
+- `obstacle` chegou no máximo à página 2, `x=$C6` (quadro 775); caiu/reinicializou nos quadros 985, 1763 e 3087. Vidas permaneceram `$08`; não foi demonstrado fim de fase ou Game Over.
+- Perfil permanece em 62 pares únicos, 12 callsites e 50 destinos. Os 16 seletores em `$8215`, `$9664`, `$C27F` e `$C88F` ainda não foram alcançados dinamicamente.
+- Progresso global ponderado **22%**. ROM canônica intacta; C gerado apenas em diretório temporário. Nenhum build Xenon/PowerPC, XEX ou teste físico.
 
-**Próximo gate:** validar a redução do ruído e usar o próximo perfil para decidir quais condições/callers precisam de inputs dirigidos. Só contar um caminho como coberto quando a seleção de dispatcher aparecer efetivamente no log.
+**Próximo gate:** instrumentar os dispatchers parentais e as condições reais, sem inserir seeds arbitrários. Só contar um caminho como coberto quando o par callsite/seletor aparecer efetivamente nos logs.
 
 ---
 

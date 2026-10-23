@@ -102,6 +102,17 @@ The second result used a temporary patch, `tools/nesrecomp-data-region-vector.pa
 
 **Interpretation:** the reported single tail is not necessary for the configured static code walk when the IRQ target is explicitly classified as data. This is progress, not architecture approval. It does not prove the IRQ path can never occur, and intentionally omits the code from `$FFF0`; if a real IRQ arrives there, this generated build would no longer contain a handler for it. Before treating the annotation as correct, verify from the canonical ROM and runtime behavior that the title does not rely on IRQ service, and build/test a runtime with the interpreter entirely removed (not merely unused). No runner execution, no differential gameplay test, no XEX and no Xbox test occurred.
 
+## Follow-up telemetry validation — CI success (23/10/2026)
+
+Commit `32c22083f0e936ff5284134c624b4aeefdc96c24` passed both [push run 39923036457](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39923036457) and [PR run 39923040038](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39923040038). The temporary state profiler now avoids a line for every decrement of `$0747`: it records discrete-state changes, one periodic snapshot per 60 frames, and low-value changes when the counter reaches `$05–$00`.
+
+- The CI log shrank from 2,315,428 to 431,490 bytes (about 81% smaller), while the harness still ran all seven deterministic scenarios.
+- All **24,600** sampled frames matched the reference state/trace hashes; PCM/WAV matched byte-for-byte in all seven; zero `NATIVE_COVERAGE_MISS`; the interpreter source unit remains out of `build.ninja` and `cpu_interp_step` remains absent from runner symbols.
+- In death/reset states, `$0747=$30` appears alongside `game_task=$06`, then the next observed reset state has `$0747=$00` and `game_task=$00`. This confirms the low-value sampling is active, but does not prove the `$0747==0` condition was met on the object dispatcher path at `$C987`.
+- The summary line in `tools/evaluate_nesrecomp.sh` previously said “all six deterministic scenarios” despite running seven. This commit corrects the displayed count to seven; it does not alter the test route.
+
+Dynamic selector coverage remains unchanged at **62 pairs / 12 callsites / 50 targets**, with all 16 priority selectors still unobserved. The weighted project estimate remains **22%**; no XEX/Xenon output or physical Xbox test.
+
 ## Latest directed gameplay/dispatch profile — CI success (23/10/2026)
 
 The test commit `3c64fcad12e36d380b6972365c3a77ad129fe3dc` passed both the push run [39921081582](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39921081582) and PR run [39921086708](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39921086708). The run added a 3,600-frame `obstacle` sequence that alternates 28 frames of `RIGHT+A+B` with 32 frames of `RIGHT+B`; the six previous scenarios were retained as regressions.

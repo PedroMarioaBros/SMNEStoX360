@@ -1,22 +1,24 @@
-# PRIORIDADE ATUAL — perfilar condição real dos dispatchers (23/10/2026)
+# PRIORIDADE ATUAL — perfilar seletores ausentes com telemetria validada (23/10/2026)
 
-**Última CI aprovada:** commit `3c64fcad12e36d380b6972365c3a77ad129fe3dc`; push [39921081582 — SUCCESS](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39921081582) e PR [39921086708 — SUCCESS](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39921086708). A PR #20 segue aberta; PR #19 continua pausada.
+**Última CI aprovada:** commit `32c22083f0e936ff5284134c624b4aeefdc96c24`; push [39923036457 — SUCCESS](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39923036457) e PR [39923040038 — SUCCESS](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39923040038). A PR #20 segue aberta; PR #19 continua pausada.
 
 ## Resultado confirmado da última rodada
 
-Sete cenários passaram no runner temporário sem interpretador: idle 600, route 600, jump 1.800, long 3.600, extended 9.000, run-only 5.400 e obstacle 3.600 — **24.600 quadros no total**. O harness não encontrou `NATIVE_COVERAGE_MISS`; todos os 24.600 estados/traces por quadro coincidiram com a referência, e PCM/WAV coincidiu byte a byte nos sete cenários. Estruturalmente, `cpu6502_interp.c` ficou fora de `build.ninja` e o símbolo `cpu_interp_step` não foi ligado. Isso cobre os roteiros amostrados, não a ROM completa nem Xenon/Xbox.
+Sete cenários passaram no runner temporário sem interpretador: idle 600, route 600, jump 1.800, long 3.600, extended 9.000, run-only 5.400 e obstacle 3.600 — **24.600 quadros no total**. Nenhum `NATIVE_COVERAGE_MISS`; todos os hashes de estado/trace por quadro coincidiram com a referência, e PCM/WAV bateu byte a byte nos sete cenários. A inspeção estrutural voltou a confirmar `cpu6502_interp.c` ausente de `build.ninja` e `cpu_interp_step` ausente dos símbolos do runner experimental. É paridade somente nos roteiros amostrados; não prova cobertura integral ou compatibilidade Xenon/Xbox.
 
-A sequência `obstacle` confirmou que variar o timing de pulo não resolve o bloqueio: o máximo observado foi página 2, `x=$C6` no quadro 775; o personagem caiu/reinicializou nos quadros 985, 1763 e 3087. Vidas ficaram em `$08`, sem conclusão de fase nem Game Over demonstrado. A tentativa não alcançou os 16 seletores prioritários:
+A telemetria reduzida também passou na CI. O log caiu de 2.315.428 para **431.490 bytes** (aproximadamente 81% menor), sem alterar o comportamento do jogo ou os gates do harness. O estado agora é emitido quando campos discretos mudam, a cada 60 quadros, e quando `$0747` muda até `$05`. Nos roteiros de queda, o valor foi observado em `$30` perto de `game_task=$06`, e em seguida volta a `$00` na reinicialização (`game_task=$00`). Isso não comprova a condição `$0747==0` dentro do processamento dos tipos atendidos por `$C88F`; o perfil continua sem atingir seletores prioritários.
+
+O cenário `obstacle` continua sem superar o bloqueio: máximo página 2, `x=$C6` no quadro 775; queda/reinicialização nos quadros 985, 1763 e 3087. Vidas permaneceram `$08`, sem fim de fase nem Game Over demonstrado. O perfil mantém 62 pares únicos callsite/seletor, 12 callsites e 50 destinos. Permanecem sem observação dinâmica:
 - `$8215`: seletores 2/3;
 - `$9664`: seletor 1;
 - `$C27F`: seletores 18 e 20–23;
 - `$C88F`: seletores 16–22 e 29.
 
-O perfil total continua em 62 pares únicos callsite/seletor, 12 callsites e 50 destinos. `$0746` permaneceu `$00` nos snapshots; `$0747` apresentou uma contagem regressiva por quadro durante `game_task=$0B`, o que gerou saída excessivamente ruidosa. O instrumento foi ajustado neste commit para reduzir snapshots redundantes, preservando amostragem a cada 60 quadros, mudanças discretas do estado e valores de `$0747` de 0 a 5. **A CI desse ajuste de instrumentação ainda precisa concluir.**
-
 ## Próxima ação técnica
 
-Após validar a nova instrumentação, instrumentar de modo seletivo as entradas/condições dos candidatos `$83A3`, `$921B`, `$9743`, `$C7A8`, `$C987` e `$D2E5`, e desenhar sequências de input com base nas condições realmente observadas. Um alvo só será contado como coberto quando o par callsite/seletor aparecer no perfil. Manter os sete cenários como regressão, exigir zero misses, hashes por quadro iguais e PCM/WAV byte a byte. Progresso ponderado **22%**; ROM canônica intacta, C gerado temporário; sem XEX, build Xenon/PowerPC ou teste físico.
+Instrumentar de modo seletivo os dispatchers parentais e suas condições reais, em vez de simplesmente prolongar o teste ou inserir callsites como seeds arbitrários. Os seis candidatos estáticos são `$83A3`, `$921B`, `$9743`, `$C7A8`, `$C987` e `$D2E5`; suas rotas permanecem hipóteses estáticas até aparecer o par callsite/seletor nos logs. Manter os sete cenários como regressão, exigir zero misses, hashes por quadro iguais e PCM/WAV byte a byte. Progresso ponderado **22%**; ROM canônica intacta, C gerado temporário; sem XEX, build Xenon/PowerPC ou teste físico.
+
+---
 
 ---
 

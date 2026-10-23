@@ -5,6 +5,20 @@ Cada nova sessão deve acrescentar uma entrada, seguindo CONTINUITY_PROTOCOL.md.
 A identidade do commit que contém uma entrada pode ser consultada no histórico Git.
 
 
+
+## S023 — 23/10/2026, CI da telemetria filtrada aprovada
+
+- HEAD de entrada: `32c22083f0e936ff5284134c624b4aeefdc96c24`, branch `research/nesrecomp-evaluation-20261018`.
+- CIs do mesmo commit completaram SUCCESS: push [39923036457](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39923036457) e PR [39923040038](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39923040038).
+- `tools/prepare_nesrecomp_dispatch_profile.py` passou a reduzir a saída de snapshots repetidos sem modificar estado, barramento ou ciclos: gatilhos por mudanças discretas, periodicidade de 60 frames e mudança de `$0747` quando chega a `$05–$00`.
+- A saída de CI diminuiu de 2.315.428 para 431.490 bytes (~81% menos). O perfil de dispatch permanece em 62 pares únicos / 12 callsites / 50 destinos; os 16 seletores prioritários continuam ausentes.
+- Os sete cenários mantiveram PASS, 24.600 quadros comparados, zero `NATIVE_COVERAGE_MISS`, hashes por quadro iguais e PCM/WAV igual byte a byte. `cpu6502_interp.c` ficou fora do build experimental e `cpu_interp_step` ausente do executável de teste.
+- Nos estados de queda, `$0747=$30` é observado no `game_task=$06` e volta a `$00` quando a tarefa volta a zero; nenhum dos 16 seletores pendentes foi alcançado. O cenário `obstacle` permanece bloqueado na página 2/`x=$C6` e reinicia.
+- Correção de documentação/cabeçalho do harness: o sumário dizia “all six deterministic scenarios” apesar de executar sete; esta sessão corrige a contagem textual para sete.
+- Progresso ponderado permanece **22%**. Sem XEX, build Xenon/PowerPC ou teste físico.
+- Próximo comando após a CI deste commit: manter a regressão dos sete cenários e instrumentar a avaliação dinâmica de `$8215:2/3`, `$9664:1`, `$C27F:18/20/21/22/23` e `$C88F:16–22/29`, incluindo as condições associadas.
+
+
 ## S022 — 23/10/2026, cenário obstacle e revisão da telemetria
 
 - HEAD de entrada: `3c64fcad12e36d380b6972365c3a77ad129fe3dc`, branch `research/nesrecomp-evaluation-20261018`.
