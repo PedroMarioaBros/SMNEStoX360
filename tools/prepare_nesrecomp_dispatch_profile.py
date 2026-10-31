@@ -191,7 +191,12 @@ void cyc_profile_state_tick(void) {
             }
         }
     }
-    if (changed || counter_condition_changed ||
+    bool progress_trace_changed = cyc_profile_have_state &&
+        (state[6] >= 3u || state[2] == 0x0Bu) &&
+        (state[6] != cyc_profile_last_state[6] ||
+         state[7] != cyc_profile_last_state[7] ||
+         state[8] != cyc_profile_last_state[8]);
+    if (changed || counter_condition_changed || progress_trace_changed ||
         (cyc_profile_state_frame % 60u) == 0u) {
         fprintf(stderr,
                 "[SMB_STATE] frame=%u mode=$%02X mode_task=$%02X game_task=$%02X "
@@ -241,12 +246,14 @@ void cyc_profile_state_tick(void) {
         raise SystemExit("ERROR: downstream enemy type context profiling is missing")
     if "counter_condition_changed" not in source or "state[16] <= 5u" not in source:
         raise SystemExit("ERROR: low-value $0747 condition sampling is missing")
+    if "progress_trace_changed" not in source or "state[6] >= 3u" not in source or "state[2] == 0x0Bu" not in source:
+        raise SystemExit("ERROR: targeted late-stage player coordinate tracing is missing")
     if "cyc_profile_dispatch(cpu.pc, true);" not in interp_file.read_text(encoding="utf-8"):
         raise SystemExit("ERROR: profile hook was not installed in interpreter fetch")
     print("Applied temporary inline-dispatch profile hook to native fetch and interpreter steps.")
     print("Each observed $8E04 entry reports caller, selector, inline table word, and decoded target.")
     print("Reference profiling emits compact [DISPATCH_CONTEXT] records for mode/area/enemy-init/enemy-run/type dispatchers.")
-    print("Reference profiling emits [SMB_STATE] on discrete-state changes, every 60 frames, and when RAM[$0747] changes at values <= 5.")
+    print("Reference profiling emits [SMB_STATE] on discrete-state changes, every 60 frames, low RAM[$0747] changes, and player-coordinate changes on page >= 3 or game_task $0B.")
     return 0
 
 
