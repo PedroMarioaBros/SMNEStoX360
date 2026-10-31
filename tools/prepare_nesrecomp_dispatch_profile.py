@@ -248,6 +248,8 @@ void cyc_profile_state_tick(void) {
         raise SystemExit("ERROR: low-value $0747 condition sampling is missing")
     if "progress_trace_changed" not in source or "state[6] >= 3u" not in source:
         raise SystemExit("ERROR: targeted late-stage player coordinate tracing is missing")
+    if "state[2] == 0x0Bu" in source:
+        raise SystemExit("ERROR: broad game-task coordinate tracing would flood ordinary gameplay logs")
     if "cyc_profile_dispatch(cpu.pc, true);" not in interp_file.read_text(encoding="utf-8"):
         raise SystemExit("ERROR: profile hook was not installed in interpreter fetch")
     print("Applied temporary inline-dispatch profile hook to native fetch and interpreter steps.")
