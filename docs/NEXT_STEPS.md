@@ -1,3 +1,53 @@
+# PRIORIDADE ATUAL — refinar a segunda barreira e cobrir o parser de área (23/10/2026)
+
+Últimas CIs aprovadas para o código: commit 7f4d0cae87d6a804c4aa2d8d150fbd1c4ee71ef7; push [39990420329 — SUCCESS](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39990420329) e PR [39990426882 — SUCCESS](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39990426882).
+
+O oitavo cenário obstacle-phase passou junto aos sete cenários anteriores. Total: 28.200 quadros; oito comparações de hash/trace por quadro; oito WAV/PCM idênticos byte a byte; zero NATIVE_COVERAGE_MISS. A unidade cpu6502_interp.c e o símbolo cpu_interp_step continuam ausentes do runner experimental.
+
+O novo timing de salto produziu progressão maior: máximo de mundo-X 1244 (página 4, x=$DC, quadro 1080), contra mundo-X 710 (página 2, x=$C6) no roteiro anterior — 534 pixels a mais. A trajetória ainda reinicializa nos quadros 1234 e 2926; vidas $08, sem conclusão de fase ou Game Over demonstrado.
+
+O perfil subiu para 64 pares callsite/seletor, 12 callsites e 52 destinos. Novos pares: $9664:8 -> $9B41 e $9664:25 -> $9B01. A telemetria em $C907 mostrou ID $12 ativo sob selector 18 em vários slots; isso comprova seu despacho de tipo, mas $C27F:18 na rotina de inicialização segue ausente. Os 16 seletores prioritários ainda não foram observados nos callsites específicos.
+
+Próxima ação: registrar coordenadas em alta resolução só quando a página do jogador for >= 3 ou game_task=$0B, para localizar o bloqueio em mundo-X 1244 e orientar nova sequência de salto. Em paralelo, investigar os pares $9664:8/25 e como chegar a $9664:1 por transição legítima de objetos/área.
+
+Progresso ponderado atualizado de 22,0% para 22,4%, um ajuste pequeno pela adição de dois pares dinâmicos e uma rota mais longa com paridade. ROM intacta, C gerado temporário; sem build Xenon/PowerPC, XEX ou teste físico.
+
+
+---
+
+# HISTÓRICO — avaliar NESRecomp antes de expandir o tradutor próprio
+
+**Ordem atual do proprietário — 19/10/2026:** pausar a expansão de
+`tools/static6502_poc.py` enquanto avaliamos o recompilador genérico
+[NESRecomp](https://github.com/mstan/nesrecomp) com a ROM canônica exata.
+Não apagar a POC nem afirmar que a arquitetura final foi escolhida.
+
+- Plano/evidência: [NESRECOMP_EVALUATION.md](evidence/NESRECOMP_EVALUATION.md).
+- Harness: `bash tools/evaluate_nesrecomp.sh`.
+- Workflow: [nesrecomp-evaluation.yml](../.github/workflows/nesrecomp-evaluation.yml).
+- Upstream pin: `a39d9cdbec0ac98b1430ddb53747b5ed8f8cac87`.
+- Geração inicial: **CI SUCCESS** em [39186568820](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39186568820). Diagnóstico confirmado em [39207665461](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39207665461); teste de configuração de região de dados em [39208412755](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39208412755).
+- O harness gera código em diretório temporário e não versiona nem publica os
+  arquivos gerados. Não usa o port SMB de terceiros como base.
+- Atenção: NESRecomp documenta um interpretador de fallback; o requisito final
+  exige provar ausência desse fallback no produto. Geração C não é XEX nem prova
+  de jogabilidade no Xbox 360.
+- PR #19, que expande o tradutor próprio, fica **em pausa / sem merge por agora**
+  enquanto esta avaliação acontece: https://github.com/PedroMarioaBros/SMNEStoX360/pull/19
+
+## Estado da avaliação após a rodada mais recente
+
+Os critérios de geração inicial continuam cumpridos; a rodada de regressão de host
+também passou nos sete cenários e 24.600 quadros em [39921081582](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39921081582).
+A arquitetura ainda NÃO está aprovada: 16 seletores prioritários não foram vistos
+dinamicamente e a integração Xenon/XEX não foi iniciada. O próximo trabalho é
+validar a instrumentação de estado com menos ruído e depois perfilar os seis
+candidatos de fluxo de controle descritos acima.
+
+Diagnóstico confirmado: a única cauda no upstream sem configuração é bank 7, slot 7, CPU `$FFFF`, opcode `$FF`, comprimento 3. O vetor IRQ `$FFFE-$FFFF` aponta para `$FFF0`; a caminhada desse alvo alcança bytes de vetor/tabela como se fossem instruções. Na experiência controlada, um patch temporário fez o ciclo respeitar `[[data_region]]` e a configuração marcou bank 7, `$FFF0-$FFFE`, como dados: o baseline manteve 1 tail; o experimento passou a 1.298 instruções compiladas e 0 tails no run [39208412755](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39208412755). Isso comprova que a configuração explícita tira o falso caminho da análise estática, mas NÃO prova que o jogo nunca use IRQ nem que o runtime não contenha interpretador. Próximas tarefas: confirmar como a ROM inicializa/usa IRQ; criar cobertura/trap fail-fast para qualquer PC não compilado e provar que o interpretador foi removido do runtime; compilar e executar o runner host com inputs determinísticos e comparar estado/quadro com a referência. C gerado continua temporário; sem XEX e sem teste físico.
+
+---
+
 # PRIORIDADE ATUAL — POC-001: expandir tradutor estático 6502→C
 
 **Integrado à `main` na PR [#18](https://github.com/PedroMarioaBros/SMNEStoX360/pull/18), squash `d0822da58767ec8ee078752694e6d679445089dd`; CI host do HEAD passou no [run 39183794667](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39183794667). Implementado: `tools/static6502_poc.py` valida a ROM canônica e traduz seis instruções reais do reset ($8000-$8009) para statements C diretos. O self-test compila o C gerado com avisos estritos, verifica A/X/S/flags e callback de escrita, e confirma que opcode não suportado ($AD em $800A) é rejeitado. Evidência: [POC-001](evidence/STATIC_RECOMPILER_POC_001.md). A implementação ainda aguarda validação automatizada da branch; o teste equivalente local passou contra a ROM anexada.
@@ -330,3 +380,24 @@ Nenhuma mudança de NAND, firmware ou bootloader.
   do desbloqueio/loader, pois novo crash é possível.
   Se proprietário quiser continuar e estiver informado do risco,
   guiar SOMENTE etapa 01 inicialmente.
+
+## Próxima ação — análise dos callsites inline ainda não exercitados
+
+**Última evidência:** [run 39432801245](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39432801245) — success. Foram validados 57 pares callsite/seletor e 47 destinos diretamente contra a ROM. Quatro roteiros passaram sem interpretador; hashes por quadro iguais em 6.600 quadros e PCM/WAV idêntico byte a byte.
+
+### Tarefa ativa — caminhos parentais mapeados; cobertura dinâmica pendente
+1. Relatório `docs/evidence/UNOBSERVED_DISPATCH_STATIC_REVIEW_20261022.md` agora registra o caminho por tabela para todos os seis callsites, incluindo seletores e condições relevantes.
+2. Criado `tools/analyze_unobserved_dispatchers.py`, um verificador ROM-específico que confirma os bytes dos seis callsites, os destinos das tabelas parentais e as instruções intermediárias. O script foi ligado a `tools/evaluate_nesrecomp.sh` e à CI; isso verifica a análise estática, não prova cobertura dinâmica.
+3. Alvos para perfil dirigido: `$8215` seletores 2 e 3; `$9664` seletor 1; `$C27F` seletores 18, 20, 21, 22 e 23; `$C88F` seletores 16–22 e 29. O caminho para `$C987` também exige `$0747 == 0`; o caminho para `$D2E5` exige `$0746 < 5`.
+4. Próximo procedimento: criar cenários determinísticos e perfilá-los no runner de referência; só declarar alvo exercitado se o par callsite/seletor aparecer no log. Depois executar os cenários idênticos sem interpretador e exigir zero `NATIVE_COVERAGE_MISS`, hashes por quadro iguais e PCM/WAV byte a byte.
+5. Seeds derivados continuam temporários. Sem build Xenon/PowerPC, XEX ou teste físico.
+3. Executar cada cenário novo no runner sem interpretador, mantendo os quatro roteiros atuais como regressão. Não semear endereços só porque aparecem em bytes ou em logs.
+4. Gates obrigatórios: ROM/hash preservados, nenhuma falha `NATIVE_COVERAGE_MISS`, hashes `--hash-out` iguais por quadro, PCM/WAV igual byte a byte. Seeds derivados de perfil continuam temporários até revisão.
+5. Sem build Xenon/PowerPC, XEX ou teste físico. PR #20 permanece aberto e PR #19 sem merge.
+
+
+## Planejamento profissional e percentual ponderado — 21/10/2026
+
+Consultar [PROJECT_PLAN_AND_PROGRESS.md](PROJECT_PLAN_AND_PROGRESS.md) antes de escolher a próxima tarefa ou reportar porcentagens. O plano lista etapas P1–P8, pesos, procedimentos, gates e riscos. Base ponderada atual: **22%**; o valor não significa 22% de jogabilidade final e não é uma estimativa de prazo.
+
+**CI dinâmica anterior:** [39434891134](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39434891134) — success. A nova verificação estática foi adicionada ao harness; o run [39775826447](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39775826447) está em andamento no momento deste registro. Próxima ação: obter cobertura dinâmica dos seletores parentais identificados e exigir os mesmos gates de zero miss, hash por quadro e PCM/WAV byte a byte. Sem XEX/teste físico nesta etapa.

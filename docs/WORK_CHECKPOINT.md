@@ -1,3 +1,64 @@
+# CHECKPOINT ATUAL — oitavo cenário aprovado; progressão aumentou (23/10/2026)
+
+Branch: research/nesrecomp-evaluation-20261018  
+PR ativa: [#20](https://github.com/PedroMarioaBros/SMNEStoX360/pull/20)  
+CIs de código: push [39990420329 — SUCCESS](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39990420329), PR [39990426882 — SUCCESS](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39990426882), commit 7f4d0cae87d6a804c4aa2d8d150fbd1c4ee71ef7.
+
+- Oito cenários passaram: 28.200 quadros, oito conjuntos de hashes por quadro e oito saídas PCM/WAV idênticas byte a byte. Zero NATIVE_COVERAGE_MISS; cpu6502_interp.c e cpu_interp_step ausentes do runner experimental.
+- obstacle-phase chegou à página 4/x=$DC, mundo-X 1244, quadro 1080: 534 pixels além do máximo anterior. Houve reinicializações nos quadros 1234 e 2926; vidas $08; não há conclusão de fase provada.
+- O perfil subiu de 62 para 64 pares, 12 callsites e 52 destinos. Pares novos: $9664:8 -> $9B41 e $9664:25 -> $9B01.
+- $C907:18 foi observado com ID $12 ativo em slots diferentes. Isso comprova o despacho de tipo, mas $C27F:18 na inicialização permanece sem observação. Os 16 seletores prioritários seguem sem confirmação no callsite específico.
+- Progresso ponderado: 22,4% (P3 16%; P5 62%). ROM intacta; C gerado temporário; sem build Xenon/PowerPC, XEX ou teste físico.
+
+Próximo gate: instrumentar coordenadas em maior resolução somente quando página >= 3 ou game_task=$0B, localizar o bloqueio em mundo-X 1244 e ajustar os inputs com base nos quadros exatos. Em paralelo, investigar $9664:8/25 e a rota legítima para $9664:1.
+
+---
+
+## Checkpoint anterior — estudo de viabilidade NESRecomp (19/10/2026)
+
+A pedido do proprietário, a expansão do tradutor próprio está temporariamente
+pausada para avaliar o framework genérico NESRecomp usando
+`assets/canonical/SMB_v026.nes`. O código de POC existente é preservado, não
+foi apagado e não se declara que o tradutor atual está completo.
+
+- Plano: [NESRECOMP_EVALUATION.md](evidence/NESRECOMP_EVALUATION.md).
+- Script repetível: `bash tools/evaluate_nesrecomp.sh`.
+- CI: [NESRecomp canonical ROM evaluation](../.github/workflows/nesrecomp-evaluation.yml).
+- Commit upstream fixado: `a39d9cdbec0ac98b1430ddb53747b5ed8f8cac87`.
+- A avaliação verifica o SHA-256 da ROM, compila o gerador C do upstream,
+  executa a análise estática e confirma a geração de arquivos C no diretório
+  temporário. O código gerado não é commitado nem publicado como artifact. Resultado medido: mapper 0, PRG 2×16 KiB, vetores NMI `$8082`, RESET `$8000`, IRQ `$FFF0`; 1.305 instruções compiladas, 1 deixada para interpretador, 5 arquivos C, 545.655 bytes e 14.397 linhas.
+- **Resultado da geração: CI SUCCESS** em [run 39186504796](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39186504796). O run de métricas [39186469481](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39186469481) confirma build do gerador e análise da ROM. O container local não resolve github.com, então a validação ocorreu no runner remoto.
+- A licença upstream consultada é PolyForm Noncommercial 1.0.0; o uso de
+  pesquisa/hobby não comercial está contemplado, mas redistribuição comercial
+  não está autorizada pela licença atual. Dependências têm licenças próprias.
+- Regra intacta: não copiar/adotar o port SMB de terceiros como base. O teste
+  usa apenas o recompilador genérico com nossa ROM canônica.
+- Risco crítico: NESRecomp documenta fallback interpretado para código não
+  recompilado. O requisito final não permite interpretador 6502 em runtime.
+  A instrumentação temporária confirmou a única cauda em bank 7, slot 7,
+  CPU `$FFFF`, opcode `$FF`, tamanho 3. Run [39207665461](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39207665461) passou e contou exatamente 1 entrada, igual ao sumário do gerador.
+- Contexto: bytes `$FFFA-$FFFF = 82 80 00 80 F0 FF`; vetor IRQ = `$FFF0`.
+  O backend cycle semeia os vetores incondicionalmente e a caminhada a partir do
+  destino IRQ alcança `$FFFF` ao tratar bytes de vetor/tabela como código.
+- Controle em [run 39208412755](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39208412755): upstream pinado + telemetria reproduz 1 tail e 1.305 instruções. Um patch experimental temporário passou a respeitar `[[data_region]]` ao semear vetores; a configuração de teste declara bank 7, `$FFF0-$FFFE`, como dados. Resultado: vetor IRQ `$FFF0` pulado por anotação, 1.298 instruções compiladas e zero tails. Esta é evidência de que a anotação evita a descoberta falsa, não prova de que o jogo nunca usa IRQ.
+- Patches e config do experimento: `tools/nesrecomp-tail-diagnostic.patch`,
+  `tools/nesrecomp-data-region-vector.patch` e
+  `tools/nesrecomp_smb_v026_data_region_experiment.toml`. Aplicados apenas à
+  cópia temporária upstream. C gerado permanece não commitado/não publicado.
+  Próximas etapas: verificar uso real de IRQ e comportamento de $4017; preparar
+  runtime com trap em qualquer PC não compilado e remover totalmente o
+  interpretador 6502; provar no host runner que o jogo executa e comparar
+  estados/quadros determinísticos com a referência. Sem XEX nem teste físico.
+- PR #19 permanece aberta e sem merge durante a avaliação:
+  https://github.com/PedroMarioaBros/SMNEStoX360/pull/19
+
+**Critérios deste checkpoint:** não confundir geração C com código executável
+completo, runner validado, destino Xenon/PowerPC, XEX ou gameplay físico. Nenhum
+XEX foi gerado e nenhum novo teste físico foi solicitado.
+
+---
+
 # Checkpoint atual — POC-001 de tradução estática criada (18/10/2026)
 
 A PR [#18](https://github.com/PedroMarioaBros/SMNEStoX360/pull/18) foi integrada à `main` por squash no commit `d0822da58767ec8ee078752694e6d679445089dd`. A CI host exata do HEAD da PR passou no run [39183794667](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39183794667); a execução com o código tradutor também passou no run 39183681786. A primeira prova de conceito ROM-específica: `tools/static6502_poc.py`. Ela valida o SHA-256 canônico, extrai o PRG e converte diretamente seis instruções do reset ($8000-$8009) em statements C, sem despacho de opcode em runtime. O self-test compila C com `-std=c99 -Wall -Wextra -Werror -pedantic`, verifica registros/flags/escrita de barramento e exige rejeição do opcode $AD em $800A. O rascunho equivalente local passou; a branch inclui o self-test no script de regressão host para verificação pela CI. Evidência: [POC-001](evidence/STATIC_RECOMPILER_POC_001.md).
@@ -1013,3 +1074,31 @@ Somente semântica de hardware, nunca substituição do gameplay:
 
 Antes de finalizar a próxima sessão, atualizar este checkpoint com medidas
 novas e limites reais e confirmar commits no GitHub.
+
+## Atualização de progresso — ciclo 20/10/2026 (dispatcher verificado e PCM comparado)
+
+**CI:** [39432801245](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39432801245) — success.
+
+- Perfil de dispatcher validado contra a ROM canônica: 18 candidatos brutos `JSR $8E04`, 12 callsites observados, 57 pares callsite/seletor e 47 destinos ROM únicos.
+- A configuração temporária recebeu 17 seeds adicionais derivados do perfil. A configuração versionada e a ROM canônica não foram modificadas.
+- A tentativa de seed de todos os PCs do miss-log foi rejeitada (run 39429365074; 2.072 entradas sequenciais indevidas). A instrumentação agora registra chamadas ao dispatcher inline e valida diretamente os bytes da ROM.
+- Runtime sem interpretador: arquivo `cpu6502_interp.c` ausente de Ninja e símbolo `cpu_interp_step` ausente; quatro roteiros passaram com 100,0% dos ciclos nativos e sem `NATIVE_COVERAGE_MISS`.
+- Paridade `--hash-out`: todos os 6.600 quadros em quatro roteiros; PCM/WAV 48 kHz mono 16-bit idêntico byte a byte nos quatro cenários.
+
+**Percentuais estimados:** ROM/geração C isolada 100%; remoção estrutural do interpretador experimental 100%; equivalência por quadro e PCM 100% apenas nos roteiros amostrados; cobertura integral permanece em aberto; Xenon/PowerPC/XEX e teste físico 0%; **progresso funcional estimado 20%**.
+
+Evidência detalhada em [INLINE_DISPATCH_PROFILE_20261020.md](evidence/INLINE_DISPATCH_PROFILE_20261020.md). O código C gerado não foi publicado. Não gerar XEX nem solicitar teste físico.
+
+### Próximo passo
+Enumerar os 18 candidatos a `JSR $8E04`, suas tabelas inline e os seis callsites candidatos que não apareceram no perfil. Expandir os roteiros apenas após análise do PRG; manter gates de miss, hash/frame e PCM. PR #20 aberto; PR #19 pausado.
+
+
+## Plano mestre ponderado — revisão 21/10/2026
+
+- Plano de referência: [`docs/PROJECT_PLAN_AND_PROGRESS.md`](PROJECT_PLAN_AND_PROGRESS.md).
+- CI mais recente confirmada: [run 39434891134](https://github.com/PedroMarioaBros/SMNEStoX360/actions/runs/39434891134) — success.
+- Base ponderada do progresso: **22%** (estimativa, não medição de linhas/tempo). A estimativa anterior de 20% era qualitativa; o novo documento declara pesos e contribuições por etapa.
+- Entregáveis já provados: identidade da ROM; geração C experimental; remoção estrutural do interpretador no build experimental; 57 pares de dispatcher verificados contra o PRG; quatro cenários host sem interpretador; 6.600 quadros com hashes iguais e PCM/WAV idêntico byte a byte.
+- Ainda não provados: cobertura integral, arquitetura/licença final aprovada, conformidade integral NES, toolchain Xenon/PowerPC, XEX final, integração Xbox e QA de release.
+- Próxima tarefa: analisar os seis candidatos brutos ainda não observados (`$83A3`, `$921B`, `$9743`, `$C7A8`, `$C987`, `$D2E5`) e decidir quais são alcançáveis/código com base na ROM; criar roteiros determinísticos apenas com justificativa.
+- Nenhum XEX final criado ou teste físico solicitado. PR #20 continua aberto; POC próprio em PR #19 permanece pausado.
